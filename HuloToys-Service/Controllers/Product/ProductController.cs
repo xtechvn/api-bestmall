@@ -71,58 +71,98 @@ namespace WEB.CMS.Controllers
                             msg = ResponseMessages.DataInvalid
                         });
                     }
+                    // Kiểm tra các tham số giá
+                    if (request.price_from == 0) request.price_from = 0; // Mặc định là 0 nếu không có giá trị
+                    if (request.price_to == 0) request.price_to = double.MaxValue; // Mặc định là giá trị tối đa
                     if (request.keyword == null) request.keyword = "";
+                    if (request.rating == null) request.rating = 0;
+
 
                     if (request.page_size <= 0) request.page_size = 10;
                     if (request.page_index < 1) request.page_index = 1;
-                    var cache_name = CacheType.PRODUCT_LISTING + (request.keyword ?? "") + request.group_id + request.page_index + request.page_size;
-                    var j_data = await _redisService.GetAsync(cache_name, Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
-                    ProductListFEResponseModel result = null;
-                    if (j_data != null && j_data.Trim() != "")
+                    // Nếu không lọc theo giá, sử dụng cache Redis
+                    if (request.price_from == 0 && request.price_to == 0 && request.rating == 0)
                     {
-                        result = JsonConvert.DeserializeObject<ProductListFEResponseModel>(j_data);
-                        
-                    }
-                    if (result == null || result.items == null || result.items.Count <= 0)
-                    {
-                        //request.keyword = StringHelpers.NormalizeString(request.keyword);
-                        //var data = await productDetailService.ProductListing(request);
-                        result = await productDetailService.ProductListing(request);
-
-                    }
-                    if (result != null && result.items.Count > 0)
-                    {
-                        _redisService.Set(cache_name, JsonConvert.SerializeObject(result), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
-                        var list = result.items.Select(x => new
+                        var cache_name = CacheType.PRODUCT_LISTING + (request.keyword ?? "") + request.group_id + request.page_index + request.page_size;
+                        var j_data = await _redisService.GetAsync(cache_name, Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
+                        ProductListFEResponseModel result = null;
+                        if (j_data != null && j_data.Trim() != "")
                         {
-                            x._id,
-                            x.code,
-                            x.name,
-                            x.avatar,
-                            x.price,
-                            x.amount,
-                            x.amount_min,
-                            x.amount_max,
-                            x.rating,
-                            x.star,
-                            x.total_sold,
-                            x.review_count
-                        });
+                            result = JsonConvert.DeserializeObject<ProductListFEResponseModel>(j_data);
+
+                        }
+                        if (result == null || result.items == null || result.items.Count <= 0)
+                        {
+                            //request.keyword = StringHelpers.NormalizeString(request.keyword);
+                            //var data = await productDetailService.ProductListing(request);
+                            result = await productDetailService.ProductListing(request);
+
+                        }
+                        if (result != null && result.items.Count > 0)
+                        {
+                            _redisService.Set(cache_name, JsonConvert.SerializeObject(result), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
+                            var list = result.items.Select(x => new
+                            {
+                                x._id,
+                                x.code,
+                                x.name,
+                                x.avatar,
+                                x.price,
+                                x.amount,
+                                x.amount_min,
+                                x.amount_max,
+                                x.rating,
+                                x.star,
+                                x.total_sold,
+                                x.review_count
+                            });
+                            return Ok(new
+                            {
+                                status = (int)ResponseType.SUCCESS,
+                                msg = ResponseMessages.Success,
+                                data = new
+                                {
+                                    items = list,
+                                    count = result.count
+                                }
+                            });
+                        }
+                    }
+                    else
+                    {
+                        // Trường hợp có lọc theo giá, bỏ qua cache Redis và truy vấn trực tiếp cơ sở dữ liệu
+                        var result = await productDetailService.ProductListing(request);
+
+                        if (result != null && result.items.Count > 0)
+                        {
+                            // Lọc theo khoảng giá nếu có
+                            //var filteredItems = result.items.Where(x => x.amount >= request.price_from && x.amount <= request.price_to).ToList();
+                            // Lọc theo khoảng giá và rating nếu có
+                            //var filteredItems = result.items.Where(x =>
+                            //    x.amount_min >= request.price_from && x.amount_max <= request.price_to
+                            //).ToList(); 
+
+                            //// Phân trang kết quả lọc
+                            //var pagedItems = filteredItems.Skip((request.page_index - 1) * request.page_size).Take(request.page_size).ToList();
+
+                            return Ok(new
+                            {
+                                status = (int)ResponseType.SUCCESS,
+                                msg = ResponseMessages.Success,
+                                data = new
+                                {
+                                    items = result.items,
+                                    count = result.count
+                                }
+                            });
+                        }
+
                         return Ok(new
                         {
-                            status = (int)ResponseType.SUCCESS,
-                            msg = ResponseMessages.Success,
-                            data = new {
-                                items=list,
-                                count=result.count
-                            }
+                            status = (int)ResponseType.FAILED,
+                            msg = "No Items"
                         });
                     }
-                    return Ok(new
-                    {
-                        status = (int)ResponseType.FAILED,
-                        msg = "No Items"
-                    });
                 }
             }
             catch (Exception ex)

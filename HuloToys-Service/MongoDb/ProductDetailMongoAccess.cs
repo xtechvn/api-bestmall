@@ -138,42 +138,42 @@ namespace HuloToys_Service.MongoDb
                 return null;
             }
         }
-        public async Task<ProductListResponseModel> ResponseListing(string keyword = "", int group_id = -1)
-        {
-            try
-            {
-                var filter = Builders<ProductMongoDbModel>.Filter;
-                var filterDefinition = filter.Empty;
-                if (keyword != null && keyword.Trim() != "")
-                {
-                    filterDefinition |= Builders<ProductMongoDbModel>.Filter.Regex(x => x.name, keyword);
-                }
-                if (group_id > 0)
-                {
-                    filterDefinition &= Builders<ProductMongoDbModel>.Filter.Regex(x => x.group_product_id, group_id.ToString());
-                }
-                filterDefinition &= Builders<ProductMongoDbModel>.Filter.Or(
-                                                   Builders<ProductMongoDbModel>.Filter.Eq(p => p.parent_product_id, null),
-                                                   Builders<ProductMongoDbModel>.Filter.Eq(p => p.parent_product_id, "")
-                                               );
-                filterDefinition &= Builders<ProductMongoDbModel>.Filter.Eq(x => x.status, (int)ProductStatus.ACTIVE);
-                var sort_filter = Builders<ProductMongoDbModel>.Sort;
-                var sort_filter_definition = sort_filter.Descending(x => x.updated_last);
-                var model = _productDetailCollection.Find(filterDefinition).Sort(sort_filter_definition);
-                long count = await model.CountDocumentsAsync();
-                var items = await model.ToListAsync();
-                return new ProductListResponseModel()
-                {
-                    items = items,
-                    count = count
-                };
-            }
-            catch (Exception ex)
-            {
-                return null;
-            }
-        }
-        public async Task<ProductListResponseModel> ResponseListing(string keyword = "", int group_id = -1,int page_index=1,int page_size=10)
+        //public async Task<ProductListResponseModel> ResponseListing(string keyword = "", int group_id = -1)
+        //{
+        //    try
+        //    {
+        //        var filter = Builders<ProductMongoDbModel>.Filter;
+        //        var filterDefinition = filter.Empty;
+        //        if (keyword != null && keyword.Trim() != "")
+        //        {
+        //            filterDefinition |= Builders<ProductMongoDbModel>.Filter.Regex(x => x.name, keyword);
+        //        }
+        //        if (group_id > 0)
+        //        {
+        //            filterDefinition &= Builders<ProductMongoDbModel>.Filter.Regex(x => x.group_product_id, group_id.ToString());
+        //        }
+        //        filterDefinition &= Builders<ProductMongoDbModel>.Filter.Or(
+        //                                           Builders<ProductMongoDbModel>.Filter.Eq(p => p.parent_product_id, null),
+        //                                           Builders<ProductMongoDbModel>.Filter.Eq(p => p.parent_product_id, "")
+        //                                       );
+        //        filterDefinition &= Builders<ProductMongoDbModel>.Filter.Eq(x => x.status, (int)ProductStatus.ACTIVE);
+        //        var sort_filter = Builders<ProductMongoDbModel>.Sort;
+        //        var sort_filter_definition = sort_filter.Descending(x => x.updated_last);
+        //        var model = _productDetailCollection.Find(filterDefinition).Sort(sort_filter_definition);
+        //        long count = await model.CountDocumentsAsync();
+        //        var items = await model.ToListAsync();
+        //        return new ProductListResponseModel()
+        //        {
+        //            items = items,
+        //            count = count
+        //        };
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return null;
+        //    }
+        //}
+        public async Task<ProductListResponseModel> ResponseListing(string keyword = "", int group_id = -1,int page_index=1,int page_size=10, double? price_from = null, double? price_to = null , float? rating = null)
         {
             try
             {
@@ -217,6 +217,35 @@ namespace HuloToys_Service.MongoDb
                 {
                     filterDefinition &= Builders<ProductMongoDbModel>.Filter.Regex(x => x.group_product_id, group_id.ToString());
                 }
+                //// Lọc theo khoảng giá
+                //if (price_from.HasValue)
+                //{
+                //    filterDefinition &= Builders<ProductMongoDbModel>.Filter.Gte(x => x.price, price_from.Value);
+                //}
+                //if (price_to.HasValue)
+                //{
+                //    filterDefinition &= Builders<ProductMongoDbModel>.Filter.Lte(x => x.price, price_to.Value);
+                //}
+                // Lọc theo khoảng giá dựa trên amount_min và amount_max
+                // ✅ Lọc theo khoảng giá giao nhau
+                if (price_from > 0 || price_to > 0)
+                {
+                    var fromVal = price_from ?? 0;
+                    var toVal = price_to ?? double.MaxValue;
+
+                    var priceFilter = filter.And(
+                        filter.Gte(x => x.amount_max, fromVal),
+                        filter.Lte(x => x.amount_min, toVal)
+                    );
+                    filterDefinition &= priceFilter;
+                }
+                // Lọc theo rating nếu có
+                //if (rating != null)
+                //{
+                //    filterDefinition &= Builders<ProductMongoDbModel>.Filter.Gte(x => x.star, rating.Value);
+                //}
+
+
                 var sort_filter = Builders<ProductMongoDbModel>.Sort;
                 var sort_filter_definition = sort_filter.Descending(x => x.updated_last);
                 var model = _productDetailCollection.Find(filterDefinition).Sort(sort_filter_definition);

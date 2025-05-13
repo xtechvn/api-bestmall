@@ -228,17 +228,17 @@ namespace HuloToys_Service.MongoDb
                 //}
                 // Lọc theo khoảng giá dựa trên amount_min và amount_max
                 // ✅ Lọc theo khoảng giá giao nhau
-                if (price_from > 0 || price_to > 0)
-                {
-                    var fromVal = price_from ?? 0;
-                    var toVal = price_to ?? double.MaxValue;
+                //if (price_from > 0 || price_to > 0)
+                //{
+                //    var fromVal = price_from ?? 0;
+                //    var toVal = price_to ?? double.MaxValue;
 
-                    var priceFilter = filter.And(
-                        filter.Gte(x => x.amount_max, fromVal),
-                        filter.Lte(x => x.amount_min, toVal)
-                    );
-                    filterDefinition &= priceFilter;
-                }
+                //    var priceFilter = filter.And(
+                //        filter.Gte(x => x.amount_max, fromVal),
+                //        filter.Lte(x => x.amount_min, toVal)
+                //    );
+                //    filterDefinition &= priceFilter;
+                //}
                 // Lọc theo rating nếu có
                 //if (rating != null)
                 //{

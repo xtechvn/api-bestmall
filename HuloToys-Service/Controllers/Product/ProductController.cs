@@ -72,8 +72,8 @@ namespace WEB.CMS.Controllers
                         });
                     }
                     // Kiểm tra các tham số giá
-                    if (request.price_from == 0) request.price_from = 0; // Mặc định là 0 nếu không có giá trị
-                    if (request.price_to == 0) request.price_to = double.MaxValue; // Mặc định là giá trị tối đa
+                    if (request.price_from == 0 || request.price_from == null) request.price_from = 0; // Mặc định là 0 nếu không có giá trị
+                    if (request.price_to == 0 || request.price_to == null) request.price_to = double.MaxValue; // Mặc định là giá trị tối đa
                     if (request.keyword == null) request.keyword = "";
                     if (request.rating == null) request.rating = 0;
 
@@ -81,7 +81,7 @@ namespace WEB.CMS.Controllers
                     if (request.page_size <= 0) request.page_size = 10;
                     if (request.page_index < 1) request.page_index = 1;
                     // Nếu không lọc theo giá, sử dụng cache Redis
-                    if (request.price_from == 0 && request.price_to == 0 && request.rating == 0)
+                    if (request.price_from == 0 && request.price_to == double.MaxValue && request.rating == 0)
                     {
                         var cache_name = CacheType.PRODUCT_LISTING + (request.keyword ?? "") + request.group_id + request.page_index + request.page_size;
                         var j_data = await _redisService.GetAsync(cache_name, Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
@@ -136,11 +136,11 @@ namespace WEB.CMS.Controllers
                         if (result != null && result.items.Count > 0)
                         {
                             // Lọc theo khoảng giá nếu có
-                            //var filteredItems = result.items.Where(x => x.amount >= request.price_from && x.amount <= request.price_to).ToList();
-                            // Lọc theo khoảng giá và rating nếu có
+                            var filteredItems = result.items.Where(x => x.amount >= request.price_from && x.amount <= request.price_to).ToList();
+                            //Lọc theo khoảng giá và rating nếu có
                             //var filteredItems = result.items.Where(x =>
                             //    x.amount_min >= request.price_from && x.amount_max <= request.price_to
-                            //).ToList(); 
+                            //).ToList();
 
                             //// Phân trang kết quả lọc
                             //var pagedItems = filteredItems.Skip((request.page_index - 1) * request.page_size).Take(request.page_size).ToList();
@@ -151,8 +151,8 @@ namespace WEB.CMS.Controllers
                                 msg = ResponseMessages.Success,
                                 data = new
                                 {
-                                    items = result.items,
-                                    count = result.count
+                                    items = filteredItems,
+                                    count = filteredItems.Count
                                 }
                             });
                         }

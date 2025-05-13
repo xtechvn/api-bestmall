@@ -1,0 +1,20 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs
+.vs/HuloToys-Service/v17/.suo
+/App_Push_Consummer/bin
+/App_Push_Consummer/obj
+/HuloToys-Service/obj
+/Utilities/obj
+/App_Check_Out/obj
+/HuloToys-Service/bin
+/App_Check_Out/bin
+/Utilities/bin
+/App_Check_Out/Properties
+/HuloToys-Service/Properties
+HuloToys-Service/HuloToys-Service.csproj.user
+/HuloToys-Service/.config
+/.vs
+/Utilities/Properties

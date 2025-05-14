@@ -49,7 +49,8 @@ namespace API_CORE.Controllers.CACHE
                     for (int i = 0; i <= category_list_id.Length - 1; i++)
                     {
                         int category_id = Convert.ToInt32(category_list_id[i]);
-                        redisService.clear(CacheType.ARTICLE_CATEGORY_ID + "22", Convert.ToInt32(configuration["Redis:Database:db_common"]));
+                        redisService.clear(CacheType.ARTICLE_CATEGORY_ID + "0", Convert.ToInt32(configuration["Redis:Database:db_common"]));
+                        redisService.clear(CacheType.ARTICLE_CATEGORY_ID + category_id, Convert.ToInt32(configuration["Redis:Database:db_common"]));
                         redisService.clear(CacheType.CATEGORY_NEWS + "1", Convert.ToInt32(configuration["Redis:Database:db_common"]));
                         redisService.clear(CacheType.CATEGORY_NEWS + category_id, Convert.ToInt32(configuration["Redis:Database:db_common"]));
                         redisService.clear(CacheType.ARTICLE_MOST_VIEWED, Convert.ToInt32(configuration["Redis:Database:db_common"]));

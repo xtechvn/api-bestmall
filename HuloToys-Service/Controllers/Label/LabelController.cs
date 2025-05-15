@@ -38,7 +38,7 @@ namespace HuloToys_Service.Controllers.Label
         {
             //var data = new
             //{
-            //    top=40
+            //    top = 40
             //};
             //input.token = CommonHelper.Encode(JsonConvert.SerializeObject(data), _configuration["KEY:private_key"]);
             try
@@ -65,7 +65,7 @@ namespace HuloToys_Service.Controllers.Label
                     }
                     if(request.top>200)
                     {
-                        result = await _labelRepository.Listing(0, null, 1, request.top);
+                        result = await _labelRepository.Listing(0, null, null,1, request.top);
                         return Ok(new
                         {
                             status = (int)ResponseType.SUCCESS,
@@ -95,7 +95,7 @@ namespace HuloToys_Service.Controllers.Label
 
                         });
                     }
-                    result = await _labelRepository.Listing(0,null,1,200);
+                    result = await _labelRepository.Listing(0,null,null,1,200);
                     if (result != null && result.Count>0)
                     {
                         _redisService.Set(cache_name, JsonConvert.SerializeObject(result), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));

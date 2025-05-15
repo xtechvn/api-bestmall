@@ -221,7 +221,7 @@ namespace HuloToys_Service.Controllers
                 {
                     var request = JsonConvert.DeserializeObject<ClientRegisterRequestModel>(objParr[0].ToString());
                     if (request == null || request.user_name==null || request.user_name.Trim()==""
-                        || request.phone == null || request.phone.Trim() == ""
+                        
                         || request.password == null || request.password.Trim() == ""
                         || request.confirm_password == null || request.confirm_password.Trim() == ""
                         || request.password.Trim() != request.confirm_password.Trim() ) {
@@ -229,7 +229,8 @@ namespace HuloToys_Service.Controllers
                         return Ok(new
                         {
                             status = (int)ResponseType.FAILED,
-                            msg = ResponseMessages.DataInvalid
+                            msg = ResponseMessages.DataInvalid,
+                            code=ResponseCode.DataInvalid,
                         });
                     }
                     if(request.email != null && request.email.Trim() != "")
@@ -239,7 +240,8 @@ namespace HuloToys_Service.Controllers
                             return Ok(new
                             {
                                 status = (int)ResponseType.FAILED,
-                                msg = ResponseMessages.ClientEmailExists
+                                msg = ResponseMessages.ClientEmailExists,
+                                code = ResponseCode.EmailInvalid,
                             });
 
                         }
@@ -296,7 +298,8 @@ namespace HuloToys_Service.Controllers
                                 token = token,
                                 ip = ipAddress,
                                 time_expire = clientServices.GetExpiredTimeFromToken(token)
-                            }
+                            },
+                            code = ResponseCode.Success,
                         });
                     }
                     
@@ -310,13 +313,15 @@ namespace HuloToys_Service.Controllers
                 return Ok(new
                 {
                     status = (int)ResponseType.FAILED,
-                    msg = ResponseMessages.FunctionExcutionFailed
+                    msg = ResponseMessages.FunctionExcutionFailed,
+                    code = ResponseCode.ErrorOnExcution,
                 });
             }
             return Ok(new
             {
                 status = (int)ResponseType.FAILED,
-                msg = ResponseMessages.DataInvalid
+                msg = ResponseMessages.DataInvalid,
+                code = ResponseCode.DataInvalid,
             });
 
         }

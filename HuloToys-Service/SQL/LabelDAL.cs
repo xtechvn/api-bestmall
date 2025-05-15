@@ -43,17 +43,19 @@ namespace DAL
         //        return null;
         //    }
         //}
-        public async Task<List<LabelListingModel>> Listing(int status=-1, string label_name=null, int page_index = -1, int page_size = 100)
+        public async Task<List<LabelListingModel>> Listing(int status=-1, string label_name=null,string label_code=null, int page_index = -1, int page_size = 100)
         {
             try
             {
 
-                SqlParameter[] objParam = new SqlParameter[4];
-                objParam[0] = new SqlParameter("@Status", status<-1?-1:status);
-                objParam[1] = new SqlParameter("@LabelName", label_name==null?DBNull.Value: label_name);
-                objParam[2] = new SqlParameter("@PageIndex", page_index<0?-1:page_index);
-                objParam[3] = new SqlParameter("@PageSize", page_size);
-
+                SqlParameter[] objParam =
+                [
+                    new SqlParameter("@Status", status<-1?-1:status),
+                    new SqlParameter("@LabelName", label_name==null?DBNull.Value: label_name),
+                    new SqlParameter("@PageIndex", page_index<0?-1:page_index),
+                    new SqlParameter("@PageSize", page_size),
+                    new SqlParameter("@LabelCode", label_code==null?DBNull.Value: label_code),
+                ];
                 DataTable dt = _DbWorker.GetDataTable(StoreProcedureConstant.GetListLabels, objParam);
                 if (dt != null && dt.Rows.Count > 0)
                 {

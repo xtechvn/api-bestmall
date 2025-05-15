@@ -20,9 +20,9 @@ namespace Repositories.IRepositories
             dataBaseConfig = _dataBaseConfig;
         }
 
-        public async Task<List<LabelListingModel>> Listing(int status = -1, string label_name = null, int page_index = 1, int page_size = 100)
+        public async Task<List<LabelListingModel>> Listing(int status = -1, string label_name = null,string label_code = null, int page_index = 1, int page_size = 100)
         {
-            return await labelDAL.Listing(status,label_name,page_index,page_size);
+            return await labelDAL.Listing(status,label_name, label_code, page_index,page_size);
         }
     }
 }

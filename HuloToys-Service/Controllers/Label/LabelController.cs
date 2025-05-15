@@ -36,11 +36,11 @@ namespace HuloToys_Service.Controllers.Label
         [HttpPost("list")]
         public async Task<IActionResult> Listing([FromBody] APIRequestGenericModel input)
         {
-            var data = new
-            {
-                top = 40
-            };
-            input.token = CommonHelper.Encode(JsonConvert.SerializeObject(data), _configuration["KEY:private_key"]);
+            //var data = new
+            //{
+            //    top = 40
+            //};
+            //input.token = CommonHelper.Encode(JsonConvert.SerializeObject(data), _configuration["KEY:private_key"]);
             try
             {
                 JArray objParr = null;

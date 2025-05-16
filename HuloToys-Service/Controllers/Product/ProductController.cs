@@ -318,7 +318,8 @@ namespace WEB.CMS.Controllers
                             _id = x.product_id,
                             code = x.product_code,
                             description = x.description,
-                            name = x.name
+                            name = x.name,
+                            avatar=x.avatar
                         }).ToList();
                     }
                     return Ok(new

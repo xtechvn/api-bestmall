@@ -524,6 +524,269 @@ namespace WEB.CMS.Controllers
                 msg = ResponseMessages.DataInvalid,
             });
         }
+        [HttpPost("list-by-supplier")]
+        public async Task<IActionResult> ProductListingBySupplier([FromBody] APIRequestGenericModel input)
+        {
+            try
+            {
+                //input.token = "F081O1oSKR4nJktCB3d5ekEyMysRMQY0LBBoCGN6TgYGUTYtKygpBxF9Xn85";
+                JArray objParr = null;
+                if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, _configuration["KEY:private_key"]))
+                {
+                    var request = JsonConvert.DeserializeObject<ProductListByIdRequestModel>(objParr[0].ToString());
+                    if (request == null || request.supplier_id ==null || request.supplier_id<=0)
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+                    // Kiểm tra các tham số giá
+                    if (request.price_from == 0 || request.price_from == null) request.price_from = 0; // Mặc định là 0 nếu không có giá trị
+                    if (request.price_to == 0 || request.price_to == null) request.price_to = double.MaxValue; // Mặc định là giá trị tối đa
+                    if (request.keyword == null) request.keyword = "";
+                    if (request.rating == null) request.rating = 0;
+
+
+                    if (request.page_size <= 0) request.page_size = 10;
+                    if (request.page_index < 1) request.page_index = 1;
+                    // Nếu không lọc theo giá, sử dụng cache Redis
+                    if (request.price_from == 0 && request.price_to == double.MaxValue && request.rating == 0)
+                    {
+                        var cache_name = CacheType.PRODUCT_LISTING + (request.keyword ?? "") + request.group_id + request.supplier_id + request.page_index + request.page_size;
+                        var j_data = await _redisService.GetAsync(cache_name, Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
+                        ProductListFEResponseModel result = null;
+                        if (j_data != null && j_data.Trim() != "")
+                        {
+                            result = JsonConvert.DeserializeObject<ProductListFEResponseModel>(j_data);
+
+                        }
+                        if (result == null || result.items == null || result.items.Count <= 0)
+                        {
+                            result = await productDetailService.ProductListingByLabelAndSupplier(request);
+                        }
+                        if (result != null && result.items.Count > 0)
+                        {
+                            _redisService.Set(cache_name, JsonConvert.SerializeObject(result), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
+                            var list = result.items.Select(x => new
+                            {
+                                x._id,
+                                x.code,
+                                x.name,
+                                x.avatar,
+                                x.price,
+                                x.amount,
+                                x.amount_min,
+                                x.amount_max,
+                                x.rating,
+                                x.star,
+                                x.total_sold,
+                                x.review_count
+                            });
+                            return Ok(new
+                            {
+                                status = (int)ResponseType.SUCCESS,
+                                msg = ResponseMessages.Success,
+                                data = new
+                                {
+                                    items = list,
+                                    count = result.count
+                                }
+                            });
+                        }
+                    }
+                    else
+                    {
+                        // Trường hợp có lọc theo giá, bỏ qua cache Redis và truy vấn trực tiếp cơ sở dữ liệu
+                        var result = await productDetailService.ProductListing(request);
+
+                        if (result != null && result.items.Count > 0)
+                        {
+                            //var filteredItems = result.items.Where(x =>
+                            //         // Sản phẩm có khoảng giá rõ ràng
+                            //         (x.amount_min.HasValue && x.amount_max.HasValue && x.amount_max >= request.price_from && x.amount_min <= request.price_to)
+
+                            //         // Hoặc sản phẩm chỉ có 1 giá cụ thể
+                            //         || (x.amount_min == null && x.amount_max == null && x.amount >= request.price_from && x.amount <= request.price_to)
+                            //     ).ToList();
+                            var filteredItems = result.items
+                            .Where(x =>
+                                (x.amount_min.HasValue && x.amount_max.HasValue && x.amount_max >= request.price_from && x.amount_min <= request.price_to)
+                                || (x.amount >= request.price_from && x.amount <= request.price_to))
+                            .Where(x => x.rating >= request.rating) // ✅ Lọc theo rating
+                            .ToList();
+
+
+                            //Lọc theo khoảng giá và rating nếu có
+
+
+                            //// Phân trang kết quả lọc
+                            //var pagedItems = filteredItems.Skip((request.page_index - 1) * request.page_size).Take(request.page_size).ToList();
+
+                            return Ok(new
+                            {
+                                status = (int)ResponseType.SUCCESS,
+                                msg = ResponseMessages.Success,
+                                data = new
+                                {
+                                    items = filteredItems,
+                                    count = filteredItems.Count
+                                }
+                            });
+                        }
+
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = "No Items"
+                        });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
+                LogHelper.InsertLogTelegramByUrl(_configuration["telegram:log_try_catch:bot_token"], _configuration["telegram:log_try_catch:group_id"], error_msg);
+            }
+            return Ok(new
+            {
+                status = (int)ResponseType.FAILED,
+                msg = ResponseMessages.DataInvalid,
+            });
+        }
+        [HttpPost("list-by-label")]
+        public async Task<IActionResult> ProductListingByLabel([FromBody] APIRequestGenericModel input)
+        {
+            try
+            {
+                //input.token = "F081O1oSKR4nJktCB3d5ekEyMysRMQY0LBBoCGN6TgYGUTYtKygpBxF9Xn85";
+                JArray objParr = null;
+                if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, _configuration["KEY:private_key"]))
+                {
+                    var request = JsonConvert.DeserializeObject<ProductListByIdRequestModel>(objParr[0].ToString());
+                    if (request == null || request.label_id == null || request.label_id <= 0)
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+                    // Kiểm tra các tham số giá
+                    if (request.price_from == 0 || request.price_from == null) request.price_from = 0; // Mặc định là 0 nếu không có giá trị
+                    if (request.price_to == 0 || request.price_to == null) request.price_to = double.MaxValue; // Mặc định là giá trị tối đa
+                    if (request.keyword == null) request.keyword = "";
+                    if (request.rating == null) request.rating = 0;
+
+
+                    if (request.page_size <= 0) request.page_size = 10;
+                    if (request.page_index < 1) request.page_index = 1;
+                    // Nếu không lọc theo giá, sử dụng cache Redis
+                    if (request.price_from == 0 && request.price_to == double.MaxValue && request.rating == 0)
+                    {
+                        var cache_name = CacheType.PRODUCT_LISTING + (request.keyword ?? "") + request.group_id + request.label_id + request.page_index + request.page_size;
+                        var j_data = await _redisService.GetAsync(cache_name, Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
+                        ProductListFEResponseModel result = null;
+                        if (j_data != null && j_data.Trim() != "")
+                        {
+                            result = JsonConvert.DeserializeObject<ProductListFEResponseModel>(j_data);
+
+                        }
+                        if (result == null || result.items == null || result.items.Count <= 0)
+                        {
+                            result = await productDetailService.ProductListingByLabelAndSupplier(request);
+
+                        }
+                        if (result != null && result.items.Count > 0)
+                        {
+                            _redisService.Set(cache_name, JsonConvert.SerializeObject(result), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
+                            var list = result.items.Select(x => new
+                            {
+                                x._id,
+                                x.code,
+                                x.name,
+                                x.avatar,
+                                x.price,
+                                x.amount,
+                                x.amount_min,
+                                x.amount_max,
+                                x.rating,
+                                x.star,
+                                x.total_sold,
+                                x.review_count
+                            });
+                            return Ok(new
+                            {
+                                status = (int)ResponseType.SUCCESS,
+                                msg = ResponseMessages.Success,
+                                data = new
+                                {
+                                    items = list,
+                                    count = result.count
+                                }
+                            });
+                        }
+                    }
+                    else
+                    {
+                        // Trường hợp có lọc theo giá, bỏ qua cache Redis và truy vấn trực tiếp cơ sở dữ liệu
+                        var result = await productDetailService.ProductListing(request);
+
+                        if (result != null && result.items.Count > 0)
+                        {
+                            //var filteredItems = result.items.Where(x =>
+                            //         // Sản phẩm có khoảng giá rõ ràng
+                            //         (x.amount_min.HasValue && x.amount_max.HasValue && x.amount_max >= request.price_from && x.amount_min <= request.price_to)
+
+                            //         // Hoặc sản phẩm chỉ có 1 giá cụ thể
+                            //         || (x.amount_min == null && x.amount_max == null && x.amount >= request.price_from && x.amount <= request.price_to)
+                            //     ).ToList();
+                            var filteredItems = result.items
+                            .Where(x =>
+                                (x.amount_min.HasValue && x.amount_max.HasValue && x.amount_max >= request.price_from && x.amount_min <= request.price_to)
+                                || (x.amount >= request.price_from && x.amount <= request.price_to))
+                            .Where(x => x.rating >= request.rating) // ✅ Lọc theo rating
+                            .ToList();
+
+
+                            //Lọc theo khoảng giá và rating nếu có
+
+
+                            //// Phân trang kết quả lọc
+                            //var pagedItems = filteredItems.Skip((request.page_index - 1) * request.page_size).Take(request.page_size).ToList();
+
+                            return Ok(new
+                            {
+                                status = (int)ResponseType.SUCCESS,
+                                msg = ResponseMessages.Success,
+                                data = new
+                                {
+                                    items = filteredItems,
+                                    count = filteredItems.Count
+                                }
+                            });
+                        }
+
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = "No Items"
+                        });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
+                LogHelper.InsertLogTelegramByUrl(_configuration["telegram:log_try_catch:bot_token"], _configuration["telegram:log_try_catch:group_id"], error_msg);
+            }
+            return Ok(new
+            {
+                status = (int)ResponseType.FAILED,
+                msg = ResponseMessages.DataInvalid,
+            });
+        }
     }
 
 }

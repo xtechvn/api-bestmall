@@ -173,7 +173,9 @@ namespace HuloToys_Service.MongoDb
         //        return null;
         //    }
         //}
-        public async Task<ProductListResponseModel> ResponseListing(string keyword = "", int group_id = -1,int page_index=1,int page_size=10, double? price_from = null, double? price_to = null , float? rating = null)
+        public async Task<ProductListResponseModel> ResponseListing(string keyword = "", int group_id = -1,
+            int page_index=1,int page_size=10, double? price_from = null, double? price_to = null , float? rating = null
+            , int? supplier=-1, int? label_id=-1)
         {
             try
             {
@@ -216,6 +218,14 @@ namespace HuloToys_Service.MongoDb
                 if (group_id > 0)
                 {
                     filterDefinition &= Builders<ProductMongoDbModel>.Filter.Regex(x => x.group_product_id, group_id.ToString());
+                }
+                if (label_id!=null && label_id > 0)
+                {
+                    filterDefinition &= Builders<ProductMongoDbModel>.Filter.Eq(x => x.label_id, (int)label_id);
+                }
+                if (supplier != null && supplier > 0)
+                {
+                    filterDefinition &= Builders<ProductMongoDbModel>.Filter.Eq(x => x.supplier_id, (int)supplier);
                 }
                 //// Lọc theo khoảng giá
                 //if (price_from.HasValue)

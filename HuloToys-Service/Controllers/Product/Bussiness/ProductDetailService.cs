@@ -77,5 +77,48 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             }
             return result;
         }
+        public async Task<ProductListFEResponseModel> ProductListingByLabelAndSupplier(ProductListByIdRequestModel request)
+        {
+            ProductListFEResponseModel result = new ProductListFEResponseModel();
+            try
+            {
+                // Chuẩn hóa từ khóa tìm kiếm
+                request.keyword = StringHelper.ValidateTextForSearch(request.keyword);
+
+
+                var data = await _productDetailMongoAccess.ResponseListing(request.keyword, request.group_id, request.page_index, request.page_size, request.price_from, request.price_to, request.rating,request.supplier_id,request.label_id);
+                result = JsonConvert.DeserializeObject<ProductListFEResponseModel>(JsonConvert.SerializeObject(data));
+                if (result != null && result.items != null && result.items.Count > 0)
+                {
+                    foreach (var i in result.items)
+                    {
+                        var raiting = _raitingESService.GetListByFilter(new Models.Raiting.ProductRaitingRequestModel()
+                        {
+                            id = i._id,
+                            has_comment = false,
+                            has_media = false,
+                            page_index = 1,
+                            page_size = 500,
+                            stars = 0
+                        });
+                        if (raiting != null && raiting.Count > 0)
+                        {
+                            i.review_count = raiting.Count;
+                            i.rating = raiting.Sum(x => x.Star == null ? 0 : (float)x.Star) / (float)raiting.Count;
+                            i.total_sold = orderDetailESService.CountByProductId(new List<string>() { i._id });
+
+                        }
+
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
+                LogHelper.InsertLogTelegramByUrl(_configuration["telegram:log_try_catch:bot_token"], _configuration["telegram:log_try_catch:group_id"], error_msg);
+            }
+            return result;
+        }
+
     }
 }

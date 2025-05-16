@@ -10,4 +10,10 @@
         public double? price_to { get; set; }    // Giá kết thúc
         public float? rating { get; set; }           // Sắp xếp
     }
+    public class ProductListByIdRequestModel: ProductListRequestModel
+    {
+        public int? supplier_id { get; set; }
+        public int? label_id { get; set; }
+
+    }
 }

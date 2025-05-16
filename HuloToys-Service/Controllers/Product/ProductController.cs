@@ -114,7 +114,9 @@ namespace WEB.CMS.Controllers
                                 x.rating,
                                 x.star,
                                 x.total_sold,
-                                x.review_count
+                                x.review_count,
+                                x.old_price,
+                                x.discount
                             });
                             return Ok(new
                             {
@@ -582,7 +584,9 @@ namespace WEB.CMS.Controllers
                                 x.rating,
                                 x.star,
                                 x.total_sold,
-                                x.review_count
+                                x.review_count,
+                                x.old_price,
+                                x.discount
                             });
                             return Ok(new
                             {
@@ -714,7 +718,9 @@ namespace WEB.CMS.Controllers
                                 x.rating,
                                 x.star,
                                 x.total_sold,
-                                x.review_count
+                                x.review_count,
+                                x.old_price,
+                                x.discount
                             });
                             return Ok(new
                             {

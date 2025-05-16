@@ -1,5 +1,6 @@
 ﻿using Azure.Core;
 using Caching.Elasticsearch;
+using Entities.ViewModels.Products;
 using HuloToys_Front_End.Models.Products;
 using HuloToys_Service.ElasticSearch;
 using HuloToys_Service.Models.APIRequest;
@@ -7,6 +8,7 @@ using HuloToys_Service.MongoDb;
 using HuloToys_Service.Utilities.lib;
 using HuloToys_Service.Utilities.Lib;
 using Microsoft.AspNetCore.Mvc;
+using Nest;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Reflection;
@@ -119,6 +121,6 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             }
             return result;
         }
-
+       
     }
 }

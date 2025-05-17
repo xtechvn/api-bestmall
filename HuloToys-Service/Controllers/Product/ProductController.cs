@@ -146,8 +146,7 @@ namespace WEB.CMS.Controllers
                             //     ).ToList();
                             var filteredItems = result.items
                             .Where(x =>
-                                (x.amount_min.HasValue && x.amount_max.HasValue && x.amount_max >= request.price_from && x.amount_min <= request.price_to)
-                                || (x.amount >= request.price_from && x.amount <= request.price_to))
+                                (x.amount >= request.price_from && x.amount <= request.price_to))
                             .Where(x => x.rating >= request.rating) // ✅ Lọc theo rating
                             .ToList();
 

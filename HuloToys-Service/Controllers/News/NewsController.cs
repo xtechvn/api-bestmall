@@ -562,6 +562,8 @@ namespace API_CORE.Controllers
                     int category_id = Convert.ToInt32(objParr[0]["category_id"]);
                     int skip = Convert.ToInt32(objParr[0]["skip"]);
                     int take = Convert.ToInt32(objParr[0]["take"]);
+                    if (skip <= 0) skip = 0;
+                    if (take <= 0) take = 10;
                     string cache_key = CacheType.CATEGORY_NEWS + category_id;
                     var j_data = await _redisService.GetAsync(cache_key, Convert.ToInt32(configuration["Redis:Database:db_common"]));
                     List<ArticleFeModel> data_list;

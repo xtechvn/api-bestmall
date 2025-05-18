@@ -30,6 +30,7 @@ namespace HuloToys_Service.Controllers
         private readonly NewsBusiness _newsBusiness;
         private readonly WorkQueueClient work_queue;
         private readonly DataMSContext _dbContext;
+        private readonly NewsMongoService _news_services;
 
         public NewsController(IConfiguration config, RedisConn redisService , DataMSContext dbContext)
         {
@@ -41,6 +42,7 @@ namespace HuloToys_Service.Controllers
             work_queue = new WorkQueueClient(configuration);
             _newsBusiness = new NewsBusiness(configuration, dbContext);
             _dbContext = dbContext;
+            _news_services = new NewsMongoService(configuration);
         }
         [HttpPost("remote-upsert.json")]
         public async Task<IActionResult> RemoteUpsert([FromBody] ArticleModel model)
@@ -427,10 +429,10 @@ namespace HuloToys_Service.Controllers
         {
             try
             {
-                // string j_param = "{'article_id':1}";
+                //string j_param = "{'article_id':74}";
 
 
-                // token = CommonHelper.Encode(j_param, configuration["KEY:private_key"]);
+                //input.token = CommonHelper.Encode(j_param, configuration["KEY:private_key"]);
 
                 JArray objParr = null;
                 if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, configuration["KEY:private_key"]))
@@ -462,8 +464,7 @@ namespace HuloToys_Service.Controllers
                         articleID = article_id,
                         pageview = 1
                     };
-                    NewsMongoService services = new NewsMongoService(configuration);
-                    services.AddNewOrReplace(view_count);
+                    await _news_services.AddNewOrReplace(view_count);
                     return Ok(new
                     {
                         status = (int)ResponseType.SUCCESS,

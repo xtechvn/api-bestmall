@@ -458,10 +458,10 @@ namespace HuloToys_Service.Controllers.News.Business
 
 
                 model.Categories = List_articleCategory.Select(s => (int)s.categoryid).ToList();
-                model.category_id = model.Categories != null || model.Categories.Count > 0 ? model.Categories[0] : -1;
-                model.MainCategory = model.Categories != null || model.Categories.Count > 0 ? model.Categories[0] : -1;
+                model.category_id = model.Categories != null&& model.Categories.Count > 0 ? model.Categories[0] : -1;
+                model.MainCategory = model.Categories != null && model.Categories.Count > 0 ? model.Categories[0] : -1;
                 var group_product = groupProductESService.GetDetailGroupProductById(model.MainCategory);
-                if (group_product == null || group_product.Id < 0) return null;
+                //if (group_product == null || group_product.Id < 0) return null;
 
                 if (model.MainCategory > 0)
                 {
@@ -471,7 +471,7 @@ namespace HuloToys_Service.Controllers.News.Business
                 {
                     model.category_name = "Tin tức";
                 }
-                model.RelatedArticleIds = List_relatedArticleIds != null ? List_relatedArticleIds.Select(s => (long)s.ArticleRelatedId).ToList() : null;
+                model.RelatedArticleIds = List_relatedArticleIds != null && List_relatedArticleIds.Count > 0 ? List_relatedArticleIds.Where(s=>s.ArticleRelatedId!=null).Select(s => (long)s.ArticleRelatedId).ToList() : null;
 
                 if (model.RelatedArticleIds != null && model.RelatedArticleIds.Count > 0)
                 {
@@ -916,7 +916,7 @@ namespace HuloToys_Service.Controllers.News.Business
                 if (detail != null)
                 {
                     var group = GetById(detail.category_id);
-                    if (!group.IsShowHeader) return null;
+                    if (group!=null && !group.IsShowHeader) return null;
                     var fe_detail = new ArticleFeModel()
                     {
                         id = detail.id,
@@ -932,6 +932,7 @@ namespace HuloToys_Service.Controllers.News.Business
                     };
                     return fe_detail;
                 }
+               
             }
             catch (Exception ex)
             {

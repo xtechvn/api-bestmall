@@ -1,12 +1,11 @@
-﻿using API_CORE.Controllers.Models.Models;
-using API_CORE.Controllers.Utilities.Lib;
-using DAL.Generic;
+﻿using DAL.Generic;
 using DAL.StoreProcedure;
 using Microsoft.Data.SqlClient;
-using System.Data;
 using Utilities.Contants;
+using HuloToys_Service.Models.Models;
+using HuloToys_Service.Utilities.Lib;
 
-namespace API_CORE.Controllers.SQL
+namespace HuloToys_Service.Controllers.SQL
 {
     public class AddressClientDAL : GenericService<AddressClient>
     {

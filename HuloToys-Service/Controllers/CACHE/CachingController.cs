@@ -7,7 +7,7 @@ using Newtonsoft.Json.Linq;
 using Utilities;
 using Utilities.Contants;
 
-namespace API_CORE.Controllers.CACHE
+namespace HuloToys_Service.Controllers.CACHE
 {
     [Route("api/[controller]")]
     [ApiController]

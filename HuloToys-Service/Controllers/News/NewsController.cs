@@ -254,7 +254,7 @@ namespace HuloToys_Service.Controllers
                 JArray objParr = null;
                 if (CommonHelper.GetParamWithKey(input.token, out objParr, configuration["KEY:private_key"]))
                 {
-                    int category_id = Convert.ToInt32(objParr[0]["category_id"]);
+                    int category_id = 22; //Convert.ToInt32(objParr[0]["category_id"]);
                     // Lấy ra trong es
                     var total = await _newsBusiness.getTotalItemNewsByCategoryId(category_id);
                     return Ok(new

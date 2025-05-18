@@ -5,7 +5,8 @@ using HuloToys_Service.RedisWorker;
 using Microsoft.EntityFrameworkCore;
 using Repositories.IRepositories;
 using Repositories.Repositories;
-using API_CORE.Controllers.Repositories;
+using HuloToys_Service.Controllers.Repositories;
+using HuloToys_Service.Controllers.IRepositories;
 
 internal class Program
 {

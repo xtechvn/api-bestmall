@@ -6,7 +6,7 @@ using Newtonsoft.Json.Linq;
 using Utilities;
 using Utilities.Contants;
 
-namespace API_CORE.Controllers.QUEUE
+namespace HuloToys_Service.Controllers.QUEUE
 {
     [Route("api")]
     [ApiController]

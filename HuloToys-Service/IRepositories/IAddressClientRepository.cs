@@ -1,6 +1,6 @@
-﻿using API_CORE.Controllers.Models.Models;
+﻿using HuloToys_Service.Models.Models;
 
-namespace API_CORE.Controllers.IRepositories
+namespace HuloToys_Service.Controllers.IRepositories
 {
     public interface IAddressClientRepository
     {

@@ -1,12 +1,10 @@
-﻿using API_CORE.Controllers.IRepositories;
-using API_CORE.Controllers.Models.Models;
-using API_CORE.Controllers.SQL;
-using DAL;
+﻿using HuloToys_Service.Controllers.IRepositories;
+using HuloToys_Service.Controllers.SQL;
 using Entities.ConfigModels;
 using Microsoft.Extensions.Options;
-using System;
+using HuloToys_Service.Models.Models;
 
-namespace API_CORE.Controllers.Repositories
+namespace HuloToys_Service.Controllers.Repositories
 {
     public class AddressClientRepository : IAddressClientRepository
     {

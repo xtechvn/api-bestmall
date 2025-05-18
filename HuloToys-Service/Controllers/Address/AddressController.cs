@@ -21,7 +21,8 @@ using System.Collections.Generic;
 using System.Reflection;
 using Utilities;
 using Utilities.Contants;
-using API_CORE.Controllers.IRepositories;
+using HuloToys_Service.Controllers.IRepositories;
+using HuloToys_Service.Models.Models;
 
 namespace HuloToys_Service.Controllers.Address
 {
@@ -98,7 +99,7 @@ namespace HuloToys_Service.Controllers.Address
                     request.ClientId = (long)account_client.ClientId;
                     if (request.Id <= 0)
                     {
-                        request.Id = _addressClientRepository.InsertAddressClient(new Models.Models.AddressClient()
+                        request.Id = _addressClientRepository.InsertAddressClient(new AddressClient()
                         {
                             Phone= request.Phone,
                             ClientId= request.ClientId,

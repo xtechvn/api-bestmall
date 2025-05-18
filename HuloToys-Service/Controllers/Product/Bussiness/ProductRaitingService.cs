@@ -1,15 +1,15 @@
 ﻿using Azure.Core;
 using Caching.Elasticsearch;
-using API_CORE.Controllers.ElasticSearch;
-using API_CORE.Controllers.Models;
-using API_CORE.Controllers.Models.Raiting;
-using API_CORE.Controllers.MongoDb;
-using API_CORE.Controllers.RedisWorker;
-using API_CORE.Controllers.Utilities.Lib;
+using HuloToys_Service.ElasticSearch;
+using HuloToys_Service.Models;
+using HuloToys_Service.Models.Raiting;
+using HuloToys_Service.MongoDb;
+using HuloToys_Service.RedisWorker;
+using HuloToys_Service.Utilities.Lib;
 using Newtonsoft.Json;
 using System.Reflection;
 
-namespace API_CORE.Controllers.Controllers.Product.Bussiness
+namespace HuloToys_Service.Controllers.Product.Bussiness
 {
     public class ProductRaitingService
     {

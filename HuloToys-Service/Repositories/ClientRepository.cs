@@ -1,9 +1,9 @@
 ﻿using DAL;
 using Entities.ConfigModels;
 using Entities.Models;
-using API_CORE.Controllers.IRepositories;
-using API_CORE.Controllers.Models.Models;
-using API_CORE.Controllers.Utilities.Lib;
+using HuloToys_Service.IRepositories;
+using HuloToys_Service.Models.Models;
+using HuloToys_Service.Utilities.Lib;
 using Microsoft.Extensions.Options;
 using System.Linq.Expressions;
 using Utilities;

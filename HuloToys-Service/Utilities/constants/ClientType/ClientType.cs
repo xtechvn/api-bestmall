@@ -1,4 +1,4 @@
-﻿namespace API_CORE.Controllers.Utilities.constants.ClientType
+﻿namespace HuloToys_Service.Utilities.constants.ClientType
 {
     public enum ClientType
     {

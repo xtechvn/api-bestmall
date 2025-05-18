@@ -1,10 +1,10 @@
 ﻿using HuloToys_Front_End.Models.Products;
-using API_CORE.Controllers.Controllers.Product.Bussiness;
-using API_CORE.Controllers.Models.APIRequest;
-using API_CORE.Controllers.Models.Client;
-using API_CORE.Controllers.Models.Label;
-using API_CORE.Controllers.RedisWorker;
-using API_CORE.Controllers.Utilities.Lib;
+using HuloToys_Service.Controllers.Product.Bussiness;
+using HuloToys_Service.Models.APIRequest;
+using HuloToys_Service.Models.Client;
+using HuloToys_Service.Models.Label;
+using HuloToys_Service.RedisWorker;
+using HuloToys_Service.Utilities.Lib;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -16,7 +16,7 @@ using Utilities;
 using Utilities.Contants;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
-namespace API_CORE.Controllers.Controllers.Label
+namespace HuloToys_Service.Controllers.Label
 {
     [ApiController]
     [Route("api/[controller]")]

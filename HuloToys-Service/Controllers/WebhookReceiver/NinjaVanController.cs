@@ -1,20 +1,20 @@
 ﻿using App_Push_Consummer.Model.Comments;
 using Caching.Elasticsearch;
-using API_CORE.Controllers.Controllers.Client.Business;
-using API_CORE.Controllers.ElasticSearch;
-using API_CORE.Controllers.Models.APIRequest;
-using API_CORE.Controllers.MongoDb;
-using API_CORE.Controllers.RabitMQ;
-using API_CORE.Controllers.RedisWorker;
-using API_CORE.Controllers.Utilities.Lib;
+using HuloToys_Service.Controllers.Client.Business;
+using HuloToys_Service.ElasticSearch;
+using HuloToys_Service.Models.APIRequest;
+using HuloToys_Service.MongoDb;
+using HuloToys_Service.RabitMQ;
+using HuloToys_Service.RedisWorker;
+using HuloToys_Service.Utilities.Lib;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 using System.Reflection;
 using Utilities.Contants;
-using API_CORE.Controllers.Utilities.lib;
+using HuloToys_Service.Utilities.lib;
 
-namespace API_CORE.Controllers.Controllers.Carrier
+namespace HuloToys_Service.Controllers.Carrier
 {
     [ApiController]
     [Route("api/receiver/[controller]")]

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 
-namespace API_CORE.Controllers.Models.Models;
+namespace HuloToys_Service.Models.Models;
 
 public partial class DataMSContext : DbContext
 {

@@ -1,6 +1,6 @@
 ﻿using Models.MongoDb;
 
-namespace API_CORE.Controllers.Models.Orders
+namespace HuloToys_Service.Models.Orders
 {
     public class OrderFEResponseModel
     {

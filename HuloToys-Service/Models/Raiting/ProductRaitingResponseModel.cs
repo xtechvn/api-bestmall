@@ -1,4 +1,4 @@
-﻿namespace API_CORE.Controllers.Models.Raiting
+﻿namespace HuloToys_Service.Models.Raiting
 {
     public class ProductRaitingRequestModel
     {

@@ -1,7 +1,7 @@
 ﻿using Entities.Models;
-using API_CORE.Controllers.Models.Models;
+using HuloToys_Service.Models.Models;
 
-namespace API_CORE.Controllers.Models.Orders
+namespace HuloToys_Service.Models.Orders
 {
     public class OrderDetailResponseModel
     {

@@ -1,11 +1,11 @@
 ﻿using Caching.Elasticsearch;
-using API_CORE.Controllers.Models.Client;
-using API_CORE.Controllers.Utilities.Lib;
+using HuloToys_Service.Models.Client;
+using HuloToys_Service.Utilities.Lib;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Utilities;
 
-namespace API_CORE.Controllers.Controllers.Client.Business
+namespace HuloToys_Service.Controllers.Client.Business
 {
     public class ClientServices 
     {

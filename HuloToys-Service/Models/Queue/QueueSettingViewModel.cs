@@ -1,4 +1,4 @@
-﻿namespace API_CORE.Controllers.Models.Queue
+﻿namespace HuloToys_Service.Models.Queue
 {
     public class QueueSettingViewModel
     {

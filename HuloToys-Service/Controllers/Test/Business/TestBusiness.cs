@@ -1,12 +1,12 @@
-﻿using API_CORE.Controllers.Models;
-using API_CORE.Controllers.RedisWorker;
-using API_CORE.Controllers.Utilities.Lib;
+﻿using HuloToys_Service.Models;
+using HuloToys_Service.RedisWorker;
+using HuloToys_Service.Utilities.Lib;
 using Newtonsoft.Json;
 using System.Reflection;
 using Utilities.Contants;
 
 // Create By: cuonglv
-namespace API_CORE.Controllers.Controllers.Test.Business
+namespace HuloToys_Service.Controllers.Test.Business
 {
     public partial class TestBusiness
     {

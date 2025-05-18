@@ -1,15 +1,15 @@
 ﻿using Caching.Elasticsearch;
 using Entities.Models;
-using API_CORE.Controllers.Controllers.Address.Business;
-using API_CORE.Controllers.Controllers.Client.Business;
-using API_CORE.Controllers.Models;
-using API_CORE.Controllers.Models.Address;
-using API_CORE.Controllers.Models.APIRequest;
-using API_CORE.Controllers.Models.Client;
-using API_CORE.Controllers.Models.Queue;
-using API_CORE.Controllers.RabitMQ;
-using API_CORE.Controllers.RedisWorker;
-using API_CORE.Controllers.Utilities.Lib;
+using HuloToys_Service.Controllers.Address.Business;
+using HuloToys_Service.Controllers.Client.Business;
+using HuloToys_Service.Models;
+using HuloToys_Service.Models.Address;
+using HuloToys_Service.Models.APIRequest;
+using HuloToys_Service.Models.Client;
+using HuloToys_Service.Models.Queue;
+using HuloToys_Service.RabitMQ;
+using HuloToys_Service.RedisWorker;
+using HuloToys_Service.Utilities.Lib;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -23,7 +23,7 @@ using Utilities;
 using Utilities.Contants;
 using API_CORE.Controllers.IRepositories;
 
-namespace API_CORE.Controllers.Controllers.Address
+namespace HuloToys_Service.Controllers.Address
 {
     [Route("api/[controller]")]
     [ApiController]

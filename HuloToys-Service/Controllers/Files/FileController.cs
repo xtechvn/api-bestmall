@@ -1,8 +1,8 @@
-﻿using API_CORE.Controllers.RedisWorker;
+﻿using HuloToys_Service.RedisWorker;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace API_CORE.Controllers.Controllers.Files
+namespace HuloToys_Service.Controllers.Files
 {
     [ApiController]
     [Route("api/[controller]")]

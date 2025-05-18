@@ -2,8 +2,8 @@
 using DAL.StoreProcedure;
 using Entities.Models;
 using Entities.ViewModels;
-using API_CORE.Controllers.Models.Models;
-using API_CORE.Controllers.Utilities.Lib;
+using HuloToys_Service.Models.Models;
+using HuloToys_Service.Utilities.Lib;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using System.Data;

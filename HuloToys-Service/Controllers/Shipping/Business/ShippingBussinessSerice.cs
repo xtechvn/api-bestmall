@@ -1,10 +1,10 @@
-﻿using API_CORE.Controllers.Models.NinjaVan;
-using API_CORE.Controllers.MongoDb;
-using API_CORE.Controllers.RedisWorker;
-using API_CORE.Controllers.Utilities.constants.NinjaVan;
-using API_CORE.Controllers.Utilities.constants.Shipping;
+﻿using HuloToys_Service.Models.NinjaVan;
+using HuloToys_Service.MongoDb;
+using HuloToys_Service.RedisWorker;
+using HuloToys_Service.Utilities.constants.NinjaVan;
+using HuloToys_Service.Utilities.constants.Shipping;
 
-namespace API_CORE.Controllers.Controllers.Shipping.Business
+namespace HuloToys_Service.Controllers.Shipping.Business
 {
     public class ShippingBussinessSerice
     {

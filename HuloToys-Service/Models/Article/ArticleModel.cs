@@ -1,6 +1,6 @@
 ﻿using Nest;
 
-namespace API_CORE.Controllers.Models.Article
+namespace HuloToys_Service.Models.Article
 {
     public class ArticleModel2:CategoryArticleModel // Kế thừa thuộc tính của box tin
     {

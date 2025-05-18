@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace API_CORE.Controllers.Models.APIRequest
+namespace HuloToys_Service.Models.APIRequest
 {
     public class APIRequestGenericModel
     {

@@ -1,6 +1,6 @@
 ﻿using Nest;
 
-namespace API_CORE.Controllers.Models.ElasticSearch
+namespace HuloToys_Service.Models.ElasticSearch
 {
     public partial class GroupProductESModel
     {

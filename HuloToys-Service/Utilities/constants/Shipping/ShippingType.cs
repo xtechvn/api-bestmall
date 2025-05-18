@@ -1,4 +1,4 @@
-﻿namespace API_CORE.Controllers.Utilities.constants.Shipping
+﻿namespace HuloToys_Service.Utilities.constants.Shipping
 {
     public enum ShippingType
     {

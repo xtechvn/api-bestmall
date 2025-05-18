@@ -1,5 +1,5 @@
 ﻿using StackExchange.Redis;
-namespace API_CORE.Controllers.RedisWorker
+namespace HuloToys_Service.RedisWorker
 {
     public class RedisRepository: IRedisRepository
     {

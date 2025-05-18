@@ -1,8 +1,8 @@
 ﻿// Create by: cuonglv
 // Create date: 24-07-2024-
-using API_CORE.Controllers.ElasticSearch;
-using API_CORE.Controllers.Models;
-using API_CORE.Controllers.Utilities.Lib;
+using HuloToys_Service.ElasticSearch;
+using HuloToys_Service.Models;
+using HuloToys_Service.Utilities.Lib;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
@@ -12,7 +12,7 @@ using System.Security.Claims;
 using System.Text;
 using Utilities;
 using Utilities.Contants;
-namespace API_CORE.Controllers.Controllers
+namespace HuloToys_Service.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]

@@ -2,7 +2,7 @@
 using System.Net;
 using Telegram.Bot;
 
-namespace API_CORE.Controllers.Utilities.Lib
+namespace HuloToys_Service.Utilities.Lib
 {
     public static class LogHelper
     {

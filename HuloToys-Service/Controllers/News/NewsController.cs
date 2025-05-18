@@ -1,12 +1,12 @@
 ﻿using Entities.Models;
 using ENTITIES.ViewModels.ArticleViewModels;
-using API_CORE.Controllers.Controllers.News.Business;
-using API_CORE.Controllers.Models.APIRequest;
-using API_CORE.Controllers.Models.Article;
-using API_CORE.Controllers.Models.ElasticSearch;
-using API_CORE.Controllers.RabitMQ;
-using API_CORE.Controllers.RedisWorker;
-using API_CORE.Controllers.Utilities.Lib;
+using HuloToys_Service.Controllers.News.Business;
+using HuloToys_Service.Models.APIRequest;
+using HuloToys_Service.Models.Article;
+using HuloToys_Service.Models.ElasticSearch;
+using HuloToys_Service.RabitMQ;
+using HuloToys_Service.RedisWorker;
+using HuloToys_Service.Utilities.Lib;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -15,9 +15,9 @@ using System.Reflection;
 using Utilities;
 using Utilities.Contants;
 using System.Diagnostics;
-using API_CORE.Controllers.Models.Models;
+using HuloToys_Service.Models.Models;
 
-namespace API_CORE.Controllers
+namespace HuloToys_Service.Controllers
 {
     [Route("api/news")]
     [ApiController]

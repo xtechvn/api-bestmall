@@ -1,9 +1,9 @@
 ﻿using Entities.ViewModels.Products;
 using ENTITIES.ViewModels.ArticleViewModels;
-using API_CORE.Controllers.Utilities.Lib;
+using HuloToys_Service.Utilities.Lib;
 using MongoDB.Driver;
 
-namespace API_CORE.Controllers.Models.Article
+namespace HuloToys_Service.Models.Article
 {
     public class NewsMongoService
     {

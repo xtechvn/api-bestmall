@@ -1,4 +1,4 @@
-﻿namespace API_CORE.Controllers.Utilities.Common
+﻿namespace HuloToys_Service.Utilities.Common
 {
     public class main
     {

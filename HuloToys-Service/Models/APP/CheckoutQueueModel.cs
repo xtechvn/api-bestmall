@@ -1,4 +1,4 @@
-﻿namespace API_CORE.Controllers.Models.APP
+﻿namespace HuloToys_Service.Models.APP
 {
     public class CheckoutQueueModel
     {

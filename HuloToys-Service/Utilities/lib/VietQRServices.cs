@@ -1,10 +1,10 @@
-﻿using API_CORE.Controllers.Models.Payment;
+﻿using HuloToys_Service.Models.Payment;
 using Nest;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RestSharp;
 
-namespace API_CORE.Controllers.Utilities.lib
+namespace HuloToys_Service.Utilities.lib
 {
     public class VietQRServices
     {

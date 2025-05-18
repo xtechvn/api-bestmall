@@ -1,12 +1,12 @@
 ﻿using Elasticsearch.Net;
-using API_CORE.Controllers.Elasticsearch;
-using API_CORE.Controllers.Models.Article;
-using API_CORE.Controllers.Models.Entities;
-using API_CORE.Controllers.Utilities.Lib;
+using HuloToys_Service.Elasticsearch;
+using HuloToys_Service.Models.Article;
+using HuloToys_Service.Models.Entities;
+using HuloToys_Service.Utilities.Lib;
 using Nest;
 using System.Reflection;
 
-namespace API_CORE.Controllers.ElasticSearch
+namespace HuloToys_Service.ElasticSearch
 {
     public class ArticleRelatedESService : ESRepository<ArticleRelatedViewModel>
     {

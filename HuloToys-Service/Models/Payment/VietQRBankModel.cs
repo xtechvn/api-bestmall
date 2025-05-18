@@ -1,4 +1,4 @@
-﻿namespace API_CORE.Controllers.Models.Payment
+﻿namespace HuloToys_Service.Models.Payment
 {
     public class VietQRBankModel
     {

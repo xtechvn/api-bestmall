@@ -1,12 +1,12 @@
 ﻿using Elasticsearch.Net;
-using API_CORE.Controllers.Models;
-using API_CORE.Controllers.Utilities.Lib;
+using HuloToys_Service.Models;
+using HuloToys_Service.Utilities.Lib;
 using Nest;
 using Newtonsoft.Json;
 using System.Reflection;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
-namespace API_CORE.Controllers.Elasticsearch
+namespace HuloToys_Service.Elasticsearch
 {
     //https://www.steps2code.com/post/how-to-use-elasticsearch-in-csharp
     public class ESRepository<TEntity> : IESRepository<TEntity> where TEntity : class

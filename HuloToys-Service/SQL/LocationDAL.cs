@@ -1,6 +1,6 @@
 ﻿using DAL.Generic;
 using Entities.Models;
-using API_CORE.Controllers.Models.Models;
+using HuloToys_Service.Models.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;

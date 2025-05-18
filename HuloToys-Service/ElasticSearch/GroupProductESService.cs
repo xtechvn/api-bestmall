@@ -1,15 +1,15 @@
 ﻿using Elasticsearch.Net;
-using API_CORE.Controllers.Elasticsearch;
-using API_CORE.Controllers.Models.ElasticSearch;
-using API_CORE.Controllers.Models.Entities;
-using API_CORE.Controllers.Models.Products;
-using API_CORE.Controllers.Utilities.Lib;
+using HuloToys_Service.Elasticsearch;
+using HuloToys_Service.Models.ElasticSearch;
+using HuloToys_Service.Models.Entities;
+using HuloToys_Service.Models.Products;
+using HuloToys_Service.Utilities.Lib;
 using Nest;
 using System.Linq;
 using System.Reflection;
 using Utilities.Contants;
 
-namespace API_CORE.Controllers.ElasticSearch
+namespace HuloToys_Service.ElasticSearch
 {
     public class GroupProductESService : ESRepository<GroupProduct>
     {

@@ -1,4 +1,4 @@
-﻿namespace API_CORE.Controllers.RedisWorker
+﻿namespace HuloToys_Service.RedisWorker
 {
     public interface IRedisRepository
     {

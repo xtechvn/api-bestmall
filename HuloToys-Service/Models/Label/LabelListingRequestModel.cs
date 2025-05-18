@@ -1,4 +1,4 @@
-﻿namespace API_CORE.Controllers.Models.Label
+﻿namespace HuloToys_Service.Models.Label
 {
     public class LabelListingRequestModel
     {

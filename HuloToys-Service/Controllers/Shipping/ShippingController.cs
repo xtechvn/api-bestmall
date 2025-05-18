@@ -1,20 +1,20 @@
 ﻿using Caching.Elasticsearch;
-using API_CORE.Controllers.Controllers.Client.Business;
-using API_CORE.Controllers.Models.Address;
-using API_CORE.Controllers.Models.APIRequest;
-using API_CORE.Controllers.RedisWorker;
+using HuloToys_Service.Controllers.Client.Business;
+using HuloToys_Service.Models.Address;
+using HuloToys_Service.Models.APIRequest;
+using HuloToys_Service.RedisWorker;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 using System.Reflection;
 using Utilities.Contants;
 using Utilities;
 using Newtonsoft.Json;
-using API_CORE.Controllers.Utilities.Lib;
-using API_CORE.Controllers.Models.NinjaVan;
-using API_CORE.Controllers.Utilities.constants.Shipping;
-using API_CORE.Controllers.Controllers.Shipping.Business;
+using HuloToys_Service.Utilities.Lib;
+using HuloToys_Service.Models.NinjaVan;
+using HuloToys_Service.Utilities.constants.Shipping;
+using HuloToys_Service.Controllers.Shipping.Business;
 
-namespace API_CORE.Controllers.Controllers.Shipping
+namespace HuloToys_Service.Controllers.Shipping
 {
     [ApiController]
     [Route("api/shipping")]

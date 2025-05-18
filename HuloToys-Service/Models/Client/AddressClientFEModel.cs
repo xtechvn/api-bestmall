@@ -1,4 +1,4 @@
-﻿using API_CORE.Controllers.Models.Models;
+﻿using HuloToys_Service.Models.Models;
 
 namespace Entities.Models
 {

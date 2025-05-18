@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace API_CORE.Controllers.Models.Article;
+namespace HuloToys_Service.Models.Article;
 
 public partial class TagViewModel
 {

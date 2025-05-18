@@ -1,11 +1,11 @@
-﻿using API_CORE.Controllers.Models;
-using API_CORE.Controllers.RedisWorker;
-using API_CORE.Controllers.Utilities.Lib;
+﻿using HuloToys_Service.Models;
+using HuloToys_Service.RedisWorker;
+using HuloToys_Service.Utilities.Lib;
 using Newtonsoft.Json;
 using System.Reflection;
 using Utilities.Contants;
 
-namespace API_CORE.Controllers.Controllers.Order.Business
+namespace HuloToys_Service.Controllers.Order.Business
 {
 
     public partial class OrderService

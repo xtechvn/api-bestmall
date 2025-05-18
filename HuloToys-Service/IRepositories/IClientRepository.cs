@@ -1,10 +1,10 @@
 ﻿using Entities.Models;
-using API_CORE.Controllers.Models.Models;
+using HuloToys_Service.Models.Models;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
-namespace API_CORE.Controllers.IRepositories
+namespace HuloToys_Service.IRepositories
 {
     public interface IClientRepository
     {

@@ -1,4 +1,4 @@
-﻿namespace API_CORE.Controllers.Models
+﻿namespace HuloToys_Service.Models
 {
     public class UserLoginModel
     {

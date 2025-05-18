@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace API_CORE.Controllers.Models;
+namespace HuloToys_Service.Models;
 
 public partial class RatingESModel
 {

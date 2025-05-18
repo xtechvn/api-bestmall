@@ -1,4 +1,4 @@
-﻿namespace API_CORE.Controllers.Models.Article
+﻿namespace HuloToys_Service.Models.Article
 {
     public class GenericViewModel<TEntity> where TEntity : class
     {

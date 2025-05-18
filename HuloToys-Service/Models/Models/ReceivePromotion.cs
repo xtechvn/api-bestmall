@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace API_CORE.Controllers.Models.Models;
+namespace HuloToys_Service.Models.Models;
 
 public partial class ReceivePromotion
 {

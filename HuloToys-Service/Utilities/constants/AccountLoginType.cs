@@ -1,4 +1,4 @@
-﻿namespace API_CORE.Controllers.Utilities.constants
+﻿namespace HuloToys_Service.Utilities.constants
 {
     public enum AccountLoginType
     {

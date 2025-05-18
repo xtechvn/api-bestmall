@@ -1,4 +1,4 @@
-﻿using API_CORE.Controllers.Elasticsearch;
+﻿using HuloToys_Service.Elasticsearch;
 using Nest;
 using Utilities;
 

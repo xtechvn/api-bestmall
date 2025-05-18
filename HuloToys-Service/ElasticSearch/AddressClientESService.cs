@@ -1,13 +1,13 @@
 ﻿using Elasticsearch.Net;
-using API_CORE.Controllers.Elasticsearch;
-using API_CORE.Controllers.Utilities.Lib;
+using HuloToys_Service.Elasticsearch;
+using HuloToys_Service.Utilities.Lib;
 using Nest;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Reflection;
 using Utilities;
-using API_CORE.Controllers.Models.ElasticSearch;
-using API_CORE.Controllers.Models.Orders;
+using HuloToys_Service.Models.ElasticSearch;
+using HuloToys_Service.Models.Orders;
 using Azure.Core;
 using Entities.Models;
 

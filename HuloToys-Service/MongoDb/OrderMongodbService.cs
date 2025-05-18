@@ -1,9 +1,9 @@
-﻿using API_CORE.Controllers.Utilities.Lib;
+﻿using HuloToys_Service.Utilities.Lib;
 using MongoDB.Driver;
 using System.Reflection;
-using API_CORE.Controllers.Models.Orders;
+using HuloToys_Service.Models.Orders;
 
-namespace API_CORE.Controllers.MongoDb
+namespace HuloToys_Service.MongoDb
 {
     public class OrderMongodbService
     {

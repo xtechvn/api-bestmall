@@ -1,7 +1,7 @@
 ﻿using Caching.Elasticsearch;
 using Models.APIRequest;
-using API_CORE.Controllers.RabitMQ;
-using API_CORE.Controllers.Utilities.Lib;
+using HuloToys_Service.RabitMQ;
+using HuloToys_Service.Utilities.Lib;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -9,22 +9,22 @@ using Newtonsoft.Json.Linq;
 using System.Reflection;
 using Utilities;
 using Utilities.Contants;
-using API_CORE.Controllers.MongoDb;
+using HuloToys_Service.MongoDb;
 using Models.MongoDb;
-using API_CORE.Controllers.Models.APP;
-using API_CORE.Controllers.Utilities.constants.APP;
-using API_CORE.Controllers.Controllers.Order.Business;
-using API_CORE.Controllers.RedisWorker;
-using API_CORE.Controllers.Models.Orders;
-using API_CORE.Controllers.Models.APIRequest;
-using API_CORE.Controllers.Controllers.Client.Business;
+using HuloToys_Service.Models.APP;
+using HuloToys_Service.Utilities.constants.APP;
+using HuloToys_Service.Controllers.Order.Business;
+using HuloToys_Service.RedisWorker;
+using HuloToys_Service.Models.Orders;
+using HuloToys_Service.Models.APIRequest;
+using HuloToys_Service.Controllers.Client.Business;
 using App_Push_Consummer.Model.Comments;
-using API_CORE.Controllers.ElasticSearch;
-using API_CORE.Controllers.Controllers.Shipping.Business;
+using HuloToys_Service.ElasticSearch;
+using HuloToys_Service.Controllers.Shipping.Business;
 using Entities.Models;
-using API_CORE.Controllers.Models.Models;
+using HuloToys_Service.Models.Models;
 
-namespace API_CORE.Controllers.Controllers
+namespace HuloToys_Service.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]

@@ -1,7 +1,7 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
 
-namespace API_CORE.Controllers.Utilities.lib
+namespace HuloToys_Service.Utilities.lib
 {
     public static class NinjaVanWebhookHelper
     {

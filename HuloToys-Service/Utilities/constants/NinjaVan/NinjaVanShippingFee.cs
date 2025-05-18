@@ -1,6 +1,6 @@
-﻿using static API_CORE.Controllers.Utilities.constants.NinjaVan.ShippingFeeModel;
+﻿using static HuloToys_Service.Utilities.constants.NinjaVan.ShippingFeeModel;
 
-namespace API_CORE.Controllers.Utilities.constants.NinjaVan
+namespace HuloToys_Service.Utilities.constants.NinjaVan
 {
     public static class NinjaVanShippingFee
     {

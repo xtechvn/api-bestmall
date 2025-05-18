@@ -1,7 +1,7 @@
 ﻿using Models.MongoDb;
-using API_CORE.Controllers.MongoDb;
-using API_CORE.Controllers.RabitMQ;
-using API_CORE.Controllers.Utilities.Lib;
+using HuloToys_Service.MongoDb;
+using HuloToys_Service.RabitMQ;
+using HuloToys_Service.Utilities.Lib;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -10,12 +10,12 @@ using System.Reflection;
 using Utilities;
 using Utilities.Contants;
 using HuloToys_Front_End.Models.Products;
-using API_CORE.Controllers.Models.Cart;
-using API_CORE.Controllers.Models.APIRequest;
-using API_CORE.Controllers.Controllers.Cart.Business;
-using API_CORE.Controllers.Controllers.Client.Business;
+using HuloToys_Service.Models.Cart;
+using HuloToys_Service.Models.APIRequest;
+using HuloToys_Service.Controllers.Cart.Business;
+using HuloToys_Service.Controllers.Client.Business;
 
-namespace API_CORE.Controllers.Controllers
+namespace HuloToys_Service.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]

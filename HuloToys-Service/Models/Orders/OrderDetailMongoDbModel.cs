@@ -1,10 +1,10 @@
-﻿using API_CORE.Controllers.Models.NinjaVan;
+﻿using HuloToys_Service.Models.NinjaVan;
 using Models.APIRequest;
 using Models.MongoDb;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace API_CORE.Controllers.Models.Orders
+namespace HuloToys_Service.Models.Orders
 {
     public class OrderDetailMongoDbModel
     {

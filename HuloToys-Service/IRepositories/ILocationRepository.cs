@@ -1,5 +1,5 @@
 ﻿using Entities.Models;
-using API_CORE.Controllers.Models.Models;
+using HuloToys_Service.Models.Models;
 using System;
 using System.Collections.Generic;
 using System.Text;

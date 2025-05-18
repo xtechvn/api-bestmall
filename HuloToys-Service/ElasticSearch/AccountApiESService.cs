@@ -1,13 +1,13 @@
 ﻿using Elasticsearch.Net;
-using API_CORE.Controllers.Elasticsearch;
-using API_CORE.Controllers.Models.Account;
-using API_CORE.Controllers.Utilities.Lib;
+using HuloToys_Service.Elasticsearch;
+using HuloToys_Service.Models.Account;
+using HuloToys_Service.Utilities.Lib;
 using Nest;
 using Newtonsoft.Json;
 using System.Reflection;
 using Telegram.Bot.Types;
 
-namespace API_CORE.Controllers.ElasticSearch
+namespace HuloToys_Service.ElasticSearch
 {
     public class AccountApiESService : ESRepository<AccountApiESModel>
     {

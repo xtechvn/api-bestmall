@@ -1,7 +1,7 @@
 ﻿using DAL;
 using Entities.ConfigModels;
 using Entities.Models;
-using API_CORE.Controllers.Models.Models;
+using HuloToys_Service.Models.Models;
 using Microsoft.Extensions.Options;
 using Repositories.IRepositories;
 using System;

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace API_CORE.Controllers.Models.Entities;
+namespace HuloToys_Service.Models.Entities;
 
 public partial class ArticleRelatedViewModel
 {

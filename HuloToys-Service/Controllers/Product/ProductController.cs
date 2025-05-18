@@ -144,11 +144,14 @@ namespace WEB.CMS.Controllers
                             //         // Hoặc sản phẩm chỉ có 1 giá cụ thể
                             //         || (x.amount_min == null && x.amount_max == null && x.amount >= request.price_from && x.amount <= request.price_to)
                             //     ).ToList();
-                            var filteredItems = result.items
-                            .Where(x =>
-                                (x.amount >= request.price_from && x.amount <= request.price_to))
-                            .Where(x => x.rating >= request.rating) // ✅ Lọc theo rating
-                            .ToList();
+                          var filteredItems = result.items
+                              .Where(x =>
+                              {
+                                  var amountToCheck = (x.amount > 0) ? x.amount : x.amount_max;
+                                  return amountToCheck >= request.price_from && amountToCheck <= request.price_to;
+                              })
+                              .Where(x => x.rating >= request.rating)
+                              .ToList();
 
 
                             //Lọc theo khoảng giá và rating nếu có

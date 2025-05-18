@@ -153,9 +153,9 @@ namespace HuloToys_Service.ElasticSearch
                 if (category_id > 0)
                 {
                     var countResponse = elasticClient.Count<CategoryArticleModel>(c => c
-                                       .Index(configuration["DataBaseConfig:Elastic:Index:Article"])  // Chỉ mục bạn muốn tìm kiếm
+                                       .Index(configuration["DataBaseConfig:Elastic:Index:ArticleCategory"])  // Chỉ mục bạn muốn tìm kiếm
                     .Query(q => q
-                        .Term(t => t.Field("categoryid").Value(category_id))  // Tìm theo category_id
+                        .Term(t => t.Field("CategoryId").Value(category_id))  // Tìm theo category_id
                     ));
                     totalCount = Convert.ToInt32(countResponse.Count);
                 }

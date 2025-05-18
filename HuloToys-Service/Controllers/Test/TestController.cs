@@ -1,17 +1,17 @@
-﻿using HuloToys_Service.Elasticsearch;
-using HuloToys_Service.Models;
-using HuloToys_Service.Models.Queue;
-using HuloToys_Service.RabitMQ;
-using HuloToys_Service.RedisWorker;
+﻿using API_CORE.Controllers.Elasticsearch;
+using API_CORE.Controllers.Models;
+using API_CORE.Controllers.Models.Queue;
+using API_CORE.Controllers.RabitMQ;
+using API_CORE.Controllers.RedisWorker;
 
-using HuloToys_Service.Utilities.Lib;
+using API_CORE.Controllers.Utilities.Lib;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Reflection;
 using Utilities.Contants;
 //cuonglv tesst git
-namespace HuloToys_Service.Controllers.Test
+namespace API_CORE.Controllers.Controllers.Test
 {
     [Route("api/[controller]")]
     [ApiController]

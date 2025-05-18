@@ -3,18 +3,18 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using System.Reflection;
-using HuloToys_Service.Utilities.Lib;
+using API_CORE.Controllers.Utilities.Lib;
 using Utilities;
 using Utilities.Contants;
 using Caching.Elasticsearch;
-using HuloToys_Service.Models.APIRequest;
-using HuloToys_Service.RedisWorker;
-using HuloToys_Service.Models.Location;
+using API_CORE.Controllers.Models.APIRequest;
+using API_CORE.Controllers.RedisWorker;
+using API_CORE.Controllers.Models.Location;
 using Repositories.IRepositories;
 using HuloToys_Front_End.Models.Products;
-using HuloToys_Service.Models.Models;
+using API_CORE.Controllers.Models.Models;
 
-namespace HuloToys_Service.Controllers
+namespace API_CORE.Controllers.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]

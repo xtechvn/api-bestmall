@@ -1,11 +1,11 @@
-﻿using HuloToys_Service.Models.Queue;
-using HuloToys_Service.RedisWorker;
-using HuloToys_Service.Utilities.Lib;
+﻿using API_CORE.Controllers.Models.Queue;
+using API_CORE.Controllers.RedisWorker;
+using API_CORE.Controllers.Utilities.Lib;
 using RabbitMQ.Client;
 using System.Reflection;
 using System.Text;
 
-namespace HuloToys_Service.RabitMQ
+namespace API_CORE.Controllers.RabitMQ
 {
     public class WorkQueueClient
     {

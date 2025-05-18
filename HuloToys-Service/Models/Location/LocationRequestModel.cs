@@ -1,4 +1,4 @@
-﻿namespace HuloToys_Service.Models.Location
+﻿namespace API_CORE.Controllers.Models.Location
 {
     public class LocationRequestModel
     {

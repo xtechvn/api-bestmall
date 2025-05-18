@@ -1,13 +1,13 @@
 ﻿using Caching.Elasticsearch;
 using Entities.Models;
-using HuloToys_Service.Controllers.Client.Business;
-using HuloToys_Service.Models.Client;
-using HuloToys_Service.Models.Models;
-using HuloToys_Service.RedisWorker;
+using API_CORE.Controllers.Controllers.Client.Business;
+using API_CORE.Controllers.Models.Client;
+using API_CORE.Controllers.Models.Models;
+using API_CORE.Controllers.RedisWorker;
 using Newtonsoft.Json;
 using Utilities.Contants;
 
-namespace HuloToys_Service.Controllers.Address.Business
+namespace API_CORE.Controllers.Controllers.Address.Business
 {
     public class AddressClientService
     {

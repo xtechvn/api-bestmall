@@ -1,12 +1,12 @@
 ﻿using Azure.Core;
 using Entities.ViewModels.Products;
-using HuloToys_Service.Utilities.Lib;
+using API_CORE.Controllers.Utilities.Lib;
 using MongoDB.Driver;
 using Newtonsoft.Json;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
-namespace HuloToys_Service.MongoDb
+namespace API_CORE.Controllers.MongoDb
 {
     public class ProductSpecificationMongoAccess
     {

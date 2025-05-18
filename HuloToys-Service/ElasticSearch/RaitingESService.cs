@@ -1,15 +1,15 @@
 ﻿using Azure.Core;
 using Elasticsearch.Net;
-using HuloToys_Service.Elasticsearch;
-using HuloToys_Service.Models;
-using HuloToys_Service.Models.Article;
-using HuloToys_Service.Models.Raiting;
-using HuloToys_Service.Utilities.Lib;
+using API_CORE.Controllers.Elasticsearch;
+using API_CORE.Controllers.Models;
+using API_CORE.Controllers.Models.Article;
+using API_CORE.Controllers.Models.Raiting;
+using API_CORE.Controllers.Utilities.Lib;
 using Nest;
 using System.Drawing;
 using System.Reflection;
 
-namespace HuloToys_Service.ElasticSearch
+namespace API_CORE.Controllers.ElasticSearch
 {
     public class RaitingESService : ESRepository<RatingESModel>
     {

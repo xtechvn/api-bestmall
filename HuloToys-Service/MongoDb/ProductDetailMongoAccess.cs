@@ -1,8 +1,8 @@
 ﻿using Entities.ViewModels.Products;
 using HuloToys_Front_End.Models.Products;
-using HuloToys_Service.Utilities.constants.Product;
-using HuloToys_Service.Utilities.lib;
-using HuloToys_Service.Utilities.Lib;
+using API_CORE.Controllers.Utilities.constants.Product;
+using API_CORE.Controllers.Utilities.lib;
+using API_CORE.Controllers.Utilities.Lib;
 using Microsoft.Extensions.FileSystemGlobbing.Internal;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -12,7 +12,7 @@ using System.Text.RegularExpressions;
 using Telegram.Bot.Types;
 using static System.Net.Mime.MediaTypeNames;
 
-namespace HuloToys_Service.MongoDb
+namespace API_CORE.Controllers.MongoDb
 {
     public class ProductDetailMongoAccess
     {

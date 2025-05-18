@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HuloToys_Service.Models.Cart
+namespace API_CORE.Controllers.Models.Cart
 {
     public class CartDeleteRequestModel
     {

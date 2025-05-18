@@ -1,7 +1,7 @@
 ﻿using Entities.Models;
 using Entities.ViewModels;
-using HuloToys_Service.Models.Article;
-using HuloToys_Service.Models.Models;
+using API_CORE.Controllers.Models.Article;
+using API_CORE.Controllers.Models.Models;
 using System.Linq.Expressions;
 
 namespace Repositories.IRepositories

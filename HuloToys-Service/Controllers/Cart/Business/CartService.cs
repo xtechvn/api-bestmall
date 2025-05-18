@@ -1,13 +1,13 @@
 ﻿using Entities.ViewModels.Products;
-using HuloToys_Service.MongoDb;
-using HuloToys_Service.RedisWorker;
-using HuloToys_Service.Utilities.Lib;
+using API_CORE.Controllers.MongoDb;
+using API_CORE.Controllers.RedisWorker;
+using API_CORE.Controllers.Utilities.Lib;
 using Models.MongoDb;
 using MongoDB.Driver;
 using Pipelines.Sockets.Unofficial.Buffers;
 using System.Reflection;
 
-namespace HuloToys_Service.Controllers.Cart.Business
+namespace API_CORE.Controllers.Controllers.Cart.Business
 {
     public class CartService
     {

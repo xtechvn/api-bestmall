@@ -2,9 +2,9 @@
 using DAL.StoreProcedure;
 using Elasticsearch.Net;
 using Entities.Models;
-using HuloToys_Service.Models.Label;
-using HuloToys_Service.Models.Models;
-using HuloToys_Service.Utilities.Lib;
+using API_CORE.Controllers.Models.Label;
+using API_CORE.Controllers.Models.Models;
+using API_CORE.Controllers.Utilities.Lib;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;

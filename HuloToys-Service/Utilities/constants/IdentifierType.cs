@@ -1,4 +1,4 @@
-﻿namespace HuloToys_Service.Utilities.constants
+﻿namespace API_CORE.Controllers.Utilities.constants
 {
     public struct IdentifierType
     {

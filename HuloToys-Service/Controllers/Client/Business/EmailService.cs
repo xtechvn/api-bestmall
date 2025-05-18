@@ -1,11 +1,11 @@
 ﻿using Caching.Elasticsearch;
-using HuloToys_Service.Models.Account;
-using HuloToys_Service.Models.Client;
+using API_CORE.Controllers.Models.Account;
+using API_CORE.Controllers.Models.Client;
 using System.Net;
 using System.Net.Mail;
 using Telegram.Bot.Types;
 
-namespace HuloToys_Service.Controllers.Client.Business
+namespace API_CORE.Controllers.Controllers.Client.Business
 {
     public class EmailService
     {

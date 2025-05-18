@@ -1,4 +1,4 @@
-﻿namespace HuloToys_Service.Models.NinjaVan
+﻿namespace API_CORE.Controllers.Models.NinjaVan
 {
     public class ShippingFeeResponseModel
     {

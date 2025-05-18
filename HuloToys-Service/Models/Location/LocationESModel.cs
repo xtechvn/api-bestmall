@@ -1,7 +1,7 @@
 ﻿using Entities.Models;
-using HuloToys_Service.Models.Models;
+using API_CORE.Controllers.Models.Models;
 
-namespace HuloToys_Service.Models.Location
+namespace API_CORE.Controllers.Models.Location
 {
     public class ProvinceESModel:Province
     {

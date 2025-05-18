@@ -1,6 +1,6 @@
 ﻿using Nest;
 
-namespace HuloToys_Service.Models.Article
+namespace API_CORE.Controllers.Models.Article
 {
     public class ArticleCategoryESModel
     {

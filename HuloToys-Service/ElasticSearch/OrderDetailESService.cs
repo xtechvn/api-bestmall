@@ -1,17 +1,17 @@
 ﻿using Elasticsearch.Net;
-using HuloToys_Service.Elasticsearch;
-using HuloToys_Service.Utilities.Lib;
+using API_CORE.Controllers.Elasticsearch;
+using API_CORE.Controllers.Utilities.Lib;
 using Nest;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Reflection;
 using Utilities;
-using HuloToys_Service.Models.ElasticSearch;
-using HuloToys_Service.Models.Orders;
+using API_CORE.Controllers.Models.ElasticSearch;
+using API_CORE.Controllers.Models.Orders;
 using Azure.Core;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using entities.models;
-using HuloToys_Service.Models;
+using API_CORE.Controllers.Models;
 using Azure;
 using static System.Net.Mime.MediaTypeNames;
 

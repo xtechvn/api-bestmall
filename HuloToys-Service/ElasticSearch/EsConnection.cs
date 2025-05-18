@@ -1,7 +1,7 @@
 ﻿using Elasticsearch.Net;
 using Nest;
 
-namespace HuloToys_Service.Elasticsearch
+namespace API_CORE.Controllers.Elasticsearch
 {
     public class EsConnection
     {

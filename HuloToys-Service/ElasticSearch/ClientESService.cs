@@ -1,9 +1,9 @@
 ﻿using Elasticsearch.Net;
-using HuloToys_Service.Elasticsearch;
-using HuloToys_Service.Utilities.Lib;
+using API_CORE.Controllers.Elasticsearch;
+using API_CORE.Controllers.Utilities.Lib;
 using Nest;
 using System.Reflection;
-using HuloToys_Service.Models.Client;
+using API_CORE.Controllers.Models.Client;
 using Newtonsoft.Json;
 
 namespace Caching.Elasticsearch

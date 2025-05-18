@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HuloToys_Service.Models.Address
+namespace API_CORE.Controllers.Models.Address
 {
     public class CommentsModel
     {

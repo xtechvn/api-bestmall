@@ -1,4 +1,4 @@
-﻿namespace HuloToys_Service.Utilities.constants.APP
+﻿namespace API_CORE.Controllers.Utilities.constants.APP
 {
     public enum CheckoutEventID
     {

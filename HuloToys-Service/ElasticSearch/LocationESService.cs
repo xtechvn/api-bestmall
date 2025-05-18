@@ -1,10 +1,10 @@
 ﻿using Elasticsearch.Net;
-using HuloToys_Service.Elasticsearch;
-using HuloToys_Service.Utilities.Lib;
+using API_CORE.Controllers.Elasticsearch;
+using API_CORE.Controllers.Utilities.Lib;
 using Nest;
 using System.Reflection;
 using Entities.Models;
-using HuloToys_Service.Models.Models;
+using API_CORE.Controllers.Models.Models;
 
 namespace Caching.Elasticsearch
 {

@@ -1,12 +1,12 @@
 ﻿using Elasticsearch.Net;
-using HuloToys_Service.Elasticsearch;
-using HuloToys_Service.Models.Article;
-using HuloToys_Service.Utilities.Lib;
+using API_CORE.Controllers.Elasticsearch;
+using API_CORE.Controllers.Models.Article;
+using API_CORE.Controllers.Utilities.Lib;
 using Nest;
 using Newtonsoft.Json;
 using System.Reflection;
 
-namespace HuloToys_Service.ElasticSearch
+namespace API_CORE.Controllers.ElasticSearch
 {
     public class TagESService : ESRepository<TagViewModel>
     {

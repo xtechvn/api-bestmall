@@ -1,6 +1,6 @@
-﻿using HuloToys_Service.Models.Client;
+﻿using API_CORE.Controllers.Models.Client;
 
-namespace HuloToys_Service.Models.Address
+namespace API_CORE.Controllers.Models.Address
 {
     public class AddressViewModel : ClientAddressGeneralRequestModel
     {

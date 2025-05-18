@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 
 
-namespace HuloToys_Service.Models.Account
+namespace API_CORE.Controllers.Models.Account
 {
     public class AccountESModel
     {

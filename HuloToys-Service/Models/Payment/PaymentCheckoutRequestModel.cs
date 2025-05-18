@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HuloToys_Service.Models.Payment
+namespace API_CORE.Controllers.Models.Payment
 {
     public class PaymentCheckoutRequestModel
     {

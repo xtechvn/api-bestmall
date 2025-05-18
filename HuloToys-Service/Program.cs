@@ -1,7 +1,7 @@
 using Entities.ConfigModels;
-using HuloToys_Service.IRepositories;
-using HuloToys_Service.Models.Models;
-using HuloToys_Service.RedisWorker;
+using API_CORE.Controllers.IRepositories;
+using API_CORE.Controllers.Models.Models;
+using API_CORE.Controllers.RedisWorker;
 using Microsoft.EntityFrameworkCore;
 using Repositories.IRepositories;
 using Repositories.Repositories;

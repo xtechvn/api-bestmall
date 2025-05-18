@@ -3,28 +3,28 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using System.Reflection;
-using HuloToys_Service.Utilities.Lib;
+using API_CORE.Controllers.Utilities.Lib;
 using Utilities;
 using Utilities.Contants;
 using Models.Queue;
-using HuloToys_Service.RabitMQ;
+using API_CORE.Controllers.RabitMQ;
 using Caching.Elasticsearch;
-using HuloToys_Service.Models.Queue;
-using HuloToys_Service.Utilities.constants;
-using HuloToys_Service.Controllers.Order.Business;
-using HuloToys_Service.Models.Client;
-using HuloToys_Service.Models.APIRequest;
+using API_CORE.Controllers.Models.Queue;
+using API_CORE.Controllers.Utilities.constants;
+using API_CORE.Controllers.Controllers.Order.Business;
+using API_CORE.Controllers.Models.Client;
+using API_CORE.Controllers.Models.APIRequest;
 using HuloToys_Front_End.Models.Products;
-using HuloToys_Service.MongoDb;
-using HuloToys_Service.RedisWorker;
+using API_CORE.Controllers.MongoDb;
+using API_CORE.Controllers.RedisWorker;
 using Entities.Models;
-using HuloToys_Service.Utilities.lib;
-using HuloToys_Service.Controllers.Client.Business;
+using API_CORE.Controllers.Utilities.lib;
+using API_CORE.Controllers.Controllers.Client.Business;
 using Nest;
-using HuloToys_Service.IRepositories;
+using API_CORE.Controllers.IRepositories;
 using Repositories.IRepositories;
 
-namespace HuloToys_Service.Controllers
+namespace API_CORE.Controllers.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]

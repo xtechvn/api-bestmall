@@ -2,9 +2,9 @@
 using Entities.ConfigModels;
 using Entities.Models;
 using Entities.ViewModels;
-using HuloToys_Service.Models.Article;
-using HuloToys_Service.Models.Models;
-using HuloToys_Service.Utilities.Lib;
+using API_CORE.Controllers.Models.Article;
+using API_CORE.Controllers.Models.Models;
+using API_CORE.Controllers.Utilities.Lib;
 using Microsoft.Extensions.Options;
 using Repositories.IRepositories;
 using System.Data;

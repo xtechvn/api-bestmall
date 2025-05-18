@@ -2,7 +2,7 @@
 using System.Text.RegularExpressions;
 using static System.Net.Mime.MediaTypeNames;
 
-namespace HuloToys_Service.Utilities.lib
+namespace API_CORE.Controllers.Utilities.lib
 {
     public static class StringHelper
     {

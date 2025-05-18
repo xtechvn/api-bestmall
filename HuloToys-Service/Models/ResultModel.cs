@@ -1,4 +1,4 @@
-﻿namespace HuloToys_Service.Models
+﻿namespace API_CORE.Controllers.Models
 {
     public class ResultModel<T>
     {

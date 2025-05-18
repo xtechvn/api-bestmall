@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HuloToys_Service.Models.Orders
+namespace API_CORE.Controllers.Models.Orders
 {
     public class OrderESModel
     {

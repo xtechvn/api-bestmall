@@ -1,12 +1,12 @@
 ﻿using Entities.ConfigModels;
 using Entities.Models;
-using HuloToys_Service.ElasticSearch;
-using HuloToys_Service.Models;
-using HuloToys_Service.Models.Article;
-using HuloToys_Service.Models.ElasticSearch;
-using HuloToys_Service.Models.Models;
-using HuloToys_Service.Models.Products;
-using HuloToys_Service.Utilities.Lib;
+using API_CORE.Controllers.ElasticSearch;
+using API_CORE.Controllers.Models;
+using API_CORE.Controllers.Models.Article;
+using API_CORE.Controllers.Models.ElasticSearch;
+using API_CORE.Controllers.Models.Models;
+using API_CORE.Controllers.Models.Products;
+using API_CORE.Controllers.Utilities.Lib;
 using Microsoft.EntityFrameworkCore;
 using Nest;
 using Newtonsoft.Json;
@@ -14,7 +14,7 @@ using System.Reflection;
 using Utilities;
 using Utilities.Contants;
 
-namespace HuloToys_Service.Controllers.News.Business
+namespace API_CORE.Controllers.Controllers.News.Business
 {
     public partial class NewsBusiness
     {

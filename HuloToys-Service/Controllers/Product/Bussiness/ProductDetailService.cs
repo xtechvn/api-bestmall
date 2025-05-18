@@ -2,11 +2,11 @@
 using Caching.Elasticsearch;
 using Entities.ViewModels.Products;
 using HuloToys_Front_End.Models.Products;
-using HuloToys_Service.ElasticSearch;
-using HuloToys_Service.Models.APIRequest;
-using HuloToys_Service.MongoDb;
-using HuloToys_Service.Utilities.lib;
-using HuloToys_Service.Utilities.Lib;
+using API_CORE.Controllers.ElasticSearch;
+using API_CORE.Controllers.Models.APIRequest;
+using API_CORE.Controllers.MongoDb;
+using API_CORE.Controllers.Utilities.lib;
+using API_CORE.Controllers.Utilities.Lib;
 using Microsoft.AspNetCore.Mvc;
 using Nest;
 using Newtonsoft.Json;
@@ -14,7 +14,7 @@ using Newtonsoft.Json.Linq;
 using System.Reflection;
 using Utilities.Contants;
 
-namespace HuloToys_Service.Controllers.Product.Bussiness
+namespace API_CORE.Controllers.Controllers.Product.Bussiness
 {
     public class ProductDetailService
     {

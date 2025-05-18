@@ -1,11 +1,11 @@
 ﻿using Models.MongoDb;
-using HuloToys_Service.Utilities.Lib;
+using API_CORE.Controllers.Utilities.Lib;
 using MongoDB.Driver;
 using System.Collections.Concurrent;
 using System.Reflection;
 using Nest;
 
-namespace HuloToys_Service.MongoDb
+namespace API_CORE.Controllers.MongoDb
 {
     public class CartMongodbService
     {

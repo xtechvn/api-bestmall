@@ -1,11 +1,11 @@
-﻿using HuloToys_Service.Utilities.constants.NinjaVan;
+﻿using API_CORE.Controllers.Utilities.constants.NinjaVan;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RestSharp;
 using System.Linq;
-using static HuloToys_Service.Utilities.constants.NinjaVan.NinjaVanShippingFee;
+using static API_CORE.Controllers.Utilities.constants.NinjaVan.NinjaVanShippingFee;
 
-namespace HuloToys_Service.Controllers.Shipping.Business
+namespace API_CORE.Controllers.Controllers.Shipping.Business
 {
     public class NinjaVanService
     {

@@ -1,6 +1,6 @@
-﻿using HuloToys_Service.Models;
+﻿using API_CORE.Controllers.Models;
 
-namespace HuloToys_Service.Elasticsearch
+namespace API_CORE.Controllers.Elasticsearch
 {
     public interface IESRepository<TEntity> where TEntity : class
     {

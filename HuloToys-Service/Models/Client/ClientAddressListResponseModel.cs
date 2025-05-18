@@ -1,6 +1,6 @@
 ﻿using Entities.Models;
 
-namespace HuloToys_Service.Models.Client
+namespace API_CORE.Controllers.Models.Client
 {
     public class ClientAddressListResponseModel
     {

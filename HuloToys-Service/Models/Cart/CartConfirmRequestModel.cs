@@ -1,5 +1,5 @@
 ﻿using Entities.Models;
-using HuloToys_Service.Models.NinjaVan;
+using API_CORE.Controllers.Models.NinjaVan;
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -1,11 +1,11 @@
 ﻿using Caching.Elasticsearch;
 using Entities.ConfigModels;
-using HuloToys_Service.Utilities.constants.ClientType;
-using HuloToys_Service.Utilities.Lib;
+using API_CORE.Controllers.Utilities.constants.ClientType;
+using API_CORE.Controllers.Utilities.Lib;
 using Microsoft.Extensions.Options;
 using System.Reflection;
 
-namespace HuloToys_Service.Controllers.Order.Business
+namespace API_CORE.Controllers.Controllers.Order.Business
 {
     public class IdentiferService
     {

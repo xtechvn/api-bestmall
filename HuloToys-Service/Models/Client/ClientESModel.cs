@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 
 
-namespace HuloToys_Service.Models.Client
+namespace API_CORE.Controllers.Models.Client
 {
     public  class ClientESModel
     {

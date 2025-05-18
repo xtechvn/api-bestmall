@@ -1,4 +1,4 @@
-﻿using HuloToys_Service.Models.Models;
+﻿using API_CORE.Controllers.Models.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;

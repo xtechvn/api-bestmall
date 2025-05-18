@@ -1,15 +1,15 @@
 ﻿using Caching.Elasticsearch;
 using HuloToys_Front_End.Models.Products;
-using HuloToys_Service.Models.APIRequest;
-using HuloToys_Service.MongoDb;
-using HuloToys_Service.RedisWorker;
+using API_CORE.Controllers.Models.APIRequest;
+using API_CORE.Controllers.MongoDb;
+using API_CORE.Controllers.RedisWorker;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 using Utilities.Contants;
 using Utilities;
 using Microsoft.AspNetCore.Authorization;
 
-namespace HuloToys_Service.Controllers.Nhanh.vn
+namespace API_CORE.Controllers.Controllers.Nhanh.vn
 {
     [ApiController]
     [Route("api/nhanhvn")]

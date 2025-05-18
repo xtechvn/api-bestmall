@@ -1,5 +1,5 @@
-﻿using HuloToys_Service.Models.Queue;
-using HuloToys_Service.RabitMQ;
+﻿using API_CORE.Controllers.Models.Queue;
+using API_CORE.Controllers.RabitMQ;
 using Microsoft.AspNetCore.Mvc;
 using Nest;
 using Newtonsoft.Json.Linq;

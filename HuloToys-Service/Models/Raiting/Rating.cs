@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace HuloToys_Service.Models;
+namespace API_CORE.Controllers.Models;
 
 public partial class Rating
 {

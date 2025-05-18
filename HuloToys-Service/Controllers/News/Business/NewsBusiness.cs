@@ -688,7 +688,7 @@ namespace API_CORE.Controllers.Controllers.News.Business
                                     }
                                     else
                                     {
-                                        groupProductId += groupProduct.Id + ",";
+                                       // groupProductId += groupProduct.Id + ",";
                                     }
 
                                 }

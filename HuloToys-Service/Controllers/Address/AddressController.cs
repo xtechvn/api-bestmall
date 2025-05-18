@@ -21,15 +21,17 @@ using System.Collections.Generic;
 using System.Reflection;
 using Utilities;
 using Utilities.Contants;
+using API_CORE.Controllers.IRepositories;
 
 namespace API_CORE.Controllers.Controllers.Address
 {
     [Route("api/[controller]")]
     [ApiController]
-    
+
     public class AddressController : ControllerBase
     {
         private readonly IConfiguration configuration;
+        private readonly IAddressClientRepository _addressClientRepository;
         private readonly AccountClientESService accountClientESService;
         private readonly AddressClientESService addressClientESService;
         private readonly AddressClientService addressClientService;
@@ -37,7 +39,7 @@ namespace API_CORE.Controllers.Controllers.Address
         private readonly WorkQueueClient work_queue;
         private readonly ClientServices clientServices;
 
-        public AddressController(IConfiguration _configuration, RedisConn _redisService)
+        public AddressController(IConfiguration _configuration, RedisConn _redisService, IAddressClientRepository addressClientRepository)
         {
             configuration = _configuration;
             redisService = _redisService;
@@ -48,6 +50,7 @@ namespace API_CORE.Controllers.Controllers.Address
             addressClientService = new AddressClientService(_configuration, redisService);
             clientServices = new ClientServices(configuration);
 
+            _addressClientRepository = addressClientRepository;
         }
         [HttpPost("insert-address")]
 
@@ -60,85 +63,77 @@ namespace API_CORE.Controllers.Controllers.Address
                 {
                     var request = JsonConvert.DeserializeObject<AddressViewModel>(objParr[0].ToString());
                     bool response_queue = false;
-                    
-                    if (request != null )
-                    {
-                        //-- check account client
-                        if (request.AccountClientId <= 0)
-                        {
-                            request.AccountClientId = await clientServices.GetAccountClientIdFromToken(request.token);
-                            if (request.AccountClientId <= 0)
-                            {
-                                return Ok(new
-                                {
-                                    status = (int)ResponseType.FAILED,
-                                    msg = ResponseMessages.DataInvalid
-                                });
-                            }
 
-                        }
-                        //-- check if account client exists
-                        var account_client = accountClientESService.GetById(request.AccountClientId);
-                        if(account_client==null || account_client.Id <= 0)
+                    if (request == null || request.token == null 
+                        || request.Phone == null || request.ProvinceId == null
+                        || request.DistrictId == null || request.WardId == null
+                        || request.Address == null || request.ReceiverName == null)
+                    {
+                        return Ok(new
                         {
-                            return Ok(new
-                            {
-                                status = (int)ResponseType.FAILED,
-                                msg = ResponseMessages.DataInvalid
-                            });
-                        }
-                        request.ClientId = (long)account_client.ClientId;
-                        bool is_add_new = true;
-                        int address_count = 1;
-                        if (request.Id > 0 )
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+
+                    }
+                    request.AccountClientId = await clientServices.GetAccountClientIdFromToken(request.token);
+                    //-- check if account client exists
+                    if (request.AccountClientId <= 0)
+                    {
+                        return Ok(new
                         {
-                            var address_update = addressClientESService.GetById(request.Id, (long)account_client.ClientId);
-                            if (address_update == null || address_update.id <= 0)
-                            {
-                                return Ok(new
-                                {
-                                    status = (int)ResponseType.FAILED,
-                                    msg = ResponseMessages.DataInvalid
-                                });
-                            }
-                           is_add_new = false;
-                        }
-                        else
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+                    var account_client = accountClientESService.GetById(request.AccountClientId);
+                    if (account_client==null|| account_client.ClientId==null)
+                    {
+                        return Ok(new
                         {
-                            var address_by_client = addressClientESService.GetByClientID((long)account_client.ClientId);
-                            if (address_by_client != null) address_count = address_by_client.Count;
-                        }
-                        var j_param = new Dictionary<string, object>
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+                    request.ClientId = (long)account_client.ClientId;
+                    if (request.Id <= 0)
+                    {
+                        request.Id = _addressClientRepository.InsertAddressClient(new Models.Models.AddressClient()
+                        {
+                            Phone= request.Phone,
+                            ClientId= request.ClientId,
+                            IsActive= true,
+                        });
+                    }
+                    var j_param = new Dictionary<string, object>
                         {
                             {"data_push", JsonConvert.SerializeObject(request)}, // có thể là json
-                            {"type",is_add_new?QueueType.ADD_ADDRESS:QueueType.UPDATE_ADDRESS}
+                            {"type",QueueType.UPDATE_ADDRESS}
                         };
-                        var _data_push = JsonConvert.SerializeObject(j_param);
+                    var _data_push = JsonConvert.SerializeObject(j_param);
 
-                        // Execute Push Queue
+                    // Execute Push Queue
 
-                        response_queue = work_queue.InsertQueueSimple(_data_push, QueueName.queue_app_push);
-                        //-- Clear Cache:
-                        var cache_name = CacheType.ADDRESS_CLIENT + request.AccountClientId;
-                        redisService.clear(cache_name, Convert.ToInt32(configuration["Redis:Database:db_search_result"]));
-                        if (response_queue)
+                    response_queue = work_queue.InsertQueueSimple(_data_push, QueueName.queue_app_push);
+                    //-- Clear Cache:
+                    var cache_name = CacheType.ADDRESS_CLIENT + request.AccountClientId;
+                    redisService.clear(cache_name, Convert.ToInt32(configuration["Redis:Database:db_search_result"]));
+                    if (response_queue)
+                    {
+                        return Ok(new
                         {
-                            return Ok(new
-                            {
-                                status = (int)ResponseType.SUCCESS,
-                                msg = "Success",
-                                data= is_add_new ? (address_count * -1): request.Id
-                            });
-                        }
-                        else
+                            status = (int)ResponseType.SUCCESS,
+                            msg = "Success",
+                            data = request.Id
+                        });
+                    }
+                    else
+                    {
+                        return Ok(new
                         {
-                            return Ok(new
-                            {
-                                status = (int)ResponseType.FAILED,
-                                msg = "FAILED"
-                            });
-                        }
-
+                            status = (int)ResponseType.FAILED,
+                            msg = "FAILED"
+                        });
                     }
 
                 }
@@ -168,7 +163,7 @@ namespace API_CORE.Controllers.Controllers.Address
         //            var request = JsonConvert.DeserializeObject<AddressViewModel>(objParr[0].ToString());
         //            bool response_queue = false;
         //            var work_queue = new WorkQueueClient(configuration);
-                  
+
         //            if (request != null)
         //            {
         //                if (request.AccountClientId <= 0)
@@ -256,7 +251,7 @@ namespace API_CORE.Controllers.Controllers.Address
                         });
                     }
                     long account_client_id = await clientServices.GetAccountClientIdFromToken(request.token);
-                    if (account_client_id <=0)
+                    if (account_client_id <= 0)
                     {
                         return Ok(new
                         {
@@ -364,7 +359,7 @@ namespace API_CORE.Controllers.Controllers.Address
                 if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, configuration["KEY:private_key"]))
                 {
                     var request = JsonConvert.DeserializeObject<ClientAddressDetailRequestModel>(objParr[0].ToString());
-                    if (request == null )
+                    if (request == null)
                     {
                         return Ok(new
                         {

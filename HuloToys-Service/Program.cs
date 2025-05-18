@@ -5,6 +5,7 @@ using API_CORE.Controllers.RedisWorker;
 using Microsoft.EntityFrameworkCore;
 using Repositories.IRepositories;
 using Repositories.Repositories;
+using API_CORE.Controllers.Repositories;
 
 internal class Program
 {
@@ -54,6 +55,7 @@ internal class Program
         builder.Services.AddSingleton<IDistrictRepository, DistrictRepository>();
         builder.Services.AddSingleton<IWardRepository, WardRepository>();
         builder.Services.AddSingleton<ILabelRepository, LabelRepository>();
+        builder.Services.AddSingleton<IAddressClientRepository, AddressClientRepository>();
 
 
         builder.Services.AddSingleton<RedisConn>();

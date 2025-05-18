@@ -154,14 +154,14 @@ namespace HuloToys_Service.ElasticSearch
                 {
                     var countResponse = elasticClient.Count<CategoryArticleModel>(c => c
                                        .Index(configuration["DataBaseConfig:Elastic:Index:ArticleCategory"])  // Chỉ mục bạn muốn tìm kiếm
-                    .Query(q => q
+                                       .Query(q => q
                         .Term(t => t.Field("CategoryId").Value(category_id))  // Tìm theo category_id
                     ));
                     totalCount = Convert.ToInt32(countResponse.Count);
                 }
                 else
                 {
-                    var countResponse = elasticClient.Count<CategoryArticleModel>(c => c.Index(configuration["DataBaseConfig:Elastic:Index:Article"]));
+                    var countResponse = elasticClient.Count<CategoryArticleModel>(c => c.Index(configuration["DataBaseConfig:Elastic:Index:ArticleCategory"]));
                     totalCount = Convert.ToInt32(countResponse.Count);
                 }
 

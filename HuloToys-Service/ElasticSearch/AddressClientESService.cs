@@ -69,7 +69,7 @@ namespace Caching.Elasticsearch
                 var elasticClient = new ElasticClient(connectionSettings);
                 var query = elasticClient.Search<AddressClientESModel>(sd => sd
                             .Index(index)
-                            .Query(q => q.Term(m => m.id, id) 
+                            .Query(q => q.Term("Id", id) 
                                 &&
                                 q.Term(m => m.ClientId, client_id)
                                 )

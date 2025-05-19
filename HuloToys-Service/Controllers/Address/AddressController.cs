@@ -57,6 +57,18 @@ namespace HuloToys_Service.Controllers.Address
 
         public async Task<IActionResult> InsertOrUpdateAddress([FromBody] APIRequestGenericModel input)
         {
+            //AddressViewModel model = new AddressViewModel()
+            //{
+            //    Address = "SNTEst001 - P001",
+            //    DistrictId = "01",
+            //    WardId = "001",
+            //    ProvinceId = "01",
+            //    Id=0,
+            //    Phone="0123333221",
+            //    ReceiverName="Người nhận Test",
+            //    token= "F08nOlAVBi8vLwxaDGMgagViZHx9aVhlfVx4AmJnTlpFXyNQYmNiVQJpXX5zQ1BMUlZzUVxPfmtQHykzJzAMWgxjZ2gDZnl+eHVZYx1YfwhjYlZHXhhiRmB2ZlULHU0w"
+            //};
+            //input.token = CommonHelper.Encode(JsonConvert.SerializeObject(model), configuration["KEY:private_key"]);
             try
             {
                 JArray objParr = null;
@@ -416,6 +428,122 @@ namespace HuloToys_Service.Controllers.Address
             {
                 status = (int)ResponseType.FAILED,
                 msg = ResponseMessages.DataInvalid,
+            });
+        }
+        [HttpPost("delete-address")]
+
+        public async Task<IActionResult> HideAddress([FromBody] APIRequestGenericModel input)
+        {
+            AddressViewModel model = new AddressViewModel()
+            {
+
+                Id = 10117,
+                token = "F08nOlAVBi8vLwxaDGMgagRjYX97aVlkfFt7AmJnTlpFXyNQYmNiUgBpXnt3Q1BJUlZ1U05BcCxNFysoPCdLQhRzZWoEfmR4Y2lQBHlccANhbF1BSQJnRGxya1ZpZRI="
+            };
+            input.token = CommonHelper.Encode(JsonConvert.SerializeObject(model), configuration["KEY:private_key"]);
+            try
+            {
+                JArray objParr = null;
+                if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, configuration["KEY:private_key"]))
+                {
+                    var request = JsonConvert.DeserializeObject<AddressViewModel>(objParr[0].ToString());
+                    bool response_queue = false;
+
+                    if (request == null || request.token == null
+                        || request.Id <=0)
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+
+                    }
+                    request.AccountClientId = await clientServices.GetAccountClientIdFromToken(request.token);
+                    //-- check if account client exists
+                    if (request.AccountClientId <= 0)
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+                    var account_client = accountClientESService.GetById(request.AccountClientId);
+                    if (account_client == null || account_client.ClientId == null)
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+                    request.ClientId = (long)account_client.ClientId;
+                    var exists = addressClientESService.GetById(request.Id, request.ClientId);
+                    if(exists!=null && exists.id > 0)
+                    {
+                        var address = new AddressClient()
+                        {
+                            Id = request.Id,
+                            Status = 1,
+                            Address=exists.Address,
+                            ClientId=exists.ClientId,
+                            CreatedOn=exists.CreatedOn,
+                            DistrictId=exists.DistrictId,
+                            IsActive=exists.IsActive,
+                            Phone=exists.Phone,
+                            ProvinceId=exists.ProvinceId,
+                            ReceiverName=exists.ReceiverName,
+                            UpdateTime=exists.UpdateTime,
+                            WardId=exists.WardId
+                        };
+                        var j_param = new Dictionary<string, object>
+                        {
+                            {"data_push", JsonConvert.SerializeObject(address)}, // có thể là json
+                            {"type",QueueType.UPDATE_ADDRESS}
+                        };
+                        var _data_push = JsonConvert.SerializeObject(j_param);
+
+                        // Execute Push Queue
+
+                        response_queue = work_queue.InsertQueueSimple(_data_push, QueueName.queue_app_push);
+                        //-- Clear Cache:
+                        var cache_name = CacheType.ADDRESS_CLIENT + request.AccountClientId;
+                        redisService.clear(cache_name, Convert.ToInt32(configuration["Redis:Database:db_search_result"]));
+                    }
+                    
+                    if (response_queue)
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.SUCCESS,
+                            msg = "Success",
+                            data = request.Id
+                        });
+                    }
+                    else
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = "FAILED"
+                        });
+                    }
+
+                }
+
+
+            }
+            catch (Exception ex)
+            {
+                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
+                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], error_msg);
+
+            }
+            return Ok(new
+            {
+                status = (int)ResponseType.FAILED,
+                msg = ResponseMessages.DataInvalid
             });
         }
     }

@@ -434,13 +434,13 @@ namespace HuloToys_Service.Controllers.Address
 
         public async Task<IActionResult> HideAddress([FromBody] APIRequestGenericModel input)
         {
-            AddressViewModel model = new AddressViewModel()
-            {
+            //AddressViewModel model = new AddressViewModel()
+            //{
 
-                Id = 10117,
-                token = "F08nOlAVBi8vLwxaDGMgagRjYX97aVlkfFt7AmJnTlpFXyNQYmNiUgBpXnt3Q1BJUlZ1U05BcCxNFysoPCdLQhRzZWoEfmR4Y2lQBHlccANhbF1BSQJnRGxya1ZpZRI="
-            };
-            input.token = CommonHelper.Encode(JsonConvert.SerializeObject(model), configuration["KEY:private_key"]);
+            //    Id = 10117,
+            //    token = "F08nOlAVBi8vLwxaDGMgagRjYX97aVlkfFt7AmJnTlpFXyNQYmNiUgBpXnt3Q1BJUlZ1U05BcCxNFysoPCdLQhRzZWoEfmR4Y2lQBHlccANhbF1BSQJnRGxya1ZpZRI="
+            //};
+            //input.token = CommonHelper.Encode(JsonConvert.SerializeObject(model), configuration["KEY:private_key"]);
             try
             {
                 JArray objParr = null;

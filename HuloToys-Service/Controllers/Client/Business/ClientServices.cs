@@ -55,7 +55,7 @@ namespace HuloToys_Service.Controllers.Client.Business
                         var account = _accountClientESService.GetByUsername(model.user_name);
                         if (account == null)
                         {
-                            LogHelper.InsertLogTelegramByUrl(_configuration["telegram:log_try_catch:bot_token"], _configuration["telegram:log_try_catch:group_id"], 
+                            LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], 
                                 "GetAccountClientIdFromToken with ["+model.user_name+"] ID=" + (account == null ? "[accountclient null]" : account.Id.ToString()));
 
                         }
@@ -70,7 +70,7 @@ namespace HuloToys_Service.Controllers.Client.Business
             }
             catch(Exception ex)
             {
-                LogHelper.InsertLogTelegramByUrl(_configuration["telegram:log_try_catch:bot_token"], _configuration["telegram:log_try_catch:group_id"], "GetAccountClientIdFromToken"+ex.ToString());
+                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], "GetAccountClientIdFromToken"+ex.ToString());
 
             }
             return account_client_id;

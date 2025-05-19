@@ -243,7 +243,7 @@ namespace HuloToys_Service.Controllers.News.Business
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "getArticleListByCategoryId - ArticleDAL: " + ex);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "getArticleListByCategoryId - ArticleDAL: " + ex);
                 return list_article;
             }
         }
@@ -256,7 +256,7 @@ namespace HuloToys_Service.Controllers.News.Business
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "GetArticleCategoryByParentID -GroupProductRepository : " + ex);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "GetArticleCategoryByParentID -GroupProductRepository : " + ex);
             }
             return null;
         }
@@ -272,7 +272,7 @@ namespace HuloToys_Service.Controllers.News.Business
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "getArticleListByCategoryId - ArticleDAL: " + ex);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "getArticleListByCategoryId - ArticleDAL: " + ex);
                 return 0;
             }
         }
@@ -415,7 +415,7 @@ namespace HuloToys_Service.Controllers.News.Business
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "getArticleListByCategoryId - ArticleDAL: " + ex);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "getArticleListByCategoryId - ArticleDAL: " + ex);
                 return null;
             }
         }
@@ -508,7 +508,7 @@ namespace HuloToys_Service.Controllers.News.Business
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "[article_id = " + article_id + "]GetArticleDetailLite - ArticleDAL: " + ex);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "[article_id = " + article_id + "]GetArticleDetailLite - ArticleDAL: " + ex);
                 return null;
             }
         }
@@ -585,7 +585,7 @@ namespace HuloToys_Service.Controllers.News.Business
                 catch (Exception ex)
                 {
 
-                    LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "[title = " + title + "]FindArticleByTitle - ArticleDAL: transaction.Commit " + ex);
+                    LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "[title = " + title + "]FindArticleByTitle - ArticleDAL: transaction.Commit " + ex);
                     return null;
                 }
 
@@ -593,7 +593,7 @@ namespace HuloToys_Service.Controllers.News.Business
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "[title = " + title + "]FindArticleByTitle - ArticleDAL:" + ex);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "[title = " + title + "]FindArticleByTitle - ArticleDAL:" + ex);
 
                 return null;
             }
@@ -771,7 +771,7 @@ namespace HuloToys_Service.Controllers.News.Business
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "[getArticleListByCategoryId - ArticleDAL:" + ex);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "[getArticleListByCategoryId - ArticleDAL:" + ex);
                 return null;
             }
         }
@@ -829,7 +829,7 @@ namespace HuloToys_Service.Controllers.News.Business
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "[getArticleListByCategoryId - ArticleDAL:" + ex);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "[getArticleListByCategoryId - ArticleDAL:" + ex);
                 return null;
             }
         }
@@ -850,7 +850,7 @@ namespace HuloToys_Service.Controllers.News.Business
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
             }
             return null;
         }
@@ -863,7 +863,7 @@ namespace HuloToys_Service.Controllers.News.Business
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "GetByParentId-GroupProductDAL" + ex);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "GetByParentId-GroupProductDAL" + ex);
             }
             return null;
         }
@@ -877,7 +877,7 @@ namespace HuloToys_Service.Controllers.News.Business
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "GetById-GroupProductDAL" + ex);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "GetById-GroupProductDAL" + ex);
 
             }
             return null;
@@ -901,7 +901,7 @@ namespace HuloToys_Service.Controllers.News.Business
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
                 return null;
             }
         }
@@ -936,7 +936,7 @@ namespace HuloToys_Service.Controllers.News.Business
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "[API]ArticleRepository - GetMostViewedArticle: " + ex);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "[API]ArticleRepository - GetMostViewedArticle: " + ex);
             }
             return null;
         }
@@ -951,7 +951,7 @@ namespace HuloToys_Service.Controllers.News.Business
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "[API]getArticleListByTags - GetArticleDetail: " + ex);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "[API]getArticleListByTags - GetArticleDetail: " + ex);
                 return null;
             }
         }
@@ -966,7 +966,7 @@ namespace HuloToys_Service.Controllers.News.Business
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "GetGroupProductNameAsync -GroupProductRepository : " + ex);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "GetGroupProductNameAsync -GroupProductRepository : " + ex);
             }
             return group_name;
         }
@@ -991,7 +991,7 @@ namespace HuloToys_Service.Controllers.News.Business
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "GetArticleCategoryByParentID -GroupProductRepository : " + ex);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "GetArticleCategoryByParentID -GroupProductRepository : " + ex);
             }
             return null;
         }
@@ -1008,7 +1008,7 @@ namespace HuloToys_Service.Controllers.News.Business
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "GetFooterCategoryByParentID -GroupProductRepository : " + ex);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "GetFooterCategoryByParentID -GroupProductRepository : " + ex);
             }
             return null;
         }
@@ -1023,7 +1023,7 @@ namespace HuloToys_Service.Controllers.News.Business
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "GetProductGroupByParentID -GroupProductRepository : " + ex);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "GetProductGroupByParentID -GroupProductRepository : " + ex);
             }
             return null;
         }
@@ -1069,7 +1069,7 @@ namespace HuloToys_Service.Controllers.News.Business
                 catch (Exception ex)
                 {
 
-                    LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "[title = " + title + "]FindArticleByBody - ArticleDAL: transaction.Commit " + ex);
+                    LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "[title = " + title + "]FindArticleByBody - ArticleDAL: transaction.Commit " + ex);
                     return null;
                 }
 
@@ -1077,7 +1077,7 @@ namespace HuloToys_Service.Controllers.News.Business
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "[title = " + title + "]FindArticleByBody - ArticleDAL:" + ex);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "[title = " + title + "]FindArticleByBody - ArticleDAL:" + ex);
 
                 return null;
             }

@@ -49,7 +49,7 @@ namespace HuloToys_Service.Models.Article
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegramByUrl(_configuration["telegram:log_try_catch:bot_token"], _configuration["telegram:log_try_catch:group_id"], "AddNewOrReplace - NewsMongoService: " + ex);
+                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], "AddNewOrReplace - NewsMongoService: " + ex);
                 return null;
             }
         }
@@ -69,7 +69,7 @@ namespace HuloToys_Service.Models.Article
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegramByUrl(_configuration["telegram:log_try_catch:bot_token"], _configuration["telegram:log_try_catch:group_id"], "GetMostViewedArticle - NewsMongoService: " + ex);
+                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], "GetMostViewedArticle - NewsMongoService: " + ex);
             }
             return null;
         }

@@ -163,7 +163,7 @@ namespace HuloToys_Service.Controllers
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.Message;
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
                 return Ok(new
                 {
                     status = (int)ResponseType.FAILED,
@@ -237,7 +237,7 @@ namespace HuloToys_Service.Controllers
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.Message;
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
                 return Ok(new
                 {
                     status = (int)ResponseType.FAILED,
@@ -275,7 +275,7 @@ namespace HuloToys_Service.Controllers
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.Message;
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
                 return Ok(new
                 {
                     status = (int)ResponseType.FAILED,
@@ -340,7 +340,7 @@ namespace HuloToys_Service.Controllers
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
                 return Ok(new
                 {
                     status = (int)ResponseType.FAILED,
@@ -367,7 +367,7 @@ namespace HuloToys_Service.Controllers
                     }
                     catch (Exception ex)
                     {
-                        LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "NewsController - GetMostViewedArticle: " + ex + "\n Token: " + input.token);
+                        LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "NewsController - GetMostViewedArticle: " + ex + "\n Token: " + input.token);
 
                     }
                     var detail = new ArticleFeModel();
@@ -395,7 +395,7 @@ namespace HuloToys_Service.Controllers
                             }
                             catch (Exception ex)
                             {
-                                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "NewsController - GetMostViewedArticle: " + ex + "\n Token: " + input.token);
+                                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "NewsController - GetMostViewedArticle: " + ex + "\n Token: " + input.token);
 
                             }
                             status = (int)ResponseType.SUCCESS;
@@ -415,7 +415,7 @@ namespace HuloToys_Service.Controllers
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "NewsController - GetMostViewedArticle: " + ex + " token = " + input.token);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "NewsController - GetMostViewedArticle: " + ex + " token = " + input.token);
 
                 return Ok(new
                 {
@@ -485,7 +485,7 @@ namespace HuloToys_Service.Controllers
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
                 return Ok(new
                 {
                     status = (int)ResponseType.FAILED,
@@ -534,7 +534,7 @@ namespace HuloToys_Service.Controllers
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
                 return Ok(new
                 {
                     status = (int)ResponseType.FAILED,
@@ -606,7 +606,7 @@ namespace HuloToys_Service.Controllers
                         }
                         catch (Exception ex)
                         {
-                            LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "NewsController - getListArticleByCategoryIdOrderByDate: " + ex + "\n Token: " + input.token);
+                            LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "NewsController - getListArticleByCategoryIdOrderByDate: " + ex + "\n Token: " + input.token);
 
                         }
                         return Ok(new
@@ -724,7 +724,7 @@ namespace HuloToys_Service.Controllers
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
                 return Ok(new
                 {
                     status = (int)ResponseType.ERROR,
@@ -758,7 +758,7 @@ namespace HuloToys_Service.Controllers
                     catch (Exception ex)
                     {
 
-                        LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "NewsController - GetMostViewedArticle: " + ex + "\n Token: " + input.token);
+                        LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "NewsController - GetMostViewedArticle: " + ex + "\n Token: " + input.token);
                     }
                     List<ArticleGroupViewModel> group_product = null;
 
@@ -777,7 +777,7 @@ namespace HuloToys_Service.Controllers
                             }
                             catch (Exception ex)
                             {
-                                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "NewsController - GetAllCategory: " + ex + "\n Token: " + input.token);
+                                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "NewsController - GetAllCategory: " + ex + "\n Token: " + input.token);
 
                             }
                         }
@@ -802,7 +802,7 @@ namespace HuloToys_Service.Controllers
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "NewsController - GetAllCategory: " + ex + "\n Token: " + input.token);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "NewsController - GetAllCategory: " + ex + "\n Token: " + input.token);
                 return Ok(new
                 {
                     status = (int)ResponseType.FAILED,
@@ -837,7 +837,7 @@ namespace HuloToys_Service.Controllers
                     }
                     catch (Exception ex)
                     {
-                        LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "NewsController - getListArticleByTagsOrder: " + ex + "\n Token: " + input.token);
+                        LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "NewsController - getListArticleByTagsOrder: " + ex + "\n Token: " + input.token);
 
                     }
                     List<ArticleFeModel> data_list;
@@ -875,7 +875,7 @@ namespace HuloToys_Service.Controllers
                         }
                         catch (Exception ex)
                         {
-                            LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "NewsController - getListArticleByTagsOrder: " + ex + "\n Token: " + input.token);
+                            LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "NewsController - getListArticleByTagsOrder: " + ex + "\n Token: " + input.token);
 
                         }
                         return Ok(new
@@ -936,7 +936,7 @@ namespace HuloToys_Service.Controllers
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "NewsController - get-list-by-categoryid-order.json: " + ex);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "NewsController - get-list-by-categoryid-order.json: " + ex);
                 return Ok(new
                 {
                     status = (int)ResponseType.ERROR,
@@ -984,7 +984,7 @@ namespace HuloToys_Service.Controllers
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
                 return Ok(new
                 {
                     status = (int)ResponseType.FAILED,

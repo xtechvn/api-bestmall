@@ -11,6 +11,7 @@ using HuloToys_Service.RedisWorker;
 using HuloToys_Service.Utilities.lib;
 using HuloToys_Service.Utilities.Lib;
 using Microsoft.AspNetCore.Mvc;
+using Nest;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Reflection;
@@ -35,6 +36,7 @@ namespace WEB.CMS.Controllers
         private readonly ProductRaitingService productRaitingService;
         private readonly ProductDetailService productDetailService;
         private readonly ProductESRepository _productESRepository;
+        private readonly AttachFileESModelESRepository attachFileESModelESRepository;
 
         public ProductController(IConfiguration configuration, RedisConn redisService)
         {
@@ -47,6 +49,7 @@ namespace WEB.CMS.Controllers
             groupProductESService = new GroupProductESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
             _raitingESService = new RaitingESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
             _productESRepository = new ProductESRepository(configuration["DataBaseConfig:Elastic:Host"], configuration);
+            attachFileESModelESRepository = new AttachFileESModelESRepository(configuration["DataBaseConfig:Elastic:Host"], configuration);
 
             _configuration = configuration;
             _redisService = new RedisConn(configuration);
@@ -183,7 +186,7 @@ namespace WEB.CMS.Controllers
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(_configuration["telegram:log_try_catch:bot_token"], _configuration["telegram:log_try_catch:group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
             }
             return Ok(new
             {
@@ -196,6 +199,11 @@ namespace WEB.CMS.Controllers
         [HttpPost("detail")]
         public async Task<IActionResult> ProductDetail([FromBody] APIRequestGenericModel input)
         {
+            //var model_con = new
+            //{
+            //    id = "682ad9336b5155c27a8bd9d7"
+            //};
+            //input.token = CommonHelper.Encode(JsonConvert.SerializeObject(model_con), _configuration["KEY:private_key"]);
             try
             {
                 JArray objParr = null;
@@ -226,15 +234,22 @@ namespace WEB.CMS.Controllers
                     //    }
                     //}
                     var data = await _productDetailMongoAccess.GetFullProductById(request.id);
-                    //if (data != null)
-                    //{
-                    //    _redisService.Set(cache_name, JsonConvert.SerializeObject(data), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
-                    //}
+                    List<string> cert = new List<string>();
+                    if (data != null)
+                    {
+                        // _redisService.Set(cache_name, JsonConvert.SerializeObject(data), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
+                        var attach = await attachFileESModelESRepository.GetByDataidAndType(data.product_main.supplier_id, 35);
+                        if(attach!=null && attach.Count > 0)
+                        {
+                            cert = attach.Select(x => x.Path).ToList();
+                        }    
+                    }
                     return Ok(new
                     {
                         status = (int)ResponseType.SUCCESS,
                         msg = "Success",
-                        data = data
+                        data = data,
+                        cert=cert
                     });
 
                 }
@@ -321,7 +336,7 @@ namespace WEB.CMS.Controllers
                             code = x.product_code,
                             description = x.description,
                             name = x.name,
-                            avatar=x.avatar
+                            avatar=x.avatar,
                         }).ToList();
                     }
                     return Ok(new
@@ -654,7 +669,7 @@ namespace WEB.CMS.Controllers
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(_configuration["telegram:log_try_catch:bot_token"], _configuration["telegram:log_try_catch:group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
             }
             return Ok(new
             {
@@ -788,7 +803,7 @@ namespace WEB.CMS.Controllers
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(_configuration["telegram:log_try_catch:bot_token"], _configuration["telegram:log_try_catch:group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
             }
             return Ok(new
             {

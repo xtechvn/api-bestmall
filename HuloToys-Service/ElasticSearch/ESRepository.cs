@@ -45,7 +45,7 @@ namespace HuloToys_Service.Elasticsearch
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString());
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString());
                 return null;
             }
         }
@@ -71,7 +71,7 @@ namespace HuloToys_Service.Elasticsearch
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString());
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString());
                 return -1;
             }
         }
@@ -95,7 +95,7 @@ namespace HuloToys_Service.Elasticsearch
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString());
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString());
             }
             return 0;
         }           

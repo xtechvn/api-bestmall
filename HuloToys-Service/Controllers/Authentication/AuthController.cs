@@ -64,10 +64,10 @@ namespace HuloToys_Service.Controllers
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegram(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "Get account api with usr=" + user.Username + ". Error" + ex.ToString());
+                LogHelper.InsertLogTelegram(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "Get account api with usr=" + user.Username + ". Error" + ex.ToString());
 
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegram(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], error_msg);
+                LogHelper.InsertLogTelegram(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
                 return Ok(new { status = (int)ResponseType.ERROR, msg = "Thông tin đăng nhập không hợp lệ. Vui lòng liên hệ với Admin" });
             }
         }
@@ -99,7 +99,7 @@ namespace HuloToys_Service.Controllers
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
                 return "";
             }
         }

@@ -426,12 +426,11 @@ namespace HuloToys_Service.Controllers
             try
             {
 
-
                 JArray objParr = null;
                 if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, configuration["KEY:private_key"]))
                 {
                     var request = JsonConvert.DeserializeObject<ClientChangePasswordRequestModel>(objParr[0].ToString());
-                    if (request == null || request.id<=0
+                    if (request == null
                         || request.password == null || request.password.Trim() == ""
                         || request.confirm_password == null || request.confirm_password.Trim() == "")
                     {
@@ -442,11 +441,16 @@ namespace HuloToys_Service.Controllers
                             msg = ResponseMessages.DataInvalid
                         });
                     }
-
-                    var account_client = accountClientESService.GetById(request.id);
-                    if (account_client != null && account_client.Id > 0 && account_client.ClientId > 0)
+                    var account_client = await clientServices.GetAccountClientIdFromToken(request.token);
+                    if (account_client <= 0)
                     {
-                        var client = clientESService.GetById((long)account_client.ClientId);
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+                        var client = clientESService.GetById((long)account_client);
                         if (client != null && client.Id > 0)
                         {
                             string new_password = CommonHelper.MD5Hash(request.password);
@@ -458,7 +462,7 @@ namespace HuloToys_Service.Controllers
                                 ClientId = client.Id,
                                 ClientType = 0,
                                 Email = null,
-                                Id = account_client.Id,
+                                Id = (int)account_client,
                                 isReceiverInfoEmail = null,
                                 Name = null,
                                 Password = new_password,
@@ -482,8 +486,7 @@ namespace HuloToys_Service.Controllers
                                 });
                             }
                         }
-                    }
-
+                   
                 }
 
             }
@@ -556,6 +559,155 @@ namespace HuloToys_Service.Controllers
                 }
 
             }
+            catch (Exception ex)
+            {
+                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
+                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], error_msg);
+                return Ok(new
+                {
+                    status = (int)ResponseType.FAILED,
+                    msg = ResponseMessages.FunctionExcutionFailed
+                });
+            }
+            return Ok(new
+            {
+                status = (int)ResponseType.FAILED,
+                msg = ResponseMessages.DataInvalid
+            });
+
+        }
+
+
+        [HttpPost("detail-client")]
+        public async Task<ActionResult> GetDetailClient([FromBody] APIRequestGenericModel input)
+        {
+            try
+            {
+
+                JArray objParr = null;
+                if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, configuration["KEY:private_key"]))
+                {
+                    var request = JsonConvert.DeserializeObject<ClientAddressGeneralRequestModel>(objParr[0].ToString());
+                    if (request == null)
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+                    long account_client_id = await clientServices.GetAccountClientIdFromToken(request.token);
+                    if (account_client_id <= 0)
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+                    var detailclient = await clientServices.GetDetailClientIdFromToken(account_client_id);
+                    if(detailclient != null)
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.SUCCESS,
+                            msg = ResponseMessages.Success,
+                            data= detailclient
+                        });
+                    }
+                }
+            }catch(Exception ex)
+            {
+                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
+                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], error_msg);
+                return Ok(new
+                {
+                    status = (int)ResponseType.FAILED,
+                    msg = ResponseMessages.FunctionExcutionFailed
+                });
+            }
+            return Ok(new
+            {
+                status = (int)ResponseType.FAILED,
+                msg = ResponseMessages.DataInvalid
+            });
+
+        }
+
+        [HttpPost("update-client")]
+        public async Task<ActionResult> UpdateClient([FromBody] APIRequestGenericModel input)
+        {
+            try
+            {
+                bool response_queue = false;
+                JArray objParr = null;
+                if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, configuration["KEY:private_key"]))
+                {
+                    var request = JsonConvert.DeserializeObject<ClientDetailESModel>(objParr[0].ToString());
+                    if (request == null)
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+                    if (request.token == null)
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+                    long account_client_id = await clientServices.GetAccountClientIdFromToken(request.token);
+                    if (account_client_id <= 0)
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+                    var detailclient = await clientServices.GetDetailClientIdFromToken(account_client_id);
+                    if(detailclient == null)
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+                    request.Id = detailclient.Id;
+                    var j_param = new Dictionary<string, object>
+                        {
+                            {"data_push", JsonConvert.SerializeObject(request)}, // có thể là json
+                            {"type",QueueType.UPDATE_ClIENT}
+                        };
+                    var _data_push = JsonConvert.SerializeObject(j_param);
+
+                    // Execute Push Queue
+
+                    response_queue = workQueueClient.InsertQueueSimple(_data_push, QueueName.queue_app_push);
+                    if (response_queue)
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.SUCCESS,
+                            msg = "Success",
+                            data = request.Id
+                        });
+                    }
+                    else
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = "FAILED"
+                        });
+                    }
+                }
+                }
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();

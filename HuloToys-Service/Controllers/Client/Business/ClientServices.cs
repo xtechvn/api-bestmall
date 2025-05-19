@@ -97,5 +97,31 @@ namespace HuloToys_Service.Controllers.Client.Business
             }
             return time;
         }
+        public async Task<ClientDetailESModel> GetDetailClientIdFromToken(long account_client_id)
+        {
+            try
+            {
+                var Detail_Client=new ClientDetailESModel();
+                var account_client = _accountClientESService.GetById(account_client_id);
+                var client_id = (long)account_client.ClientId;
+                var client = _clientESService.GetById(client_id);
+                if (client == null) {
+                    return Detail_Client;
+                }
+                Detail_Client.Id = client.Id;
+                Detail_Client.ClientName = client.ClientName;
+                Detail_Client.Phone = client.Phone;
+                Detail_Client.Email = client.Email;
+                Detail_Client.Birthday = client.Birthday;
+                Detail_Client.Gender = client.Gender;
+                return Detail_Client;
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegramByUrl(_configuration["telegram:log_try_catch:bot_token"], _configuration["telegram:log_try_catch:group_id"],
+                              "GetDetailClientIdFromToken with [" + account_client_id + "] ID=" + (account_client_id == null ? "[accountclientid null]" : account_client_id.ToString()));
+                return null;
+            }
+        }
     }
 }

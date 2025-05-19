@@ -11,5 +11,6 @@
         public const int ADD_RECEIVER_INFO_EMAIL = 6;
         public const int INSERT_PRODUCT_RATING = 7;
         public const int UPDATE_ORDER = 8;
+        public const int UPDATE_ClIENT = 9;
     }
 }

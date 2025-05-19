@@ -59,7 +59,7 @@ namespace Caching.Elasticsearch
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
             }
             return null;
         }
@@ -81,6 +81,7 @@ namespace Caching.Elasticsearch
                               .Query(query_container)
                               .From((page_index - 1) * page_size)
                               .Size(page_size)
+                              .Sort(ss => ss.Descending(o => o.CreatedDate)) // Add sorting by CreatedDate descending
 
                               );
                     var query_count = elasticClient.Count<OrderESModel>(sd => sd
@@ -113,6 +114,8 @@ namespace Caching.Elasticsearch
                              .Query(query_container)
                               .From((page_index - 1) * page_size)
                               .Size(page_size)
+                              .Sort(ss => ss.Descending(o => o.CreatedDate)) // Add sorting by CreatedDate descending
+
                              );
                     var query_count = elasticClient.Count<OrderESModel>(sd => sd
                              .Index(index)
@@ -135,7 +138,7 @@ namespace Caching.Elasticsearch
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
             }
             return null;
         }
@@ -170,7 +173,7 @@ namespace Caching.Elasticsearch
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
             }
             return null;
         }
@@ -213,7 +216,7 @@ namespace Caching.Elasticsearch
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
             }
             return new List<OrderESModel>();
         }
@@ -253,7 +256,7 @@ namespace Caching.Elasticsearch
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
             }
             return -1;
         }
@@ -287,7 +290,7 @@ namespace Caching.Elasticsearch
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
             }
             return null;
         }

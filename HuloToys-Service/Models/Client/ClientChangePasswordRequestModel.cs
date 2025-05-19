@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace HuloToys_Service.Models.Client
 {
-    public class ClientChangePasswordRequestModel
+    public class ClientChangePasswordRequestModel: ClientAddressGeneralRequestModel
     {
         public long id { get; set; }
         public string password { get; set; }

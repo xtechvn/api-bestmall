@@ -450,7 +450,7 @@ namespace HuloToys_Service.Controllers
                             msg = ResponseMessages.DataInvalid
                         });
                     }
-                        var client = clientESService.GetById((long)account_client);
+                        var client = accountClientESService.GetById((long)account_client);
                         if (client != null && client.Id > 0)
                         {
                             string new_password = CommonHelper.MD5Hash(request.password);

@@ -93,7 +93,7 @@ namespace HuloToys_Service.ElasticSearch
                            q.Bool(
                                qb => qb.Must(
                                   q => q.Term(m => m.Field("Status").Value(ArticleStatus.PUBLISH)),
-                                   sh => sh.Term(m => m.Field("id").Value(id)
+                                   sh => sh.Term(m => m.Field("Id").Value(id)
                                    )
                                    )
                                )

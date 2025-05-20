@@ -380,8 +380,7 @@ namespace HuloToys_Service.Controllers
                     }
                     else
                     {
-                        NewsMongoService services = new NewsMongoService(configuration);
-                        var list = await services.GetMostViewedArticle();
+                        var list = await _news_services.GetMostViewedArticle();
                         if (list != null && list.Count > 0)
                         {
                             foreach (var item in list)

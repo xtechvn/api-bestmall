@@ -23,6 +23,7 @@ using HuloToys_Service.ElasticSearch;
 using HuloToys_Service.Controllers.Shipping.Business;
 using Entities.Models;
 using HuloToys_Service.Models.Models;
+using System.Data;
 
 namespace HuloToys_Service.Controllers
 {
@@ -333,20 +334,20 @@ namespace HuloToys_Service.Controllers
                         });
                     }
                     var result = await orderMongodbService.FindById(request.id);
-                   
+                    OrderESModel order_es = new OrderESModel();
                     if (result != null &&result.order_id>0)
                     {
-                        var data_es =  orderESRepository.GetByOrderId(result.order_id);
-                        return Ok(new
-                        {
-                            status = (int)ResponseType.SUCCESS,
-                            msg = "Success",
-                            data = result,
-                            data_order= data_es
-                        });
+                        order_es =  orderESRepository.GetByOrderId(result.order_id);
+                        
 
                     }
-                    
+                    return Ok(new
+                    {
+                        status = (int)ResponseType.SUCCESS,
+                        msg = "Success",
+                        data = result,
+                        data_order = order_es
+                    });
 
                 }
 

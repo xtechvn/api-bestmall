@@ -68,13 +68,13 @@ namespace HuloToys_Service.MongoDb
                 return null;
             }
         }
-        public async Task<string> DeleteAsync(int user_id,string product_id)
+        public async Task<string> DeleteAsync(long account_client_id, string product_id)
         {
             try
             {
                 var filter = Builders<ProductsFavouritesMongoDbModel>.Filter;
                 var filterDefinition = filter.Empty;
-                filterDefinition &= Builders<ProductsFavouritesMongoDbModel>.Filter.Eq(x => x.user_id, user_id);
+                filterDefinition &= Builders<ProductsFavouritesMongoDbModel>.Filter.Eq(x => x.account_client_id, account_client_id);
                 filterDefinition &= Builders<ProductsFavouritesMongoDbModel>.Filter.Eq(x => x.product_id, product_id);
                 var model = await _productDetailCollection.Find(filterDefinition).FirstOrDefaultAsync();
                 if(model!=null && model._id != null)
@@ -112,13 +112,13 @@ namespace HuloToys_Service.MongoDb
         }
 
 
-        public async Task<ProductsFavouritesListingResponseModel> Listing(int user_id)
+        public async Task<ProductsFavouritesListingResponseModel> Listing(long account_client_id)
         {
             try
             {
                 var filter = Builders<ProductsFavouritesMongoDbModel>.Filter;
                 var filterDefinition = filter.Empty;
-                filterDefinition &= Builders<ProductsFavouritesMongoDbModel>.Filter.Eq(x => x.user_id, user_id);
+                filterDefinition &= Builders<ProductsFavouritesMongoDbModel>.Filter.Eq(x => x.account_client_id, account_client_id);
 
                 var sort_filter = Builders<ProductsFavouritesMongoDbModel>.Sort;
                 var sort_filter_definition = sort_filter.Descending(x => x.updated_last);

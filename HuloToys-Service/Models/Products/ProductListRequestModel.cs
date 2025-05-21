@@ -18,7 +18,7 @@
     }
     public class ProductFavouritesListRequestModel
     {
-        public int user_id { get; set; }
+        public string token { get; set; }
         public int page_index { get; set; }
         public int page_size { get; set; }
     }

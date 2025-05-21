@@ -2,7 +2,7 @@
 {
     public class ProductFavouritesInsertRequestModel
     {
-        public int user_id { get; set; }
+        public string token { get; set; }
         public string product_id { get; set; }
     }
 }

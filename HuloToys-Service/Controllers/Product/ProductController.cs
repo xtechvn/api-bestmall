@@ -1,6 +1,7 @@
 ﻿using Caching.Elasticsearch;
 using Entities.ViewModels.Products;
 using HuloToys_Front_End.Models.Products;
+using HuloToys_Service.Controllers.Client.Business;
 using HuloToys_Service.Controllers.Product.Bussiness;
 using HuloToys_Service.ElasticSearch;
 using HuloToys_Service.Models.APIRequest;
@@ -39,6 +40,7 @@ namespace WEB.CMS.Controllers
         private readonly ProductESRepository _productESRepository;
         private readonly AttachFileESModelESRepository attachFileESModelESRepository;
         private readonly ProductFavouritesMongoAccess _productFavouritesMongoAccess;
+        private readonly ClientServices clientServices;
 
         public ProductController(IConfiguration configuration, RedisConn redisService)
         {
@@ -53,7 +55,7 @@ namespace WEB.CMS.Controllers
             _raitingESService = new RaitingESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
             _productESRepository = new ProductESRepository(configuration["DataBaseConfig:Elastic:Host"], configuration);
             attachFileESModelESRepository = new AttachFileESModelESRepository(configuration["DataBaseConfig:Elastic:Host"], configuration);
-
+            clientServices = new ClientServices(_configuration);
             _configuration = configuration;
             _redisService = new RedisConn(configuration);
             _redisService.Connect();
@@ -849,7 +851,7 @@ namespace WEB.CMS.Controllers
                 if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, _configuration["KEY:private_key"]))
                 {
                     var request = JsonConvert.DeserializeObject<ProductFavouritesListRequestModel>(objParr[0].ToString());
-                    if (request == null || request.user_id<=0)
+                    if (request == null || request.token==null || request.token.Trim()=="")
                     {
                         return Ok(new
                         {
@@ -857,7 +859,15 @@ namespace WEB.CMS.Controllers
                             msg = ResponseMessages.DataInvalid
                         });
                     }
-
+                    long account_client_id = await clientServices.GetAccountClientIdFromToken(request.token);
+                    if (account_client_id <= 0)
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
                     if (request.page_size <= 0) request.page_size = 10;
                     if (request.page_index < 1) request.page_index = 1;
                     int skip = (request.page_index - 1) * request.page_size;
@@ -871,7 +881,7 @@ namespace WEB.CMS.Controllers
                     //}
                    // if (result == null ||result.items == null || result.items.Count <= 0)
                    // {
-                        result = await _productFavouritesMongoAccess.Listing(request.user_id);
+                        result = await _productFavouritesMongoAccess.Listing(account_client_id);
                    // }
                     if (result != null && result.items !=null && result.items.Count > 0)
                     {
@@ -907,7 +917,7 @@ namespace WEB.CMS.Controllers
                 if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, _configuration["KEY:private_key"]))
                 {
                     var request = JsonConvert.DeserializeObject<ProductFavouritesInsertRequestModel>(objParr[0].ToString());
-                    if (request == null || request.user_id <= 0|| request.product_id==null || request.product_id.Trim() =="")
+                    if (request == null || request.token == null || request.token.Trim() == "" || request.product_id==null || request.product_id.Trim() =="")
                     {
                         return Ok(new
                         {
@@ -915,12 +925,20 @@ namespace WEB.CMS.Controllers
                             msg = ResponseMessages.DataInvalid
                         });
                     }
-
+                    long account_client_id = await clientServices.GetAccountClientIdFromToken(request.token);
+                    if (account_client_id <= 0)
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
                     var id = await _productFavouritesMongoAccess.AddNewAsync(new ProductsFavouritesMongoDbModel()
                     {
                         product_id=request.product_id,
                         updated_last=DateTime.Now,
-                        user_id=request.user_id,
+                        account_client_id = account_client_id,
                          detail= await _productDetailMongoAccess.GetByID(request.product_id),
                     });
                    // var cache_name = CacheType.PRODUCT_FAVOURITES + request.user_id;
@@ -954,7 +972,7 @@ namespace WEB.CMS.Controllers
                 if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, _configuration["KEY:private_key"]))
                 {
                     var request = JsonConvert.DeserializeObject<ProductFavouritesInsertRequestModel>(objParr[0].ToString());
-                    if (request == null || request.user_id <= 0 || request.product_id == null || request.product_id.Trim() == "")
+                    if (request == null || request.token == null || request.token.Trim() == "" || request.product_id == null || request.product_id.Trim() == "")
                     {
                         return Ok(new
                         {
@@ -962,8 +980,16 @@ namespace WEB.CMS.Controllers
                             msg = ResponseMessages.DataInvalid
                         });
                     }
-
-                    var id = await _productFavouritesMongoAccess.DeleteAsync(request.user_id, request.product_id);
+                    long account_client_id = await clientServices.GetAccountClientIdFromToken(request.token);
+                    if (account_client_id <= 0)
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+                    var id = await _productFavouritesMongoAccess.DeleteAsync(account_client_id, request.product_id);
                    // var cache_name = CacheType.PRODUCT_FAVOURITES + request.user_id;
                     //_redisService.clear(cache_name, Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
                     return Ok(new

@@ -12,7 +12,7 @@ namespace HuloToys_Service.Models.ProductsFavourites
         {
             _id = ObjectId.GenerateNewId().ToString();
         }
-        public int user_id { get; set; }
+        public long account_client_id { get; set; }
         public string product_id { get; set; }
         public DateTime updated_last { get; set; }
         public ProductMongoDbModel detail { get; set; }

@@ -26,5 +26,9 @@
         public const string DISTRICT = "DISTRICT";
         public const string WARD = "WARD";
         public const string LABEL = "LABEL";
+
+
+        public const string PRODUCT_FAVOURITES = "PRODUCT_FAVOURITES_";
+
     }
 }

@@ -5,6 +5,7 @@ using HuloToys_Service.Controllers.Product.Bussiness;
 using HuloToys_Service.ElasticSearch;
 using HuloToys_Service.Models.APIRequest;
 using HuloToys_Service.Models.ElasticSearch;
+using HuloToys_Service.Models.ProductsFavourites;
 using HuloToys_Service.Models.Raiting;
 using HuloToys_Service.MongoDb;
 using HuloToys_Service.RedisWorker;
@@ -37,11 +38,13 @@ namespace WEB.CMS.Controllers
         private readonly ProductDetailService productDetailService;
         private readonly ProductESRepository _productESRepository;
         private readonly AttachFileESModelESRepository attachFileESModelESRepository;
+        private readonly ProductFavouritesMongoAccess _productFavouritesMongoAccess;
 
         public ProductController(IConfiguration configuration, RedisConn redisService)
         {
             _productDetailMongoAccess = new ProductDetailMongoAccess(configuration);
             _productSpecificationMongoAccess = new ProductSpecificationMongoAccess(configuration);
+            _productFavouritesMongoAccess = new ProductFavouritesMongoAccess(configuration);
             _cartMongodbService = new CartMongodbService(configuration);
             productRaitingService = new ProductRaitingService(configuration);
             productDetailService = new ProductDetailService(configuration);
@@ -822,6 +825,153 @@ namespace WEB.CMS.Controllers
                             msg = "No Items"
                         });
                     }
+                }
+            }
+            catch (Exception ex)
+            {
+                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
+                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
+            }
+            return Ok(new
+            {
+                status = (int)ResponseType.FAILED,
+                msg = ResponseMessages.DataInvalid,
+            });
+        }
+
+        [HttpPost("favourites/listing")]
+        public async Task<IActionResult> ProductFavouritesListing([FromBody] APIRequestGenericModel input)
+        {
+            try
+            {
+                //input.token = "F081O1oSKR4nJktCB3d5ekEyMysRMQY0LBBoCGN6TgYGUTYtKygpBxF9Xn85";
+                JArray objParr = null;
+                if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, _configuration["KEY:private_key"]))
+                {
+                    var request = JsonConvert.DeserializeObject<ProductFavouritesListRequestModel>(objParr[0].ToString());
+                    if (request == null || request.user_id<=0)
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+
+                    if (request.page_size <= 0) request.page_size = 10;
+                    if (request.page_index < 1) request.page_index = 1;
+                    int skip = (request.page_index - 1) * request.page_size;
+                    ProductsFavouritesListingResponseModel result = null;
+                    //var cache_name = CacheType.PRODUCT_FAVOURITES +  request.user_id;
+                    //var j_data = await _redisService.GetAsync(cache_name, Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
+                    //if (j_data != null && j_data.Trim() != "")
+                    //{
+                    //    result = JsonConvert.DeserializeObject<ProductsFavouritesListingResponseModel>(j_data);
+
+                    //}
+                   // if (result == null ||result.items == null || result.items.Count <= 0)
+                   // {
+                        result = await _productFavouritesMongoAccess.Listing(request.user_id);
+                   // }
+                    if (result != null && result.items !=null && result.items.Count > 0)
+                    {
+                        //_redisService.Set(cache_name, JsonConvert.SerializeObject(result), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
+                        result.items = (request.page_size * request.page_index) >= result.count ? result.items.Skip(skip).Take(request.page_size).ToList() : new List<ProductsFavouritesMongoDbModel>();
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.SUCCESS,
+                            msg = ResponseMessages.Success,
+                            data = result
+                        });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
+                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
+            }
+            return Ok(new
+            {
+                status = (int)ResponseType.FAILED,
+                msg = ResponseMessages.DataInvalid,
+            });
+        }
+        [HttpPost("favourites/insert")]
+        public async Task<IActionResult> ProductFavouritesInsert([FromBody] APIRequestGenericModel input)
+        {
+            try
+            {
+                //input.token = "F081O1oSKR4nJktCB3d5ekEyMysRMQY0LBBoCGN6TgYGUTYtKygpBxF9Xn85";
+                JArray objParr = null;
+                if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, _configuration["KEY:private_key"]))
+                {
+                    var request = JsonConvert.DeserializeObject<ProductFavouritesInsertRequestModel>(objParr[0].ToString());
+                    if (request == null || request.user_id <= 0|| request.product_id==null || request.product_id.Trim() =="")
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+
+                    var id = await _productFavouritesMongoAccess.AddNewAsync(new ProductsFavouritesMongoDbModel()
+                    {
+                        product_id=request.product_id,
+                        updated_last=DateTime.Now,
+                        user_id=request.user_id,
+                         detail= await _productDetailMongoAccess.GetByID(request.product_id),
+                    });
+                   // var cache_name = CacheType.PRODUCT_FAVOURITES + request.user_id;
+                  //  _redisService.clear(cache_name,  Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
+                    return Ok(new
+                    {
+                        status = (int)ResponseType.SUCCESS,
+                        msg = ResponseMessages.Success,
+                        data = id
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
+                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
+            }
+            return Ok(new
+            {
+                status = (int)ResponseType.FAILED,
+                msg = ResponseMessages.DataInvalid,
+            });
+        }
+        [HttpPost("favourites/delete")]
+        public async Task<IActionResult> ProductFavouritesDelete([FromBody] APIRequestGenericModel input)
+        {
+            try
+            {
+                //input.token = "F081O1oSKR4nJktCB3d5ekEyMysRMQY0LBBoCGN6TgYGUTYtKygpBxF9Xn85";
+                JArray objParr = null;
+                if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, _configuration["KEY:private_key"]))
+                {
+                    var request = JsonConvert.DeserializeObject<ProductFavouritesInsertRequestModel>(objParr[0].ToString());
+                    if (request == null || request.user_id <= 0 || request.product_id == null || request.product_id.Trim() == "")
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+
+                    var id = await _productFavouritesMongoAccess.DeleteAsync(request.user_id, request.product_id);
+                   // var cache_name = CacheType.PRODUCT_FAVOURITES + request.user_id;
+                    //_redisService.clear(cache_name, Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
+                    return Ok(new
+                    {
+                        status = (int)ResponseType.SUCCESS,
+                        msg = ResponseMessages.Success,
+                        data = id
+                    });
                 }
             }
             catch (Exception ex)

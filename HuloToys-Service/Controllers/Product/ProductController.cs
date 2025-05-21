@@ -868,7 +868,7 @@ namespace WEB.CMS.Controllers
                             msg = ResponseMessages.DataInvalid
                         });
                     }
-                    if (request.page_size <= 0) request.page_size = 10;
+                    if (request.page_size <= 0) request.page_size = 50;
                     if (request.page_index < 1) request.page_index = 1;
                     int skip = (request.page_index - 1) * request.page_size;
                     ProductsFavouritesListingResponseModel result = null;

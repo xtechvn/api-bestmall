@@ -55,6 +55,9 @@ namespace Entities.ViewModels.Products
         public int supplier_id { get; set; }
         public int label_id { get; set; }
         public double? old_price { get; set; }
+        public string description_ingredients { get; set; }
+        public string description_effect { get; set; }
+        public string description_usepolicy { get; set; }
     }
     public class ProductMongoDbFEModel: ProductMongoDbModel
     {

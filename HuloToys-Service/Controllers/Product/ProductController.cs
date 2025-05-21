@@ -234,22 +234,46 @@ namespace WEB.CMS.Controllers
                     //    }
                     //}
                     var data = await _productDetailMongoAccess.GetFullProductById(request.id);
-                    List<string> cert = new List<string>();
+                    List<string> cert_root = new List<string>();
+                    List<string> cert_product = new List<string>();
+                    List<string> cert_supply = new List<string>();
+                    List<string> cert_confirm = new List<string>();
                     if (data != null)
                     {
                         // _redisService.Set(cache_name, JsonConvert.SerializeObject(data), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
-                        var attach = await attachFileESModelESRepository.GetByDataidAndType(data.product_main.supplier_id, 35);
-                        if(attach!=null && attach.Count > 0)
+                        var attach_root = await attachFileESModelESRepository.GetByDataidAndType(data.product_main.supplier_id, (int)AttachmentType.Supplier_Cert_RootProduct);
+                        var attach_product = await attachFileESModelESRepository.GetByDataidAndType(data.product_main.supplier_id, (int)AttachmentType.Supplier_Cert_Product);
+                        var attach_supply = await attachFileESModelESRepository.GetByDataidAndType(data.product_main.supplier_id, (int)AttachmentType.Supplier_Cert_Supply);
+                        var attach_confirm = await attachFileESModelESRepository.GetByDataidAndType(data.product_main.supplier_id, (int)AttachmentType.Supplier_Cert_Confirm);
+                        if(attach_root != null && attach_root.Count > 0)
                         {
-                            cert = attach.Select(x => x.Path).ToList();
-                        }    
+                            cert_root = attach_root.Select(x => x.Path).ToList();
+                        }
+                        if (attach_product != null && attach_product.Count > 0)
+                        {
+                            cert_product = attach_product.Select(x => x.Path).ToList();
+                        }
+                        if (attach_supply != null && attach_supply.Count > 0)
+                        {
+                            cert_supply = attach_supply.Select(x => x.Path).ToList();
+                        }
+                        if (attach_confirm != null && attach_confirm.Count > 0)
+                        {
+                            cert_confirm = attach_confirm.Select(x => x.Path).ToList();
+                        }
                     }
                     return Ok(new
                     {
                         status = (int)ResponseType.SUCCESS,
                         msg = "Success",
                         data = data,
-                        cert=cert
+                        cert=new
+                        {
+                            root_product=cert_root,
+                            product=cert_product,
+                            supply=cert_supply,
+                            confirm=cert_confirm
+                        }
                     });
 
                 }

@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Mvc;
 using Nest;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using OtpNet;
 using System.Reflection;
 using Utilities;
 using Utilities.Contants;
@@ -891,7 +892,8 @@ namespace WEB.CMS.Controllers
                         {
                             status = (int)ResponseType.SUCCESS,
                             msg = ResponseMessages.Success,
-                            data = result
+                            data = result.items,
+                            total=result.count
                         });
                     }
                 }

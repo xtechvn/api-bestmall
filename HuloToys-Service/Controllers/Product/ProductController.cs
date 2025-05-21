@@ -936,12 +936,21 @@ namespace WEB.CMS.Controllers
                             msg = ResponseMessages.DataInvalid
                         });
                     }
+                    var detail = await _productDetailMongoAccess.GetByID(request.product_id);
+                    if (detail == null|| detail._id == null)
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
                     var id = await _productFavouritesMongoAccess.AddNewAsync(new ProductsFavouritesMongoDbModel()
                     {
                         product_id=request.product_id,
                         updated_last=DateTime.Now,
                         account_client_id = account_client_id,
-                         detail= await _productDetailMongoAccess.GetByID(request.product_id),
+                         detail= detail,
                     });
                    // var cache_name = CacheType.PRODUCT_FAVOURITES + request.user_id;
                   //  _redisService.clear(cache_name,  Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
@@ -984,6 +993,15 @@ namespace WEB.CMS.Controllers
                     }
                     long account_client_id = await clientServices.GetAccountClientIdFromToken(request.token);
                     if (account_client_id <= 0)
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+                    var detail = await _productDetailMongoAccess.GetByID(request.product_id);
+                    if (detail == null || detail._id == null)
                     {
                         return Ok(new
                         {

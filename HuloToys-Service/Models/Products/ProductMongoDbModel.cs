@@ -61,6 +61,14 @@ namespace Entities.ViewModels.Products
         public double? review_count { get; set; }
         public float? rating { get; set; }
         public long? total_sold { get; set; }
+       
+        public List<ProductMongoDbSpecification>? detail_specification { get; set; }
+
     }
-    
+    public class ProductMongoDbSpecification
+    {
+        public string key { get; set; }
+        public string value { get; set; }
+    }
+
 }

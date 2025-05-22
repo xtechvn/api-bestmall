@@ -56,7 +56,7 @@ namespace WEB.CMS.Controllers
             _raitingESService = new RaitingESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
             _productESRepository = new ProductESRepository(configuration["DataBaseConfig:Elastic:Host"], configuration);
             attachFileESModelESRepository = new AttachFileESModelESRepository(configuration["DataBaseConfig:Elastic:Host"], configuration);
-            //clientServices = new ClientServices(_configuration);
+            clientServices = new ClientServices(configuration);
             _configuration = configuration;
             _redisService = new RedisConn(configuration);
             _redisService.Connect();

@@ -58,12 +58,9 @@ namespace Entities.ViewModels.Products
         public string description_ingredients { get; set; }
         public string description_effect { get; set; }
         public string description_usepolicy { get; set; }
+        public int? review_count { get; set; }
+        public float? rating { get; set; }
+        public long? total_sold { get; set; }
     }
-    public class ProductMongoDbFEModel: ProductMongoDbModel
-    {
-        public float review_count { get; set; }
-        public float rating { get; set; }
-        public long total_sold { get; set; }
-
-    }
+    
 }

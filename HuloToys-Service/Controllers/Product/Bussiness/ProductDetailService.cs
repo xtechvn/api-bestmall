@@ -65,7 +65,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                         {
                             i.review_count = raiting.Count;
                             i.rating = raiting.Sum(x => x.Star == null ? 0 : (float)x.Star) / (float)raiting.Count;
-                            i.total_sold = orderDetailESService.CountByProductId(new List<string>() { i._id });
+                            i.total_sold += orderDetailESService.CountByProductId(new List<string>() { i._id });
 
                         }
 

@@ -16,6 +16,10 @@ using Utilities;
 using Utilities.Contants;
 using System.Diagnostics;
 using HuloToys_Service.Models.Models;
+using Azure.Core;
+using HuloToys_Service.Utilities.lib;
+using Caching.Elasticsearch;
+using HuloToys_Service.ElasticSearch;
 
 namespace HuloToys_Service.Controllers
 {
@@ -27,6 +31,7 @@ namespace HuloToys_Service.Controllers
 
         public IConfiguration configuration;
         private readonly RedisConn _redisService;
+        private readonly ArticleESService _articleESRepository;
         private readonly NewsBusiness _newsBusiness;
         private readonly WorkQueueClient work_queue;
         private readonly DataMSContext _dbContext;
@@ -34,8 +39,9 @@ namespace HuloToys_Service.Controllers
 
         public NewsController(IConfiguration config, RedisConn redisService , DataMSContext dbContext)
         {
+          
             configuration = config;
-
+            _articleESRepository = new ArticleESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
             _redisService = redisService;
             _redisService = new RedisConn(config);
             _redisService.Connect();
@@ -509,17 +515,31 @@ namespace HuloToys_Service.Controllers
                     string title = (objParr[0]["title"]).ToString().Trim();
                     int parent_cate_faq_id = Convert.ToInt32(objParr[0]["parent_cate_faq_id"]);
 
-                    var detail = new List<ArticleRelationModel>();
+                    string rawKeyword = StringHelper.RemoveSpecialCharacterExceptVietnameseCharacter(title);
+                    string normalizedKeyword = StringHelper.NormalizeKeyword(rawKeyword);
 
-                    detail = await _newsBusiness.FindArticleByTitle(title, parent_cate_faq_id);
+                    
+
+                    var results = await _articleESRepository.SearchNewsByKeywordAsync(rawKeyword, normalizedKeyword);
+
+                    var mappedResults = results.Select(x => new ArticleRelationModel
+                    {
+                        Id = x.id,
+                        Title = x.title,
+                        Lead = x.lead,
+                        Image = x.image_169 ?? x.image_43 ?? x.image_11,
+                        publish_date = x.publish_date != default(DateTime) ? x.publish_date : DateTime.Now,
+                        category_name = x.list_category_name ?? "Tin tức"
+                    }).ToList();
 
                     return Ok(new
                     {
-                        status = detail.Count() > 0 ? (int)ResponseType.SUCCESS : (int)ResponseType.EMPTY,
-                        data_list = detail.Count() > 0 ? detail : null,
-                        msg = "Get " + db_type + " Successfully !!!",
+                        status = mappedResults.Count > 0 ? (int)ResponseType.SUCCESS : (int)ResponseType.EMPTY,
+                        data_list = mappedResults.Count > 0 ? mappedResults : null,
+                        msg = "Get database Successfully !!!",
                         _token = input.token
                     });
+
                 }
                 else
                 {

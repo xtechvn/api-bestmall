@@ -1,6 +1,8 @@
-﻿using Elasticsearch.Net;
+﻿using Caching.Elasticsearch;
+using Elasticsearch.Net;
 using HuloToys_Service.Elasticsearch;
 using HuloToys_Service.Models.Article;
+using HuloToys_Service.Models.Models;
 using HuloToys_Service.Utilities.Lib;
 using Nest;
 using System.Reflection;
@@ -9,16 +11,22 @@ namespace HuloToys_Service.ElasticSearch
 {
     public class ArticleESService : ESRepository<ArticleViewModel>
     {
-        public string index = "hulotoys_sp_getarticle";
+        public string index = "hulotoys_sp_getallarticle";
         private readonly IConfiguration configuration;
         private static ElasticClient elasticClient;
         private static string _ElasticHost;
+        private readonly ElasticClient _client;
+
         private ISearchResponse<CategoryArticleModel> search_response;
         public ArticleESService(string Host, IConfiguration _configuration) : base(Host, _configuration)
         {
+
             _ElasticHost = Host;
             configuration = _configuration;
             index = _configuration["DataBaseConfig:Elastic:Index:Article"];
+            var settings = new ConnectionSettings(new Uri(_ElasticHost))
+                .DefaultIndex(index);
+            _client = new ElasticClient(settings);
         }
 
         public List<CategoryArticleModel> getListNews(int category_id, int top)
@@ -86,6 +94,31 @@ namespace HuloToys_Service.ElasticSearch
                 return data;
             }
         }
+        public async Task<List<CategoryArticleModel>> SearchNewsByKeywordAsync(string keyword, string keywordNoSpace)
+        {
+            if (string.IsNullOrWhiteSpace(keyword))
+                return new List<CategoryArticleModel>();
+
+            var shouldQueries = new List<Func<QueryContainerDescriptor<CategoryArticleModel>, QueryContainer>>();
+
+            shouldQueries.Add(q => q.MatchPhrase(m => m.Field(f => f.title).Query(keyword).Boost(20)));
+            shouldQueries.Add(q => q.MatchPhrasePrefix(m => m.Field(f => f.title).Query(keyword).Boost(10)));
+         
+            shouldQueries.Add(q => q.Match(m => m.Field(f => f.title).Query(keyword).Operator(Operator.And).Boost(5)));
+            if (keyword.Length >= 5)
+            {
+                shouldQueries.Add(q => q.Match(m => m.Field(f => f.title).Query(keyword).Fuzziness(Fuzziness.Auto).Operator(Operator.And).Boost(3)));
+            }
+
+            var response = await _client.SearchAsync<CategoryArticleModel>(s => s
+                .Query(q => q.Bool(b => b.Should(shouldQueries).MinimumShouldMatch(1)))
+                .Sort(so => so.Descending(SortSpecialField.Score))
+                .Size(10)
+            );
+
+            return response.Documents.ToList();
+        }
+
 
         /// <summary>
         /// Lấy ra chi tiết bài viết
@@ -318,7 +351,7 @@ namespace HuloToys_Service.ElasticSearch
                           .Query(q =>
                            q.Bool(
                                qb => qb.Must(
-                                  //q => q.Term("id", id),
+                                   //q => q.Term("id", id),
                                    sh => sh.QueryString(qs => qs
                                    .Fields(new[] { "Title", "Lead", "Body" })
                                    .Query("*" + txt_search + "*")

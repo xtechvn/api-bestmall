@@ -283,7 +283,7 @@ namespace WEB.CMS.Controllers
 
                         }
                     }
-                    var count = _productFavouritesMongoAccess.CountByProductId(request.id);
+                    var count = await _productFavouritesMongoAccess.CountByProductId(request.id);
                     return Ok(new
                     {
                         status = (int)ResponseType.SUCCESS,

@@ -155,6 +155,22 @@ namespace HuloToys_Service.MongoDb
                 return null;
             }
         }
-     
+        public async Task<long> CountByProductId(string product_id)
+        {
+            try
+            {
+                var filter = Builders<ProductsFavouritesMongoDbModel>.Filter;
+                var filterDefinition = filter.Empty;
+                filterDefinition &= Builders<ProductsFavouritesMongoDbModel>.Filter.Eq(x => x.product_id, product_id);
+                var model = await _productDetailCollection.CountDocumentsAsync(filterDefinition);
+                return model;
+            }
+            catch (Exception ex)
+            {
+                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
+                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
+                return 0;
+            }
+        }
     }
 }

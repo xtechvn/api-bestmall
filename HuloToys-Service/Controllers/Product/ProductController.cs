@@ -283,7 +283,7 @@ namespace WEB.CMS.Controllers
 
                         }
                     }
-                    
+                    var count = _productFavouritesMongoAccess.CountByProductId(request.id);
                     return Ok(new
                     {
                         status = (int)ResponseType.SUCCESS,
@@ -296,7 +296,11 @@ namespace WEB.CMS.Controllers
                             supply=cert_supply,
                             confirm=cert_confirm
                         },
-                        favourite= favourite
+                        favourite= new
+                        {
+                            is_favourite=favourite,
+                            count= count
+                        }
                     });
 
                 }

@@ -244,6 +244,7 @@ namespace WEB.CMS.Controllers
                     List<string> cert_product = new List<string>();
                     List<string> cert_supply = new List<string>();
                     List<string> cert_confirm = new List<string>();
+                    bool favourite = false;
                     if (data != null)
                     {
                         // _redisService.Set(cache_name, JsonConvert.SerializeObject(data), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
@@ -268,6 +269,21 @@ namespace WEB.CMS.Controllers
                             cert_confirm = attach_confirm.Select(x => x.Path).ToList();
                         }
                     }
+                    //favourites:
+                    if(request.token!=null && request.token.Trim() != "")
+                    {
+                        long account_client_id = await clientServices.GetAccountClientIdFromToken(request.token);
+                        if (account_client_id >0)
+                        {
+                            var exists=await _productFavouritesMongoAccess.GetByAccountAndProduct(request.id,account_client_id);
+                            if(exists!=null && exists._id!=null && exists._id.Trim() != "")
+                            {
+                                favourite = true;
+                            }
+
+                        }
+                    }
+                    
                     return Ok(new
                     {
                         status = (int)ResponseType.SUCCESS,
@@ -279,7 +295,8 @@ namespace WEB.CMS.Controllers
                             product=cert_product,
                             supply=cert_supply,
                             confirm=cert_confirm
-                        }
+                        },
+                        favourite= favourite
                     });
 
                 }

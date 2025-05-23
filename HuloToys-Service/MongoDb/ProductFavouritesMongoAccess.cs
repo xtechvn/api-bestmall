@@ -111,7 +111,24 @@ namespace HuloToys_Service.MongoDb
             }
         }
 
-
+        public async Task<ProductsFavouritesMongoDbModel> GetByAccountAndProduct(string product_id, long account_client_id)
+        {
+            try
+            {
+                var filter = Builders<ProductsFavouritesMongoDbModel>.Filter;
+                var filterDefinition = filter.Empty;
+                filterDefinition &= Builders<ProductsFavouritesMongoDbModel>.Filter.Eq(x => x.product_id, product_id);
+                filterDefinition &= Builders<ProductsFavouritesMongoDbModel>.Filter.Eq(x => x.account_client_id, account_client_id);
+                var model = await _productDetailCollection.Find(filterDefinition).FirstOrDefaultAsync();
+                return model;
+            }
+            catch (Exception ex)
+            {
+                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
+                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
+                return null;
+            }
+        }
         public async Task<ProductsFavouritesListingResponseModel> Listing(long account_client_id)
         {
             try

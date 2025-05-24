@@ -84,13 +84,13 @@ namespace WEB.CMS.Controllers
                     if (request.price_from == 0 || request.price_from == null) request.price_from = 0; // Mặc định là 0 nếu không có giá trị
                     if (request.price_to == 0 || request.price_to == null) request.price_to = double.MaxValue; // Mặc định là giá trị tối đa
                     if (request.keyword == null) request.keyword = "";
-                    if (request.rating == null) request.rating = 0;
+                   
 
 
                     if (request.page_size <= 0) request.page_size = 10;
                     if (request.page_index < 1) request.page_index = 1;
                     // Nếu không lọc theo giá, sử dụng cache Redis
-                    if (request.price_from == 0 && request.price_to == double.MaxValue && request.rating == 0)
+                    if (request.price_from == 0 && request.price_to == double.MaxValue )
                     {
                         var cache_name = CacheType.PRODUCT_LISTING + (request.keyword ?? "") + request.group_id + request.page_index + request.page_size;
                         var j_data = await _redisService.GetAsync(cache_name, Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
@@ -146,22 +146,23 @@ namespace WEB.CMS.Controllers
 
                         if (result != null && result.items.Count > 0)
                         {
-                            //var filteredItems = result.items.Where(x =>
-                            //         // Sản phẩm có khoảng giá rõ ràng
-                            //         (x.amount_min.HasValue && x.amount_max.HasValue && x.amount_max >= request.price_from && x.amount_min <= request.price_to)
-
-                            //         // Hoặc sản phẩm chỉ có 1 giá cụ thể
-                            //         || (x.amount_min == null && x.amount_max == null && x.amount >= request.price_from && x.amount <= request.price_to)
-                            //     ).ToList();
+                           
                           var filteredItems = result.items
+                                
                               .Where(x =>
                               {
-                                  var amountToCheck = (x.amount > 0) ? x.amount : x.amount_max;
+                                 
+                                  var amountToCheck = (x.amount > 0) ? x.amount : x.amount_min;
                                   return amountToCheck >= request.price_from && amountToCheck <= request.price_to;
                               })
-                              .Where(x => x.rating >= request.rating)
                               .ToList();
-
+                            //var filteredItems = result.items
+                            //    .Where(x =>
+                            //    {
+                            //        var amt = x.amount > 0 ? x.amount : (x.amount_min > 0 ? x.amount_min : (double?)null);
+                            //        return amt.HasValue && amt >= request.price_from && amt <= request.price_to;
+                            //    })
+                            //    .ToList();
 
                             //Lọc theo khoảng giá và rating nếu có
 

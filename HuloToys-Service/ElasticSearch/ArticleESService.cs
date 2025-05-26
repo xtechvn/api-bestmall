@@ -29,7 +29,7 @@ namespace HuloToys_Service.ElasticSearch
             _client = new ElasticClient(settings);
         }
 
-        public List<CategoryArticleModel> getListNews(int category_id, int top)
+        public List<CategoryArticleModel> getListNews(int category_id)
         {
             var data = new List<CategoryArticleModel>();
             try
@@ -48,11 +48,19 @@ namespace HuloToys_Service.ElasticSearch
 
                     elasticClient = new ElasticClient(connectionSettings);
                 }
+
+                var query= new QueryContainer(
+                        new QueryStringQuery
+                        {
+                            DefaultField = "ListCategoryId",
+                            Query = "*"+category_id+"*"
+                        }
+                );
                 if (category_id <= 0)
                 {
                     // Lấy ra toàn bộ các bài viết của các chuyên mục theo thời gian bài nào mới nhất lên đầu
                     search_response = elasticClient.Search<CategoryArticleModel>(s => s
-                   .Size(top) // Lấy ra số lượng bản ghi (ví dụ 100)
+                    .Size(300)
                    .Index(configuration["DataBaseConfig:Elastic:Index:Article"])  // Chỉ mục bạn muốn tìm kiếm
                        .Sort(sort => sort
                            .Descending(f => f.publish_date) // Sắp xếp giảm dần theo publishdate
@@ -62,21 +70,22 @@ namespace HuloToys_Service.ElasticSearch
                 else
                 {
                     search_response = elasticClient.Search<CategoryArticleModel>(s => s
-                        .Size(top)
+                        .Size(300)
                         .Index(configuration["DataBaseConfig:Elastic:Index:Article"])  // Chỉ mục muốn tìm kiếm
                         .Sort(sort => sort
                             .Descending(f => f.publish_date)
                         )
-                       .Query(q => q
-                            .Bool(b => b
-                                .Must(m => m
-                                    .Wildcard(w => w
-                                        .Field(f => f.list_category_id)
-                                        .Value("*" + category_id.ToString() + "*") // Tìm các chuỗi chứa ký tự liên quan
-                                    )
-                                )
-                            )
-                        )
+                       //.Query(q => q
+                       //     .Bool(b => b
+                       //         .Must(m => m
+                       //             .Wildcard(w => w
+                       //                 .Field(f => f.list_category_id)
+                       //                 .Value("*" + category_id.ToString() + "*") // Tìm các chuỗi chứa ký tự liên quan
+                       //             )
+                       //         )
+                       //     )
+                       // )
+                       .Query(q=>query)
                     );
                 }
 

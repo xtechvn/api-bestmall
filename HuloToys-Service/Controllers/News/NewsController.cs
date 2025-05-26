@@ -116,7 +116,6 @@ namespace HuloToys_Service.Controllers
                     int node_redis = Convert.ToInt32(configuration["Redis:Database:db_common"]);
                     var _category_detail = new GroupProductESModel();
                     var list_article = new List<CategoryArticleModel>();
-                    int total_max_cache = 200; // số bản ghi tối đa để cache    
                     int category_id = Convert.ToInt32(objParr[0]["category_id"]);
 
                     int skip = Convert.ToInt32(objParr[0]["skip"]);
@@ -129,33 +128,30 @@ namespace HuloToys_Service.Controllers
                     if (!string.IsNullOrEmpty(j_data))
                     {
                         list_article = JsonConvert.DeserializeObject<List<CategoryArticleModel>>(j_data);
-                        // Nếu tổng số bản ghi muốn lấy vượt quá số bản ghi trong Redis thì vào ES lấy                        
-                        if (top > list_article.Count())
-                        {
-                            // Lấy ra trong es
-                            list_article = await _newsBusiness.getListNews(category_id, top);
-                        }
-                    }
-                    else // Không có trong cache
-                    {
-                        // Lấy ra số bản ghi tối đa để cache
-                        list_article = await _newsBusiness.getListNews(category_id, Math.Max(total_max_cache, top));
-
-                        if (list_article.Count() > 0)
-                        {
-                            _redisService.Set(cache_name, JsonConvert.SerializeObject(list_article), node_redis);
-                        }
-                    }
-
-                    if (list_article != null && list_article.Count() > 0)
-                    {
-                        int take = (skip + top > list_article.Count) ? (list_article.Count - skip) : top;
-
+                        int take = (skip + top > list_article.Count) ? ((list_article.Count - skip)<=0?0 : (list_article.Count - skip)) : top;
                         return Ok(new
                         {
                             status = (int)ResponseType.SUCCESS,
                             data = list_article.ToList().Skip(skip).Take(take),
-                            total=list_article.Count(),
+                            total = list_article.Count(),
+                        });
+                    }
+                    else
+                    {
+                        list_article = await _newsBusiness.getListNews(category_id);
+                        if (list_article != null && list_article.Count > 0)
+                        {
+                            _redisService.Set(cache_name,JsonConvert.SerializeObject(list_article), node_redis);
+                        }
+                    }
+                    if (list_article != null && list_article.Count > 0)
+                    {
+                        int take = (skip + top > list_article.Count) ? ((list_article.Count - skip) <= 0 ? 0 : (list_article.Count - skip)) : top;
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.SUCCESS,
+                            data = list_article.ToList().Skip(skip).Take(take),
+                            total=list_article.Count,
                         });
                     }
                     else

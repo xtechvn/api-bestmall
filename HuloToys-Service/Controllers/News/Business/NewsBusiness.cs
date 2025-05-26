@@ -231,13 +231,13 @@ namespace HuloToys_Service.Controllers.News.Business
 
 
 
-        public async Task<List<CategoryArticleModel>> getListNews(int category_id, int take)
+        public async Task<List<CategoryArticleModel>> getListNews(int category_id)
         {
             var list_article = new List<CategoryArticleModel>();
             try
             {
                 // Lấy ra danh sách id các bài viết mới nhất
-                var obj_top_story = articleESService.getListNews(category_id, take);
+                var obj_top_story = articleESService.getListNews(category_id);
 
                 return obj_top_story;
             }

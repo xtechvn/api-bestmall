@@ -655,7 +655,7 @@ namespace HuloToys_Service.Controllers.News.Business
                                     image_11 = _article.Image11,
                                     publish_date = (DateTime)_article.PublishDate,
                                     article_type = _article.ArticleType,
-                                    update_last = (DateTime)_article.ModifiedOn,
+                                    update_last = _article.ModifiedOn==null? DateTime.Now: (DateTime)_article.ModifiedOn,
                                     position = _article.Position,
                                     category_id = groupProductId,
                                 };
@@ -705,7 +705,7 @@ namespace HuloToys_Service.Controllers.News.Business
                                 publish_date = (DateTime)_article.PublishDate,
                                 position = _article.Position,
                                 article_type = _article.ArticleType,
-                                update_last = (DateTime)_article.ModifiedOn,
+                                update_last = _article.ModifiedOn == null ? DateTime.Now : (DateTime)_article.ModifiedOn,
                                 category_id = groupProductId,
                             };
 

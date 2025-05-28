@@ -206,11 +206,11 @@ namespace WEB.CMS.Controllers
         [HttpPost("detail")]
         public async Task<IActionResult> ProductDetail([FromBody] APIRequestGenericModel input)
         {
-            //var model_con = new
-            //{
-            //    id = "682ad9336b5155c27a8bd9d7"
-            //};
-            //input.token = CommonHelper.Encode(JsonConvert.SerializeObject(model_con), _configuration["KEY:private_key"]);
+            var model_con = new
+            {
+                id = "682ad9336b5155c27a8bd9d7"
+            };
+            input.token = CommonHelper.Encode(JsonConvert.SerializeObject(model_con), _configuration["KEY:private_key"]);
             try
             {
                 JArray objParr = null;
@@ -285,6 +285,14 @@ namespace WEB.CMS.Controllers
                         }
                     }
                     var count = await _productFavouritesMongoAccess.CountByProductId(request.id);
+                    if(data!=null && data.product_main != null)
+                    {
+                        data.product_main.total_sold = (data.product_main.total_sold == null) ? 0 : (long)data.product_main.total_sold;
+                        var total_sold = orderDetailESService.SumQuantityByProductId(new List<string>() { request.id });
+                        data.product_main.total_sold += total_sold;
+                    }
+                    
+
                     return Ok(new
                     {
                         status = (int)ResponseType.SUCCESS,

@@ -1,0 +1,100 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xác nhận đơn hàng BestMall</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+
+        .header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .content {
+            padding: 20px;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 10px;
+            font-size: 0.9em;
+            color: #777;
+            border-top: 1px solid #eee;
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .order-details strong {
+            color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Xác nhận đơn hàng BestMall</h2>
+        </div>
+        <div class="content">
+            <p>Kính gửi khách hàng,</p>
+            <p>Cảm ơn bạn đã đặt hàng tại <strong>BestMall</strong>! Đơn hàng của bạn đã được tiếp nhận và đang được xử lý.</p>
+            <div class="order-details">
+                <p>Mã đơn hàng: <strong>{OrderNo}</strong></p>
+            </div>
+            <p>Chi tiết đơn hàng của bạn:</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tên sản phẩm</th>
+                        <th>Đơn giá (VND)</th>
+                        <th>Số lượng</th>
+                        <th>Thành tiền (VND)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {ProductRows}
+                </tbody>
+            </table>
+            <p>Chúng tôi sẽ thông báo cho bạn ngay khi đơn hàng được giao. Mọi thắc mắc, xin vui lòng liên hệ với chúng tôi.</p>
+            <p>Trân trọng,</p>
+            <p>Đội ngũ BestMall</p>
+            <p><a href="{Domain}">Truy cập BestMall</a></p>
+        </div>
+        <div class="footer">
+            <p>&copy; {CurrentYear} BestMall. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -39,34 +39,7 @@ namespace Caching.Elasticsearch
         {
             try
             {
-                //// Build the search request
-                //var searchRequest = new SearchRequest<OrderDetailESModel>
-                //{
-                //    Query = new TermQuery
-                //    {
-                //        Field = Infer.Field<OrderDetailESModel>(p => p.productid), // Filter by product ID
-                //        Value = product_id
-                //    },
-                //    Size = 0, // No hits needed, just aggregations
-                //    Aggregations = new AggregationDictionary
-                //    {
-                //         {
-                //           "total_product_count", new FiltersAggregation("total_product_count")
-                //           {
-                //                Filters = new List<QueryContainer>()
-                //                {
-                //                   new ExistsQuery { Field = Infer.Field<OrderDetailESModel>(x => x.orderdetailid) },
 
-                //                }
-                //           }
-                //        }
-                //    }
-                //};
-                //var response = elasticClient.Search<OrderDetailESModel>(searchRequest);
-
-                //// Process the field data counts (description and information)
-                //var total_product_count = response.Aggregations.Filters("total_product_count");
-                //return total_product_count.Buckets.First().DocCount; // Products with 'description' field
                 var searchRequest = new SearchRequest<OrderDetailESModel>
                 {
                     Query = new TermsQuery
@@ -82,7 +55,7 @@ namespace Caching.Elasticsearch
                                {
                                     Filters = new List<QueryContainer>()
                                     {
-                                       new ExistsQuery { Field = Infer.Field<OrderDetailESModel>(x => x.OrderDetailId) },
+                                       new ExistsQuery { Field = Infer.Field<OrderDetailESModel>(x => x.ProductId) },
 
                                     }
                                }
@@ -97,6 +70,45 @@ namespace Caching.Elasticsearch
                     return total_product_count.Buckets.First().DocCount; // Products with 'description' field
                 }
               
+            }
+            catch (Exception ex)
+            {
+                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
+            }
+            return 0;
+        }
+        public long SumQuantityByProductId(List<string> product_id)
+        {
+            try
+            {
+                var searchRequest = new SearchRequest<OrderDetailESModel>
+                {
+                    Query = new TermsQuery
+                    {
+                        Field = Infer.Field<OrderDetailESModel>(p => p.ParentProductId), // Field selector for ProductId
+                        Terms = product_id // The list of product IDs
+                    },
+                    Size = 0, // No hits needed, just aggregations
+                    Aggregations = new AggregationDictionary
+                    {
+                        {
+                            "total_quantity", new SumAggregation("total_quantity", Infer.Field<OrderDetailESModel>(p => p.Quantity))
+                        }
+                    }
+                };
+
+                var response = elasticClient.Search<OrderDetailESModel>(searchRequest);
+
+                if (response.IsValid)
+                {
+                    // Process the sum aggregation
+                    var totalQuantityAggregation = response.Aggregations.Sum("total_quantity");
+                    if (totalQuantityAggregation != null && totalQuantityAggregation.Value.HasValue)
+                    {
+                        return (long)totalQuantityAggregation.Value.Value;
+                    }
+                }
             }
             catch (Exception ex)
             {

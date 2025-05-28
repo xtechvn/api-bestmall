@@ -858,8 +858,44 @@ namespace HuloToys_Service.Controllers.News.Business
         {
             try
             {
-                var data = groupProductESService.GetListGroupProductByParentId(parent_id);
-                return data;
+                var obj_cate = new List<GroupProductESModel>();
+                // List chuyên mục cha
+                var obj_cate_parent = groupProductESService.GetListGroupProductByParentId(parent_id);
+                foreach (var item in obj_cate_parent)
+                {
+                    var obj_cate_child = new List<GroupProductESModel>();
+                    var cate_child_detail = groupProductESService.GetListGroupProductByParentId(item.Id);
+                    if (cate_child_detail.Count > 0)
+                    {
+                        foreach (var item_child in cate_child_detail)
+                        {
+                            var cate_child = new GroupProductESModel
+                            {
+                                ParentId = item.Id,
+                                Id = item_child.Id,
+                                Name = item_child.Name,
+                                ImagePath = item_child.ImagePath,
+                                Path = item_child.Path,
+                                IsShowHeader = item_child.IsShowHeader,
+                                IsShowFooter = item_child.IsShowFooter,
+                            };
+                            obj_cate_child.Add(cate_child);
+                        }
+                    }
+                    var cate_parent = new GroupProductESModel
+                    {
+                        Id = item.Id,
+                        Name = item.Name,
+                        ImagePath = item.ImagePath,
+                        Path = item.Path,
+                        IsShowHeader = item.IsShowHeader,
+                        IsShowFooter = item.IsShowFooter,
+                        group_product_child = obj_cate_child
+                    };
+                    obj_cate.Add(cate_parent);
+                }
+
+                return obj_cate;
             }
             catch (Exception ex)
             {
@@ -975,26 +1011,48 @@ namespace HuloToys_Service.Controllers.News.Business
         {
             try
             {
-                var group = GetByParentId(parent_id);
-                group = group.Where(x => x.IsShowHeader == true).ToList();
-                var list = new List<ArticleGroupViewModel>();
-                //list.Add(new ArticleGroupViewModel()
-                //{
-                //    id = parent_id,
-                //    name = "Mới nhất",
-                //    order_no = -1,
-                //    image_path = "",
-                //    url_path = "tin-tuc-" + parent_id
-                //});
-                list.AddRange(group.Select(x => new ArticleGroupViewModel() { id = x.Id, image_path = x.ImagePath, name = x.Name, order_no = (int)x.OrderNo, url_path = x.Path }).OrderBy(x => x.order_no).ToList());
+                var groupList = GetByParentId(parent_id);
+                if (groupList == null || !groupList.Any())
+                    return new List<ArticleGroupViewModel>();
+
+                // Chỉ lấy nhóm có IsShowHeader = true
+                groupList = groupList.Where(x => x.IsShowHeader == true).ToList();
+
+                var list = groupList
+                    .OrderBy(x => x.OrderNo)
+                    .Select(parent => new ArticleGroupViewModel
+                    {
+                        id = parent.Id,
+                        parentid = parent.ParentId,
+                        positionid = parent.PositionId,
+                        name = parent.Name,
+                        image_path = parent.ImagePath,
+                        url_path = parent.Path,
+                        order_no = (int)(parent.OrderNo ?? 0),
+                        group_product_child = parent.group_product_child?.OrderBy(c => c.OrderNo).Select(child => new ArticleGroupViewModel
+                        {
+                            id = child.Id,
+                            name = child.Name,
+                            image_path = child.ImagePath,
+                            url_path = child.Path,
+                            order_no = (int)(child.OrderNo ?? 0),
+                            group_product_child = new List<ArticleGroupViewModel>() // Nếu cần đệ quy sâu hơn
+                        }).ToList() ?? new List<ArticleGroupViewModel>()
+                    }).ToList();
+
                 return list;
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "GetArticleCategoryByParentID -GroupProductRepository : " + ex);
+                LogHelper.InsertLogTelegramByUrl(
+                    configuration["BotSetting:bot_token"],
+                    configuration["BotSetting:bot_group_id"],
+                    "GetArticleCategoryByParentID - GroupProductRepository: " + ex.ToString()
+                );
+                return new List<ArticleGroupViewModel>();
             }
-            return null;
         }
+
         public async Task<List<ArticleGroupViewModel>> GetFooterCategoryByParentID(long parent_id)
         {
             try

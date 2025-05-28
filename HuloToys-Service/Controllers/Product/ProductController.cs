@@ -206,11 +206,11 @@ namespace WEB.CMS.Controllers
         [HttpPost("detail")]
         public async Task<IActionResult> ProductDetail([FromBody] APIRequestGenericModel input)
         {
-            var model_con = new
-            {
-                id = "682ad9336b5155c27a8bd9d7"
-            };
-            input.token = CommonHelper.Encode(JsonConvert.SerializeObject(model_con), _configuration["KEY:private_key"]);
+            //var model_con = new
+            //{
+            //    id = "682307c677151ae00ac6a940"
+            //};
+            //input.token = CommonHelper.Encode(JsonConvert.SerializeObject(model_con), _configuration["KEY:private_key"]);
             try
             {
                 JArray objParr = null;

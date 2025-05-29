@@ -290,9 +290,25 @@ namespace WEB.CMS.Controllers
                         data.product_main.total_sold = (data.product_main.total_sold == null) ? 0 : (long)data.product_main.total_sold;
                         var total_sold = orderDetailESService.SumQuantityByProductId(new List<string>() { request.id });
                         data.product_main.total_sold += total_sold;
+                        var raiting = _raitingESService.GetListByFilter(new ProductRaitingRequestModel()
+                        {
+                            id = data.product_main._id,
+                            has_comment=false,
+                            has_media=false,
+                            page_index=1,
+                            page_size=500,
+                            stars=-1
+                        });
+                        if(raiting!=null && raiting.Count > 0)
+                        {
+                            var sum_raiting = raiting.Average(x => x.Star);
+                            data.product_main.star = sum_raiting==null?5:(float)sum_raiting;
+                            data.product_main.review_count = raiting.Count;
+                            data.product_main.rating = (sum_raiting == null ? 5 : (float)sum_raiting);
+                        }
                     }
                     
-
+                   
                     return Ok(new
                     {
                         status = (int)ResponseType.SUCCESS,

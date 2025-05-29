@@ -58,6 +58,17 @@ namespace HuloToys_Service.Controllers
         [HttpPost("login")]
         public async Task<ActionResult> ClientLogin([FromBody] APIRequestGenericModel input)
         {
+            //var input_model = new ClientLoginRequestModel()
+            //{
+            //    user_name = "info@x-tech.vn",
+            //    password = "123331",
+            //    type = 2,
+                
+            //};
+            //input = new APIRequestGenericModel()
+            //{
+            //    token = CommonHelper.Encode(JsonConvert.SerializeObject(input_model), configuration["KEY:private_key"])
+            //};
             try
             {
                 var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
@@ -176,6 +187,14 @@ namespace HuloToys_Service.Controllers
                                             });
                                         }
                                     }
+                                }
+                                else
+                                {
+                                    return Ok(new
+                                    {
+                                        status = (int)ResponseType.FAILED,
+                                        msg = "Không tìm thấy tài khoản nào tương ứng với thông tin đăng nhập này, vui lòng đăng ký hoặc thử lại"
+                                    });
                                 }
                                    
                             }

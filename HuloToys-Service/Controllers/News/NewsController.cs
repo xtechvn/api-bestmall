@@ -590,7 +590,7 @@ namespace HuloToys_Service.Controllers
                     int take = Convert.ToInt32(objParr[0]["take"]);
                     if (skip <= 0) skip = 0;
                     if (take <= 0) take = 10;
-                    string cache_key = CacheType.CATEGORY_NEWS + category_id;
+                    string cache_key = CacheType.ARTICLE_CATEGORY_ID + category_id;
                     var j_data = await _redisService.GetAsync(cache_key, Convert.ToInt32(configuration["Redis:Database:db_common"]));
                     List<ArticleFeModel> data_list=new List<ArticleFeModel>();
                     List<ArticleFeModel> pinned_article = new List<ArticleFeModel>();

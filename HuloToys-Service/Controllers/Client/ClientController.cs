@@ -150,7 +150,7 @@ namespace HuloToys_Service.Controllers
                                         return Ok(new
                                         {
                                             status = (int)ResponseType.FAILED,
-                                            msg = "Không tìm thấy tài khoản nào tương ứng với thông tin đăng nhập này, vui lòng thử lại"
+                                            msg = "Không tìm thấy tài khoản nào tương ứng với thông tin đăng nhập này, vui lòng đăng ký hoặc thử lại"
                                         });
                                     }
                                     foreach (var client in clients)

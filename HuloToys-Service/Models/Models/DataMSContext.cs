@@ -726,9 +726,9 @@ public partial class DataMSContext : DbContext
             entity.Property(e => e.Description).HasMaxLength(500);
             entity.Property(e => e.Icon).HasMaxLength(500);
             entity.Property(e => e.LabelCode)
-                .HasMaxLength(10)
-                .IsUnicode(false);
-            entity.Property(e => e.LabelName).HasMaxLength(50);
+                     .HasMaxLength(100)
+                     .IsUnicode(false);
+            entity.Property(e => e.LabelName).HasMaxLength(200);
             entity.Property(e => e.UpdateTime).HasColumnType("datetime");
         });
 

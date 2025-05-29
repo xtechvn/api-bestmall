@@ -4,6 +4,7 @@ using Entities.ViewModels.Products;
 using HuloToys_Front_End.Models.Products;
 using HuloToys_Service.ElasticSearch;
 using HuloToys_Service.Models.APIRequest;
+using HuloToys_Service.Models.Raiting;
 using HuloToys_Service.MongoDb;
 using HuloToys_Service.Utilities.lib;
 using HuloToys_Service.Utilities.Lib;
@@ -25,6 +26,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
         private readonly IConfiguration _configuration;
         private readonly GroupProductESService groupProductESService;
         private readonly OrderDetailESService orderDetailESService;
+        private readonly ProductFavouritesMongoAccess _productFavouritesMongoAccess;
 
         public ProductDetailService(IConfiguration configuration)
         {
@@ -35,6 +37,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             _clientESService = new ClientESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
             _configuration = configuration;
             orderDetailESService = new OrderDetailESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
+            _productFavouritesMongoAccess= new ProductFavouritesMongoAccess(configuration);
 
         }
         public async Task<ProductListFEResponseModel> ProductListing(ProductListRequestModel request)
@@ -48,28 +51,9 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
 
                 var data = await _productDetailMongoAccess.ResponseListing(request.keyword, request.group_id,request.page_index,request.page_size , request.price_from,request.price_to, request.rating);
                 result = JsonConvert.DeserializeObject<ProductListFEResponseModel>(JsonConvert.SerializeObject(data));
-                if(result!=null && result.items!=null && result.items.Count > 0)
+                if (result != null && result.items != null && result.items.Count > 0)
                 {
-                    foreach (var i in result.items)
-                    {
-                        var raiting = _raitingESService.GetListByFilter(new Models.Raiting.ProductRaitingRequestModel()
-                        {
-                            id = i._id,
-                            has_comment = false,
-                            has_media = false,
-                            page_index = 1,
-                            page_size = 500,
-                            stars = 0
-                        });
-                        if(raiting!=null && raiting.Count > 0)
-                        {
-                            i.review_count = raiting.Count;
-                            i.rating = raiting.Sum(x => x.Star == null ? 0 : (float)x.Star) / (float)raiting.Count;
-                            i.total_sold += orderDetailESService.CountByProductId(new List<string>() { i._id });
-
-                        }
-
-                    }
+                    await UpdateProductDetail(result.items);
                 }
             }
             catch(Exception ex)
@@ -92,26 +76,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                 result = JsonConvert.DeserializeObject<ProductListFEResponseModel>(JsonConvert.SerializeObject(data));
                 if (result != null && result.items != null && result.items.Count > 0)
                 {
-                    foreach (var i in result.items)
-                    {
-                        var raiting = _raitingESService.GetListByFilter(new Models.Raiting.ProductRaitingRequestModel()
-                        {
-                            id = i._id,
-                            has_comment = false,
-                            has_media = false,
-                            page_index = 1,
-                            page_size = 500,
-                            stars = 0
-                        });
-                        if (raiting != null && raiting.Count > 0)
-                        {
-                            i.review_count = raiting.Count;
-                            i.rating = raiting.Sum(x => x.Star == null ? 0 : (float)x.Star) / (float)raiting.Count;
-                            i.total_sold = orderDetailESService.CountByProductId(new List<string>() { i._id });
-
-                        }
-
-                    }
+                    await UpdateProductDetail(result.items);
                 }
             }
             catch (Exception ex)
@@ -121,6 +86,39 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             }
             return result;
         }
-       
+       private async Task UpdateProductDetail(List<ProductMongoDbModel> products) {
+            try
+            {
+                foreach (var item in products)
+                {
+                    if (item == null || item._id == null) continue;
+                    var raiting = _raitingESService.GetListByFilter(new Models.Raiting.ProductRaitingRequestModel()
+                    {
+                        id = item._id,
+                        has_comment = false,
+                        has_media = false,
+                        page_index = 1,
+                        page_size = 500,
+                        stars = 0
+                    });
+                    if (raiting != null && raiting.Count > 0)
+                    {
+                        var sum_raiting = raiting.Average(x => x.Star);
+                        item.star = sum_raiting == null ? 5 : (float)sum_raiting;
+                        item.review_count = raiting.Count;
+                        item.rating = (sum_raiting == null ? 5 : (float)sum_raiting);
+                    }
+                    item.total_sold = (item.total_sold == null) ? 0 : (long)item.total_sold;
+                    var total_sold = orderDetailESService.SumQuantityByProductId(new List<string>() { item._id });
+                    item.total_sold += total_sold;
+                }
+            }
+            catch (Exception ex)
+            {
+                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
+                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
+            }
+
+       }
     }
 }

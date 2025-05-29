@@ -20,6 +20,7 @@ using OtpNet;
 using System.Reflection;
 using Utilities;
 using Utilities.Contants;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace WEB.CMS.Controllers
 {
@@ -109,6 +110,7 @@ namespace WEB.CMS.Controllers
                         }
                         if (result != null && result.items.Count > 0)
                         {
+                           
                             _redisService.Set(cache_name, JsonConvert.SerializeObject(result), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
                             var list = result.items.Select(x => new
                             {
@@ -285,29 +287,7 @@ namespace WEB.CMS.Controllers
                         }
                     }
                     var count = await _productFavouritesMongoAccess.CountByProductId(request.id);
-                    if(data!=null && data.product_main != null)
-                    {
-                        data.product_main.total_sold = (data.product_main.total_sold == null) ? 0 : (long)data.product_main.total_sold;
-                        var total_sold = orderDetailESService.SumQuantityByProductId(new List<string>() { request.id });
-                        data.product_main.total_sold += total_sold;
-                        var raiting = _raitingESService.GetListByFilter(new ProductRaitingRequestModel()
-                        {
-                            id = data.product_main._id,
-                            has_comment=false,
-                            has_media=false,
-                            page_index=1,
-                            page_size=500,
-                            stars=-1
-                        });
-                        if(raiting!=null && raiting.Count > 0)
-                        {
-                            var sum_raiting = raiting.Average(x => x.Star);
-                            data.product_main.star = sum_raiting==null?5:(float)sum_raiting;
-                            data.product_main.review_count = raiting.Count;
-                            data.product_main.rating = (sum_raiting == null ? 5 : (float)sum_raiting);
-                        }
-                    }
-                    
+                  
                    
                     return Ok(new
                     {

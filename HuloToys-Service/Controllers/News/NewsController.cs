@@ -20,6 +20,7 @@ using Azure.Core;
 using HuloToys_Service.Utilities.lib;
 using Caching.Elasticsearch;
 using HuloToys_Service.ElasticSearch;
+using HuloToys_Service.Models.Products;
 
 namespace HuloToys_Service.Controllers
 {
@@ -597,23 +598,32 @@ namespace HuloToys_Service.Controllers
                     List<ArticleFeModel> video_article = new List<ArticleFeModel>();
                     int total_count = -1;
                     int total_page = 1;
+                    var group_product = await _newsBusiness.GetGroupProductNameAsync(category_id);
+                    if (skip + take > 100)
+                    {
+                        var data = await _newsBusiness.getArticleListByCategoryIdOrderByDate(category_id, skip, take, group_product);
+                        data_list = data.list_article_fe;
+                        total_count = data.total_item_count;
+                        pinned_article = data.list_article_pinned;
+                        total_page = Convert.ToInt32(total_count / take);
+                        if (total_page < ((float)total_count / take))
+                        {
+                            total_page++;
+                        }
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.SUCCESS,
+                            data_list = data_list,
+                            pinned = pinned_article,
+                            total_item = total_count,
+                            total_page = total_page
+
+                        });
+                    }
                     if (j_data == null || j_data == "")
                     {
-                        var group_product = await _newsBusiness.GetGroupProductNameAsync(category_id);
                         var data_100 = await _newsBusiness.getArticleListByCategoryIdOrderByDate(category_id, 0, 100, group_product);
-                        if (skip + take > 100)
-                        {
-                            var data = await _newsBusiness.getArticleListByCategoryIdOrderByDate(category_id, skip, take, group_product);
-                            data_list = data.list_article_fe;
-                            total_count = data.total_item_count;
-                            pinned_article = data.list_article_pinned;
-                            total_page = Convert.ToInt32(total_count / take);
-                            if (total_page < ((float)total_count / take))
-                            {
-                                total_page++;
-                            }
-                        }
-                        else if(data_100!=null && data_100.list_article_fe.Count>0)
+                        if(data_100!=null && data_100.list_article_fe!=null&& data_100.list_article_fe.Count>0)
                         {
                             data_list = data_100.list_article_fe.Skip(skip == 1 ? 0 : skip).Take(take).ToList();
                             total_count = data_100.total_item_count;
@@ -634,109 +644,32 @@ namespace HuloToys_Service.Controllers
                             }
                         }
 
-
-                      
-                        return Ok(new
-                        {
-                            status = (int)ResponseType.SUCCESS,
-                            data_list = data_list,
-                            pinned = pinned_article,
-                            total_item = total_count,
-                            total_page = total_page
-
-                        });
-
-                        //return Content(JsonConvert.SerializeObject(data_list));
                     }
                     else
                     {
-                        var group_product = await _newsBusiness.GetGroupProductNameAsync(category_id);
-
-                        if (skip + take > 100)
+                        ArticleFEModelPagnition data_100 = JsonConvert.DeserializeObject<ArticleFEModelPagnition>(j_data);
+                        if (data_100 != null && data_100.list_article_fe != null && data_100.list_article_fe.Count > 0)
                         {
-                            var data = await _newsBusiness.getArticleListByCategoryIdOrderByDate(category_id, skip, take, group_product);
-                            data_list = data.list_article_fe;
-                            total_count = data.total_item_count;
-                            pinned_article = data.list_article_pinned;
-                            total_page = Convert.ToInt32(total_count / take);
-                            if (total_page < ((float)total_count / take))
-                            {
-                                total_page++;
-                            }
-                        }
-                        else
-                        {
-                            var data_pinned = new List<ArticleFeModel>();
-                            var i = 0;
-                            var data_100 = JsonConvert.DeserializeObject<ArticleFEModelPagnition>(j_data);
-                            var data_pinned_1 = data_100.list_article_pinned.Where(s => s.position == 1).Skip(skip == 1 ? 0 : (skip - 1) * take).Take(take).ToList();
-                            if (data_pinned_1 != null && data_pinned_1.Count > 0)
-                            {
-                                data_pinned.AddRange(data_pinned_1);
-                            }
-                            else
-                            {
-                                var data = data_100.list_article_fe.Skip(skip == 1 ? 0 : (skip - 1) * take).Take(take).ToList();
-                                if (data != null && data.Count > 0)
-                                {
-                                    data[0].position = 1;
-                                    data_pinned.Add(data[0]);
-                                    i++;
-                                }
-                            }
-                            var data_pinned_2 = data_100.list_article_pinned.Where(s => s.position == 2).Skip(skip == 1 ? 0 : (skip - 1) * take).Take(take).ToList();
-                            if (data_pinned_2 != null && data_pinned_2.Count > 0)
-                            {
-                                data_pinned.AddRange(data_pinned_2);
-
-                            }
-                            else
-                            {
-                                var data = data_100.list_article_fe.Skip(skip == 1 ? 0 : (skip - 1) * (take + 1)).Take(take).ToList();
-                                if (data != null && data.Count > 0)
-                                {
-                                    data[0].position = 2;
-                                    data_pinned.Add(data[0]);
-                                    i++;
-                                }
-                            }
-                            var data_pinned_3 = data_100.list_article_pinned.Where(s => s.position == 3).Skip(skip == 1 ? 0 : (skip - 1) * take).Take(take).ToList();
-                            if (data_pinned_3 != null && data_pinned_3.Count > 0)
-                            {
-                                data_pinned.AddRange(data_pinned_3);
-                            }
-                            else
-                            {
-                                var data = data_100.list_article_fe.Skip(skip == 1 ? 0 : (skip - 1) * (take + 2)).Take(take).ToList();
-                                if (data != null && data.Count > 0)
-                                {
-                                    data[0].position = 3;
-                                    data_pinned.Add(data[0]);
-                                    i++;
-                                }
-                            }
-
-                            data_list = data_100.list_article_fe.Skip(skip == 1 ? 0 : (skip - 1) * (take + i)).Take(take).ToList();
+                            data_list = data_100.list_article_fe.Skip(skip == 1 ? 0 : skip).Take(take).ToList();
                             total_count = data_100.total_item_count;
-                            pinned_article = data_pinned;
+                            pinned_article = data_100.list_article_pinned;
                             total_page = Convert.ToInt32(total_count / take);
                             if (total_page < ((float)total_count / take))
                             {
                                 total_page++;
                             }
+
                         }
-
-                        return Ok(new
-                        {
-                            status = (int)ResponseType.SUCCESS,
-                            data_list = data_list,
-                            pinned = pinned_article,
-                            total_item = total_count,
-                            total_page = total_page
-                        });
-                        // return Content(JsonConvert.SerializeObject(data_list));
                     }
+                    return Ok(new
+                    {
+                        status = (int)ResponseType.SUCCESS,
+                        data_list = data_list,
+                        pinned = pinned_article,
+                        total_item = total_count,
+                        total_page = total_page
 
+                    });
                 }
                 else
                 {

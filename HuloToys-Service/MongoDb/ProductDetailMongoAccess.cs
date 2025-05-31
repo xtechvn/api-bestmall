@@ -260,17 +260,28 @@ namespace HuloToys_Service.MongoDb
                 //}
 
 
-                var sort_filter = Builders<ProductMongoDbModel>.Sort;
-                var sort_filter_definition = sort_filter.Descending(x => x.updated_last);
-                var model = _productDetailCollection.Find(filterDefinition).Sort(sort_filter_definition);
-                model.Options.Skip = page_index < 1 ? 0 : (page_index - 1) * page_size;
-                model.Options.Limit = page_size;
-                long count = await model.CountDocumentsAsync();
-                var items = await model.ToListAsync();
+                //var sort_filter = Builders<ProductMongoDbModel>.Sort;
+                //var sort_filter_definition = sort_filter.Descending(x => x.updated_last);
+                //var model = _productDetailCollection.Find(filterDefinition).Sort(sort_filter_definition);
+                //model.Options.Skip = page_index < 1 ? 0 : (page_index - 1) * page_size;
+                //model.Options.Limit = page_size;
+                //long count = await model.CountDocumentsAsync();
+                //var items = await model.ToListAsync();
+
+                // ✅ Tính tổng số sản phẩm phù hợp
+                long totalCount = await _productDetailCollection.CountDocumentsAsync(filterDefinition);
+
+                // ✅ Sau đó mới paging
+                var sort_filter = Builders<ProductMongoDbModel>.Sort.Descending(x => x.updated_last);
+                var items = await _productDetailCollection.Find(filterDefinition)
+                    .Sort(sort_filter)
+                    .Skip((page_index - 1) * page_size)
+                    .Limit(page_size)
+                    .ToListAsync();
                 return new ProductListResponseModel()
                 {
                     items = items,
-                    count = count
+                    count = totalCount
                 };
             }
             catch (Exception ex)

@@ -307,7 +307,8 @@ namespace WEB.CMS.Controllers
                         if (data.product_main.products_buy_with!=null && data.product_main.products_buy_with.Count > 0)
                         {
                             result.product_buy_with = await _productDetailMongoAccess.ListByProducts(data.product_main.products_buy_with);
-                            if(result.product_buy_with!=null && result.product_buy_with.Count > 0)
+                            string static_url = _configuration["config_value:ImageStatic"];
+                            if (result.product_buy_with!=null && result.product_buy_with.Count > 0)
                             {
                                 result.product_buy_with_output = result.product_buy_with.Select(x => new ProductDetailResponseModelProductBuyWith()
                                 {
@@ -315,7 +316,7 @@ namespace WEB.CMS.Controllers
                                     amount = (x.amount_min == null ? x.amount : (double)x.amount_min),
                                     name = x.name,
                                     code = x.code,
-                                    avatar = x.avatar
+                                    avatar = (!x.avatar.Contains(static_url) && !x.avatar.Contains("data:image") && !x.avatar.Contains("http")) ?(static_url + x.avatar):x.avatar
                                 }).ToList();
                             }
                         }

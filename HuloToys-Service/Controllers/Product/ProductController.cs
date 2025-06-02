@@ -227,29 +227,47 @@ namespace WEB.CMS.Controllers
                             msg = ResponseMessages.DataInvalid
                         });
                     }
-                    //var cache_name = CacheType.PRODUCT_DETAIL + request.id;
-                    //var j_data = await _redisService.GetAsync(cache_name, Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
-                    //if (j_data != null && j_data.Trim() != "")
-                    //{
-                    //    ProductDetailResponseModel result = JsonConvert.DeserializeObject<ProductDetailResponseModel>(j_data);
-                    //    if (result != null)
-                    //    {
-                    //        return Ok(new
-                    //        {
-                    //            status = (int)ResponseType.SUCCESS,
-                    //            msg = ResponseMessages.Success,
-                    //            data = result
-                    //        });
-                    //    }
-                    //}
+                    ProductDetailResponseModel result = new ProductDetailResponseModel();
+                    var cache_name = CacheType.PRODUCT_DETAIL + request.id;
+                    var j_data = await _redisService.GetAsync(cache_name, Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
+                    if (j_data != null && j_data.Trim() != "")
+                    {
+                        result = JsonConvert.DeserializeObject<ProductDetailResponseModel>(j_data);
+                        if (result != null)
+                        {
+                            return Ok(new
+                            {
+                                status = (int)ResponseType.SUCCESS,
+                                msg = "Success",
+                                data = new
+                                {
+                                    product_main=result.product_main,
+                                    product_sub=result.product_sub
+                                },
+                                cert = result.cert,
+                                favourite = result.favourite,
+                                buywith = result.product_buy_with_output
+                            });
+                        }
+                    }
+                    result = new ProductDetailResponseModel()
+                    {
+                        cert=new ProductDetailResponseModelCertificate(),
+                        favourite=new ProductDetailResponseModelFavourite() { count=0, is_favourite=false},
+                        product_buy_with=new List<ProductMongoDbModel>(),
+                        product_main=new ProductMongoDbModel(),
+                        product_sub=new List<ProductMongoDbModel>()
+                    };
                     var data = await _productDetailMongoAccess.GetFullProductById(request.id);
-                    List<string> cert_root = new List<string>();
-                    List<string> cert_product = new List<string>();
-                    List<string> cert_supply = new List<string>();
-                    List<string> cert_confirm = new List<string>();
-                    bool favourite = false;
+                    result.cert.root_product = [];
+                    result.cert.product = [];
+                    result.cert.supply = [];
+                    result.cert.confirm = [];
+                    result.favourite.is_favourite = false;
                     if (data != null)
                     {
+                        result.product_main = data.product_main;
+                        result.product_sub = data.product_sub;
                         // _redisService.Set(cache_name, JsonConvert.SerializeObject(data), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
                         var attach_root = await attachFileESModelESRepository.GetByDataidAndType(data.product_main.supplier_id, (int)AttachmentType.Supplier_Cert_RootProduct);
                         var attach_product = await attachFileESModelESRepository.GetByDataidAndType(data.product_main.supplier_id, (int)AttachmentType.Supplier_Cert_Product);
@@ -257,55 +275,62 @@ namespace WEB.CMS.Controllers
                         var attach_confirm = await attachFileESModelESRepository.GetByDataidAndType(data.product_main.supplier_id, (int)AttachmentType.Supplier_Cert_Confirm);
                         if(attach_root != null && attach_root.Count > 0)
                         {
-                            cert_root = attach_root.Select(x => x.Path).ToList();
+                            result.cert.root_product = attach_root.Select(x => x.Path).ToList();
                         }
                         if (attach_product != null && attach_product.Count > 0)
                         {
-                            cert_product = attach_product.Select(x => x.Path).ToList();
+                            result.cert.product = attach_product.Select(x => x.Path).ToList();
                         }
                         if (attach_supply != null && attach_supply.Count > 0)
                         {
-                            cert_supply = attach_supply.Select(x => x.Path).ToList();
+                            result.cert.supply = attach_supply.Select(x => x.Path).ToList();
                         }
                         if (attach_confirm != null && attach_confirm.Count > 0)
                         {
-                            cert_confirm = attach_confirm.Select(x => x.Path).ToList();
+                            result.cert.confirm = attach_confirm.Select(x => x.Path).ToList();
                         }
-                    }
-                    //favourites:
-                    if(request.token!=null && request.token.Trim() != "")
-                    {
-                        long account_client_id = await clientServices.GetAccountClientIdFromToken(request.token);
-                        if (account_client_id >0)
+                        //favourites:
+                        if (request.token != null && request.token.Trim() != "")
                         {
-                            var exists=await _productFavouritesMongoAccess.GetByAccountAndProduct(request.id,account_client_id);
-                            if(exists!=null && exists._id!=null && exists._id.Trim() != "")
+                            long account_client_id = await clientServices.GetAccountClientIdFromToken(request.token);
+                            if (account_client_id > 0)
                             {
-                                favourite = true;
-                            }
+                                var exists = await _productFavouritesMongoAccess.GetByAccountAndProduct(request.id, account_client_id);
+                                if (exists != null && exists._id != null && exists._id.Trim() != "")
+                                {
+                                    result.favourite.is_favourite = true;
+                                }
 
+                            }
                         }
+                        result.favourite.count = await _productFavouritesMongoAccess.CountByProductId(request.id);
+                        if (data.product_main.products_buy_with!=null && data.product_buy_with.Count > 0)
+                        {
+                            result.product_buy_with = await _productDetailMongoAccess.ListByProducts(data.product_main.products_buy_with);
+                            if(result.product_buy_with!=null && result.product_buy_with.Count > 0)
+                            {
+                                result.product_buy_with_output = result.product_buy_with.Select(x => new ProductDetailResponseModelProductBuyWith()
+                                {
+                                    _id = x._id,
+                                    amount = (x.amount_min == null ? x.amount : (double)x.amount_min),
+                                    name = x.name,
+                                    code = x.code,
+                                    avatar = x.avatar
+                                }).ToList();
+                            }
+                        }
+                        _redisService.Set(cache_name,JsonConvert.SerializeObject(result),DateTime.Now.AddDays(1), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
+
                     }
-                    var count = await _productFavouritesMongoAccess.CountByProductId(request.id);
-                  
-                   
+                    
                     return Ok(new
                     {
                         status = (int)ResponseType.SUCCESS,
                         msg = "Success",
                         data = data,
-                        cert=new
-                        {
-                            root_product=cert_root,
-                            product=cert_product,
-                            supply=cert_supply,
-                            confirm=cert_confirm
-                        },
-                        favourite= new
-                        {
-                            is_favourite=favourite,
-                            count= count
-                        }
+                        cert= result.cert,
+                        favourite= result.favourite,
+                        buywith = result.product_buy_with_output
                     });
 
                 }

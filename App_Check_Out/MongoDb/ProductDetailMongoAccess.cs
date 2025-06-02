@@ -460,5 +460,24 @@ namespace APP_CHECKOUT.MongoDb
                 return null;
             }
         }
+        public async Task<List<ProductMongoDbModel>> ListByProducts(List<string> ids)
+        {
+            try
+            {
+                var filter = Builders<ProductMongoDbModel>.Filter;
+                var filterDefinition = filter.Empty;
+                filterDefinition &= Builders<ProductMongoDbModel>.Filter.In(x => x._id, ids);
+
+                var model = _productDetailCollection.Find(filterDefinition);
+                var result = await model.ToListAsync();
+                return result;
+            }
+            catch (Exception ex)
+            {
+                return new List<ProductMongoDbModel>();
+            }
+        }
+
+
     }
 }

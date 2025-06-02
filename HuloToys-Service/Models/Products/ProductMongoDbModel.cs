@@ -63,7 +63,7 @@ namespace Entities.ViewModels.Products
         public long? total_sold { get; set; }
         public int? supplier_status { get; set; }
         public List<ProductMongoDbSpecification>? detail_specification { get; set; }
-
+        public List<string> products_buy_with { get; set; }
     }
     public class ProductMongoDbSpecification
     {

@@ -210,7 +210,7 @@ namespace WEB.CMS.Controllers
         {
             //var model_con = new
             //{
-            //    id = "682307c677151ae00ac6a940"
+            //    id = "682551b6711071e30c18bae5"
             //};
             //input.token = CommonHelper.Encode(JsonConvert.SerializeObject(model_con), _configuration["KEY:private_key"]);
             try
@@ -304,7 +304,7 @@ namespace WEB.CMS.Controllers
                             }
                         }
                         result.favourite.count = await _productFavouritesMongoAccess.CountByProductId(request.id);
-                        if (data.product_main.products_buy_with!=null && data.product_buy_with.Count > 0)
+                        if (data.product_main.products_buy_with!=null && data.product_main.products_buy_with.Count > 0)
                         {
                             result.product_buy_with = await _productDetailMongoAccess.ListByProducts(data.product_main.products_buy_with);
                             if(result.product_buy_with!=null && result.product_buy_with.Count > 0)

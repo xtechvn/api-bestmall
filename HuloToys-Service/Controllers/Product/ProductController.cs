@@ -1,4 +1,5 @@
-﻿using Caching.Elasticsearch;
+﻿using Azure.Core;
+using Caching.Elasticsearch;
 using Entities.ViewModels.Products;
 using HuloToys_Front_End.Models.Products;
 using HuloToys_Service.Controllers.Client.Business;
@@ -111,7 +112,7 @@ namespace WEB.CMS.Controllers
                         if (result != null && result.items.Count > 0)
                         {
                            
-                            _redisService.Set(cache_name, JsonConvert.SerializeObject(result), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
+                            _redisService.Set(cache_name, JsonConvert.SerializeObject(result),DateTime.Now.AddDays(1), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
                             var list = result.items.Select(x => new
                             {
                                 x._id,
@@ -1076,6 +1077,88 @@ namespace WEB.CMS.Controllers
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
                 LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
+            }
+            return Ok(new
+            {
+                status = (int)ResponseType.FAILED,
+                msg = ResponseMessages.DataInvalid,
+            });
+        }
+        [HttpPost("search-listing")]
+        public async Task<IActionResult> ProductSearchListing([FromBody] APIRequestGenericModel input)
+        {
+            try
+            { 
+
+                //var request_json = new ProductGlobalSearchRequestModel()
+                //{
+                //    keyword = "men vi sinh"
+                //};
+                //var token = CommonHelper.Encode(JsonConvert.SerializeObject(request_json), _configuration["KEY:private_key"]);
+                JArray objParr = null;
+                if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, _configuration["KEY:private_key"]))
+                {
+                    var request = JsonConvert.DeserializeObject<ProductGlobalSearchRequestModel>(objParr[0].ToString());
+                    if (request == null || request.keyword == null)
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+
+                    // ✅ Chuẩn hóa keyword: bỏ ký tự đặc biệt + giữ dấu + normalize cho search
+                    string rawKeyword = StringHelper.RemoveSpecialCharacterExceptVietnameseCharacter(request.keyword);
+                    string normalizedKeyword = StringHelper.NormalizeKeyword(rawKeyword); // Dùng cho no_space_name
+                    ProductListResponseModel data = new ProductListResponseModel();
+                    var list = await _productESRepository.SearchByKeywordAsync(rawKeyword, normalizedKeyword);
+                    if (list != null && list.Count > 0)
+                    {
+                        var list_product_mongo = await _productDetailMongoAccess.ListByProducts(list.Select(x => x.product_id).ToList());
+                        var list_data= list_product_mongo.Select(x => new
+                        {
+                            x._id,
+                            x.code,
+                            x.name,
+                            x.avatar,
+                            x.price,
+                            x.amount,
+                            x.amount_min,
+                            x.amount_max,
+                            x.rating,
+                            x.star,
+                            x.total_sold,
+                            x.review_count,
+                            x.old_price,
+                            x.discount
+                        });
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.SUCCESS,
+                            msg = ResponseMessages.Success,
+                            data = new
+                            {
+                                items = list_data,
+                                count = list.Count
+                            }
+                        });
+                    }
+                    return Ok(new
+                    {
+                        status = (int)ResponseType.SUCCESS,
+                        msg = ResponseMessages.Success,
+                        data = new
+                        {
+                            items = new List<dynamic>(),
+                            count = 0
+                        }
+                    });
+                }
+            }
+            catch
+            {
+
             }
             return Ok(new
             {

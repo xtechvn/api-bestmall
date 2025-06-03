@@ -326,7 +326,8 @@ namespace WEB.CMS.Controllers
                                     amount = (x.amount_min == null ? x.amount : (double)x.amount_min),
                                     name = x.name,
                                     code = x.code,
-                                    avatar = (!x.avatar.Contains(static_url) && !x.avatar.Contains("data:image") && !x.avatar.Contains("http")) ?(static_url + x.avatar):x.avatar
+                                    avatar = (!x.avatar.Contains(static_url) && !x.avatar.Contains("data:image") && !x.avatar.Contains("http")) ?(static_url + x.avatar):x.avatar,
+                                    variation_detail= ProductVariationHelper.RenderVariationDetail(x.attributes,x.attributes_detail,x.variation_detail)
                                 }).ToList();
                             }
                         }

@@ -36,6 +36,7 @@ namespace HuloToys_Front_End.Models.Products
         public string name { get; set; }
 
         public string avatar { get; set; }
+        public string variation_detail { get; set; }
 
     }
 }

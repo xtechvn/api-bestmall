@@ -10,7 +10,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
         {
             if (attribute == null || attributeDetail == null || attribute.Count == 0 || attributeDetail.Count == 0)
             {
-                return "";
+                return "Mặc định";
             }
 
             StringBuilder variationValueBuilder = new StringBuilder();

@@ -93,6 +93,7 @@ namespace HuloToys_Service.MongoDb
                 var filterDefinition = filter.Empty;
                 filterDefinition &= Builders<ProductMongoDbModel>.Filter.Eq(x => x._id, id);
                 filterDefinition &= Builders<ProductMongoDbModel>.Filter.Eq(x => x.status, (int)ProductStatus.ACTIVE);
+                filterDefinition &= Builders<ProductMongoDbModel>.Filter.Eq(x => x.supplier_status, (int)SUPPLIER_STATUS.CONFIRMED);
                 var model = await _productDetailCollection.Find(filterDefinition).FirstOrDefaultAsync();
                 if (model != null && model._id!=null)
                 {

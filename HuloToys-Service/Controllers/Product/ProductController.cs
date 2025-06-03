@@ -74,7 +74,7 @@ namespace WEB.CMS.Controllers
                 //input.token = "F081O1oSKR4nJktCB3d5ekEyMysRMQY0LBBoCGN6TgYGUTYtKygpBxF9Xn85";
                 //var model_input = new
                 //{
-                //    group_id = 15,
+                //    group_id = -1,
                 //    page_index = 1,
                 //    page_size = 10
                 //};
@@ -181,11 +181,11 @@ namespace WEB.CMS.Controllers
         [HttpPost("detail")]
         public async Task<IActionResult> ProductDetail([FromBody] APIRequestGenericModel input)
         {
-            //var model_con = new
-            //{
-            //    id = "682551b6711071e30c18bae5"
-            //};
-            //input.token = CommonHelper.Encode(JsonConvert.SerializeObject(model_con), _configuration["KEY:private_key"]);
+            var model_con = new
+            {
+                id = "68254f39711071e30c18badb"
+            };
+            input.token = CommonHelper.Encode(JsonConvert.SerializeObject(model_con), _configuration["KEY:private_key"]);
             try
             {
                 JArray objParr = null;

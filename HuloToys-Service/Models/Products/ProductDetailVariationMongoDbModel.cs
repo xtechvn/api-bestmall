@@ -17,7 +17,7 @@ namespace Entities.ViewModels.Products
     }
     public class ProductDetailVariationAttributesMongoDbModel
     {
-        public string id { get; set; }
+        public string _id { get; set; }
         public string name { get; set; }
     }
 }

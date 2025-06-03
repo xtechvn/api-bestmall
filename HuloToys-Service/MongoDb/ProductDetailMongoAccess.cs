@@ -218,10 +218,7 @@ namespace HuloToys_Service.MongoDb
 
                 );
                 filterDefinition &= Builders<ProductMongoDbModel>.Filter.Eq(x => x.status, (int)ProductStatus.ACTIVE);
-                filterDefinition &= Builders<ProductMongoDbModel>.Filter.Or(
-                   Builders<ProductMongoDbModel>.Filter.Eq(p => p.supplier_status, null),
-                   Builders<ProductMongoDbModel>.Filter.Eq(p => p.supplier_status, (int)SUPPLIER_STATUS.CONFIRMED)
-                );
+                filterDefinition &= Builders<ProductMongoDbModel>.Filter.Eq(p => p.supplier_status, (int)SUPPLIER_STATUS.CONFIRMED);
 
                 filterDefinition &= Builders<ProductMongoDbModel>.Filter.Or(
                     Builders<ProductMongoDbModel>.Filter.Eq(p => p.parent_product_id, null),
@@ -334,10 +331,8 @@ namespace HuloToys_Service.MongoDb
                                    Builders<ProductMongoDbModel>.Filter.Eq(p => p.parent_product_id, null),
                                    Builders<ProductMongoDbModel>.Filter.Eq(p => p.parent_product_id, "")
                                );
-                filter &= Builders<ProductMongoDbModel>.Filter.Or(
-                  Builders<ProductMongoDbModel>.Filter.Eq(p => p.supplier_status, null),
-                  Builders<ProductMongoDbModel>.Filter.Eq(p => p.supplier_status, (int)SUPPLIER_STATUS.CONFIRMED)
-               );
+                filter &= Builders<ProductMongoDbModel>.Filter.Eq(p => p.supplier_status, (int)SUPPLIER_STATUS.CONFIRMED);
+
                 var sort_filter = Builders<ProductMongoDbModel>.Sort;
                 var sort_filter_definition = sort_filter.Descending(x => x.updated_last);
                 var model = _productDetailCollection.Find(filter).Sort(sort_filter_definition); var items = await model.ToListAsync();
@@ -453,10 +448,8 @@ namespace HuloToys_Service.MongoDb
                                         attr => brands.Contains(attr.value)
                                     );
                 }
-                filter &= Builders<ProductMongoDbModel>.Filter.Or(
-                Builders<ProductMongoDbModel>.Filter.Eq(p => p.supplier_status, null),
-                Builders<ProductMongoDbModel>.Filter.Eq(p => p.supplier_status, (int)SUPPLIER_STATUS.CONFIRMED)
-             );
+                filter &= Builders<ProductMongoDbModel>.Filter.Eq(p => p.supplier_status, (int)SUPPLIER_STATUS.CONFIRMED);
+
                 var sort_filter = Builders<ProductMongoDbModel>.Sort;
                 var sort_filter_definition = sort_filter.Descending(x => x.updated_last);
                 var model = _productDetailCollection.Find(filter).Sort(sort_filter_definition); 
@@ -484,10 +477,8 @@ namespace HuloToys_Service.MongoDb
                 var filterDefinition = filter.Empty;
                 filterDefinition &= Builders<ProductMongoDbModel>.Filter.In(x => x._id, ids);
                 filterDefinition &= Builders<ProductMongoDbModel>.Filter.Eq(x => x.status, (int)ProductStatus.ACTIVE);
-                filterDefinition &= Builders<ProductMongoDbModel>.Filter.Or(
-                Builders<ProductMongoDbModel>.Filter.Eq(p => p.supplier_status, null),
-                Builders<ProductMongoDbModel>.Filter.Eq(p => p.supplier_status, (int)SUPPLIER_STATUS.CONFIRMED)
-                );
+                filterDefinition &= Builders<ProductMongoDbModel>.Filter.Eq(p => p.supplier_status, (int)SUPPLIER_STATUS.CONFIRMED);
+
                 var model = _productDetailCollection.Find(filterDefinition);
                 var result = await model.ToListAsync();
                 return result;

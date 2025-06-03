@@ -72,16 +72,16 @@ namespace WEB.CMS.Controllers
             try
             {
                 //input.token = "F081O1oSKR4nJktCB3d5ekEyMysRMQY0LBBoCGN6TgYGUTYtKygpBxF9Xn85";
-                var model_input = new
-                {
-                    group_id = 15,
-                    page_index = 1,
-                    page_size = 10
-                };
-                input = new APIRequestGenericModel()
-                {
-                    token = CommonHelper.Encode(JsonConvert.SerializeObject(model_input), _configuration["KEY:private_key"])
-                };
+                //var model_input = new
+                //{
+                //    group_id = 15,
+                //    page_index = 1,
+                //    page_size = 10
+                //};
+                //input = new APIRequestGenericModel()
+                //{
+                //    token = CommonHelper.Encode(JsonConvert.SerializeObject(model_input), _configuration["KEY:private_key"])
+                //};
                 JArray objParr = null;
 
                 if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, _configuration["KEY:private_key"]))
@@ -98,6 +98,7 @@ namespace WEB.CMS.Controllers
                     ProductListFEResponseModel result = null;
                     var cache_name = CacheType.PRODUCT_LISTING + (request.keyword ?? "") + request.group_id + request.page_index + request.page_size;
                     // Kiểm tra các tham số giá
+                    if (request.group_id <= 0 ) request.group_id = -1; // Mặc định là 0 nếu không có giá trị
                     if (request.price_from <= 0 || request.price_from == null) request.price_from = 0; // Mặc định là 0 nếu không có giá trị
                     if (request.price_to <= 0 || request.price_to == null) request.price_to = 0; // Mặc định là giá trị tối đa
                     if (request.keyword == null) request.keyword = "";

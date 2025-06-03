@@ -45,7 +45,7 @@ namespace APP_CHECKOUT.Repositories
             addressClientESService = new AddressClientESService(ConfigurationManager.AppSettings["Elastic_Host"]);
             nhanhVnService = new NhanhVnService(logging_service);
             workQueueClient = new WorkQueueClient( loggingService);
-            emailService = new EmailService();
+            emailService = new EmailService(clientESService,accountClientESService,locationDAL);
         }
         public async Task Excute(CheckoutQueueModel request)
         {
@@ -61,7 +61,7 @@ namespace APP_CHECKOUT.Repositories
                            var data=  await CreateOrder(request.order_mongo_id);
                             if (data != null && data._id != null && data._id.Trim() != "")
                             {
-                                emailService.SendOrderConfirmationEmail(data.email, data.order_no, data.carts);
+                                emailService.SendOrderConfirmationEmail(data.email, data);
                             }
                         }break;
                     case (int)CheckoutEventID.UPDATE_ORDER:
@@ -91,6 +91,7 @@ namespace APP_CHECKOUT.Repositories
         {
             try
             {
+                var time = DateTime.Now;
                 var order = await orderDetailMongoDbModel.FindById(order_detail_id);
                 if (order == null || order.carts == null || order.carts.Count <= 0)
                 {
@@ -121,7 +122,7 @@ namespace APP_CHECKOUT.Repositories
                     
                     details.Add(new OrderDetail()
                     {
-                        CreatedDate = DateTime.Now,
+                        CreatedDate = time,
                         Discount = cart.product.discount,
                         OrderDetailId = 0,
                         OrderId = 0,
@@ -136,7 +137,7 @@ namespace APP_CHECKOUT.Repositories
                         TotalProfit = cart.product.profit * cart.quanity,
                         TotalAmount = cart.product.amount * cart.quanity,
                         TotalDiscount = cart.product.discount * cart.quanity,
-                        UpdatedDate = DateTime.Now,
+                        UpdatedDate = time,
                         UserCreate = Convert.ToInt32(ConfigurationManager.AppSettings["BOT_UserID"]),
                         UserUpdated = Convert.ToInt32(ConfigurationManager.AppSettings["BOT_UserID"]),
                         ParentProductId=parent_product_id
@@ -176,7 +177,7 @@ namespace APP_CHECKOUT.Repositories
                     Price = total_price,
                     Profit = total_profit,
                     OrderStatus = 0,
-                    UpdateLast = DateTime.Now,
+                    UpdateLast = time,
                     UserGroupIds = "",
                     UserId = Convert.ToInt32(ConfigurationManager.AppSettings["BOT_UserID"]),
                     UtmMedium = order.utm_medium,
@@ -262,6 +263,7 @@ namespace APP_CHECKOUT.Repositories
                 {
                     extend_order.email = client.Email;
                 }
+                extend_order.created_date = time;
                 return extend_order;
             }
             catch (Exception ex)

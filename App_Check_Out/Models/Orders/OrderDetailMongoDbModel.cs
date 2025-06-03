@@ -8,6 +8,7 @@ namespace APP_CHECKOUT.Models.Orders
     public class OrderDetailMongoDbModelExtend : OrderDetailMongoDbModel
     {
         public string email { get; set; }
+        public DateTime created_date { get; set; }
 
     }
 

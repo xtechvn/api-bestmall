@@ -24,6 +24,8 @@ using HuloToys_Service.Controllers.Shipping.Business;
 using Entities.Models;
 using HuloToys_Service.Models.Models;
 using System.Data;
+using Nest;
+using System.Drawing.Printing;
 
 namespace HuloToys_Service.Controllers
 {
@@ -156,7 +158,6 @@ namespace HuloToys_Service.Controllers
                     }
                     var account_client = accountClientESService.GetById(account_client_id);
                     var client = clientESService.GetById((long)account_client.ClientId);
-
                     if (request.status == "-1") request.status = "";
 
                     var cache_name = CacheType.ORDER_DETAIL_FE + client.Id+request.status+request.page_index+request.page_size;

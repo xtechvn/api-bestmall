@@ -770,6 +770,63 @@ namespace HuloToys_Service.Controllers
                 });
             }
         }
+
+        [HttpPost("get-parent-category.json")]
+        public async Task<ActionResult> GetParentCategory([FromBody] APIRequestGenericModel input)
+        {
+            try
+            {
+                JArray objParr = null;
+                if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, configuration["KEY:private_key"]))
+                {
+                    int categoryId = Convert.ToInt32(objParr[0]["category_id"]);
+
+                    // Lấy category chi tiết từ DB hoặc cache
+                    var categoryList = await _newsBusiness.GetParentIdFromChild(categoryId); // lấy tất cả nhóm gốc (hoặc thay đổi nếu có API get detail)
+
+                    // Tìm category hiện tại
+                    
+
+                    if (categoryList == null)
+                    {
+                        // Nếu category không tìm thấy hoặc là nhóm gốc thì parent là 0
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.SUCCESS,
+                            msg = "Success",
+                            parent_id = 0
+                        });
+                    }
+                    else
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.SUCCESS,
+                            msg = "Success",
+                            parent_id = categoryList
+                        });
+                    }
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        status = (int)ResponseType.ERROR,
+                        msg = "Key không hợp lệ"
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "GetParentCategory: " + ex.ToString());
+                return Ok(new
+                {
+                    status = (int)ResponseType.FAILED,
+                    msg = "Error: " + ex.ToString(),
+                });
+            }
+        }
+
         [HttpPost("get-list-by-tag-order.json")]
         public async Task<ActionResult> getListArticleByTagsOrder([FromBody] APIRequestGenericModel input)
         {
@@ -906,7 +963,7 @@ namespace HuloToys_Service.Controllers
             }
         }
         [HttpPost("find-all-article.json")]
-        public async Task<ActionResult> FindArticleByBody([FromBody] APIRequestGenericModel input)
+         public async Task<ActionResult> FindArticleByBody([FromBody] APIRequestGenericModel input)
         {
             try
             {

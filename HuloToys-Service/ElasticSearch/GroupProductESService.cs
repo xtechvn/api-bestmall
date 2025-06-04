@@ -78,6 +78,52 @@ namespace HuloToys_Service.ElasticSearch
             }
             return null;
         }
+        public async Task<List<GroupProductESModel>> GetByCategoryId(long categoryId)
+        {
+            try
+            {
+                var nodes = new Uri[] { new Uri(_ElasticHost) };
+                var connectionPool = new StaticConnectionPool(nodes);
+                var connectionSettings = new ConnectionSettings(connectionPool).DisableDirectStreaming().DefaultIndex("people");
+                var elasticClient = new ElasticClient(connectionSettings);
+
+                var query = elasticClient.Search<GroupProductESModel>(sd => sd
+                    .Index(index)
+                    .Size(1000)
+                    .Query(q =>
+                        q.Bool(
+                            qb => qb.Must(
+                                sh => sh.Term(m => m.Field("Id").Value(categoryId.ToString()))
+                            )
+                        )
+                    )
+                );
+
+                if (query.IsValid)
+                {
+                    var data = query.Documents as List<GroupProductESModel>;
+
+                    // Gán nhóm con vào group_product_child
+                    var category = data?.FirstOrDefault(x => x.Id == categoryId);
+                    if (category != null)
+                    {
+                        var childCategories = GetListGroupProductByParentId(categoryId); // Lấy con của category
+                        category.group_product_child = childCategories; // Gán vào group_product_child
+                    }
+
+                    return data;
+                }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "GetByCategoryId: " + ex.Message);
+            }
+
+            return null;
+        }
+
+
+
         public GroupProductESModel GetDetailGroupProductById(long id)
         {
             try

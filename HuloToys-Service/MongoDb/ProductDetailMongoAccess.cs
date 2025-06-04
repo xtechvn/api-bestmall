@@ -239,9 +239,20 @@ namespace HuloToys_Service.MongoDb
                 // Lọc theo khoảng giá
                 if (price_from>0 && price_to>0 && price_to > price_from)
                 {
-                    filterDefinition &= Builders<ProductMongoDbModel>.Filter.Gte(x => x.price, price_from);
-                    filterDefinition &= Builders<ProductMongoDbModel>.Filter.Lte(x => x.price, price_to);
+                    // Tạo bộ lọc cho khoảng giá
+                    var condition1 = Builders<ProductMongoDbModel>.Filter.Eq(x => x.amount_min, null)
+                                        & Builders<ProductMongoDbModel>.Filter.Gt(x => x.amount, 0)
+                                        & Builders<ProductMongoDbModel>.Filter.Gte(x => x.amount, price_from) 
+                                        & Builders<ProductMongoDbModel>.Filter.Lte(x => x.amount, price_to);
 
+                    // Điều kiện 2: amount_min khác null VÀ amount_min > 0 VÀ nằm trong khoảng giá
+                    var condition2 = Builders<ProductMongoDbModel>.Filter.Lte(x => x.amount, 0) 
+                                    & Builders<ProductMongoDbModel>.Filter.Ne(x => x.amount_min , null)
+                                    & Builders<ProductMongoDbModel>.Filter.Gte(x => x.amount_min, price_from)
+                                    & Builders<ProductMongoDbModel>.Filter.Lte(x => x.amount_min, price_to);
+
+                    // Kết hợp hai điều kiện bằng toán tử OR
+                    filterDefinition &= Builders<ProductMongoDbModel>.Filter.Or( condition2,condition1);
                 }
                 if (rating > 0)
                 {

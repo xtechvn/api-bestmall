@@ -1053,6 +1053,33 @@ namespace HuloToys_Service.Controllers.News.Business
             }
         }
 
+        public async Task<int> GetParentIdFromChild(int categoryId)
+        {
+            try
+            {
+                // Sử dụng ElasticSearch để lấy thông tin của category con
+                var groupList = await groupProductESService.GetByCategoryId(categoryId); // Lấy thông tin từ ElasticSearch hoặc DB
+
+                var category = groupList.FirstOrDefault(x => x.Id == categoryId);
+                // Kiểm tra xem có nhóm con không
+                if (category?.group_product_child?.Any() == true)
+                {
+                    return 0; // Nếu có nhóm con, trả về 0 để không có menu con
+                }
+
+                // Nếu không có nhóm con, trả về parentId
+                return category?.ParentId ?? 0;
+
+                
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "GetParentIdFromChild: " + ex.Message);
+                return 0;
+            }
+        }
+
+
         public async Task<List<ArticleGroupViewModel>> GetFooterCategoryByParentID(long parent_id)
         {
             try

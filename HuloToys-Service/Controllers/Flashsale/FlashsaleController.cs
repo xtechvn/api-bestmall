@@ -72,8 +72,15 @@ namespace HuloToys_Service.Controllers.Flashsale
         {
             try
             {
-                //input.token = "F081O1oSKR4nJktCB3d5ekEyMysRMQY0LBBoCGN6TgYGUTYtKygpBxF9Xn85";
-               
+                //var model_input = new
+                //{
+                //    id = 2,
+                //};
+                //input = new APIRequestGenericModel()
+                //{
+                //    token = CommonHelper.Encode(JsonConvert.SerializeObject(model_input), _configuration["KEY:private_key"])
+                //};
+
                 JArray objParr = null;
 
                 if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, _configuration["KEY:private_key"]))
@@ -107,13 +114,12 @@ namespace HuloToys_Service.Controllers.Flashsale
                     }
                     list = list.OrderBy(x => x.position).ToList();
                     var product_mongo = await _productDetailMongoAccess.ListByProducts(list.Select(x => x.productid).ToList());
-                    List<FlashSaleProductResposeModel> combinedList = list
+                    List<FlashSaleProductResposeModel> combinedList = [.. list
                         .Join(product_mongo, // List thứ hai để join
                               fsp => fsp.productid, // Khóa từ list đầu tiên
                               p => p._id,     // Khóa từ list thứ hai
                               (fsp, p) => flashsaleService.CombineModel(fsp,p)) // Tạo đối tượng mới
-                        .OrderBy(fspc => fspc.position) // Sắp xếp theo Position
-                        .ToList();
+                        .OrderBy(fspc => fspc.position)];
                     return Ok(new
                     {
                         status = (int)ResponseType.SUCCESS,

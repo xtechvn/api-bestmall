@@ -12,5 +12,6 @@ public class FlashSaleESModel
     public int? supplierid { get; set; }
     public string name { get; set; }
     public string supplier_name { get; set; }
+    public string banner { get; set; }
 
 }

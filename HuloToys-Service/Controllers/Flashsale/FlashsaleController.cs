@@ -114,13 +114,12 @@ namespace HuloToys_Service.Controllers.Flashsale
                     }
                     list = list.OrderBy(x => x.position).ToList();
                     var product_mongo = await _productDetailMongoAccess.ListByProducts(list.Select(x => x.productid).ToList());
-                    List<FlashSaleProductResposeModel> combinedList = list
+                    List<FlashSaleProductResposeModel> combinedList = [.. list
                         .Join(product_mongo, // List thứ hai để join
                               fsp => fsp.productid, // Khóa từ list đầu tiên
                               p => p._id,     // Khóa từ list thứ hai
                               (fsp, p) => flashsaleService.CombineModel(fsp,p)) // Tạo đối tượng mới
-                        .OrderBy(fspc => fspc.position) // Sắp xếp theo Position
-                        .ToList();
+                        .OrderBy(fspc => fspc.position)];
                     return Ok(new
                     {
                         status = (int)ResponseType.SUCCESS,

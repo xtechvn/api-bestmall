@@ -91,18 +91,10 @@ namespace DAL
 
                 SqlParameter[] input = new SqlParameter[]
                 {
-                    new SqlParameter("@HotelId", hotel_id.ToString()),
-                    new SqlParameter("@AccountClientId", account_client_id.ToString()),
+                    new SqlParameter("@HotelId",hotel_id==null?(object)DBNull.Value: hotel_id.ToString()),
+                    new SqlParameter("@AccountClientId", account_client_id<=0?(object)DBNull.Value: account_client_id.ToString()),
 
                 };
-                if(hotel_id==null || hotel_id.Trim() == "")
-                {
-                    input[0] = new SqlParameter("@HotelId", DBNull.Value);
-                }
-                if (account_client_id<=0)
-                {
-                    input[1] = new SqlParameter("@AccountClientId", DBNull.Value);
-                }
                 return _DbWorker.GetDataTable(StoreProcedureConstant.GetListVoucher, input);
             }
             catch (Exception ex)

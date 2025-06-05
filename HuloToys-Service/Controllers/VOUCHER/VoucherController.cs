@@ -322,7 +322,7 @@ namespace API_CORE.Controllers.VOUCHER
                     //}
                     // -- Read from Cache:
                     string cache_name = CacheType.VOUCHER + /*product_id + */account_client_id;
-                    var str = redisService.Get(cache_name, Convert.ToInt32(configuration["DataBaseConfig:Redis:Database:db_search_result"]));
+                    var str = redisService.Get(cache_name, Convert.ToInt32(configuration["Redis:Database:db_search_result"]));
                     if (str != null && str.Trim() != "")
                     {
                         List<VoucherFEModel> list = JsonConvert.DeserializeObject<List<VoucherFEModel>>(str);
@@ -340,7 +340,7 @@ namespace API_CORE.Controllers.VOUCHER
                     {
                       //  data = data.Where(x => x.store_apply.Trim().StartsWith(product_id + ",") || x.store_apply.Trim().EndsWith("," + product_id)
                       //|| x.store_apply.Trim().Contains("," + product_id + ",") || x.store_apply.Trim() == product_id).ToList();
-                        int db_index = Convert.ToInt32(configuration["DataBaseConfig:Redis:Database:db_search_result"].ToString());
+                        int db_index = Convert.ToInt32(configuration["Redis:Database:db_search_result"].ToString());
                         redisService.Set(cache_name, JsonConvert.SerializeObject(data), DateTime.Now.AddMinutes(15), db_index);
                         return Ok(new
                         {

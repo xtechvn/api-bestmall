@@ -1,9 +1,18 @@
-﻿using ENTITIES.ViewModels.Voucher;
+﻿using Azure.Core;
+using Caching.Elasticsearch;
+using ENTITIES.ViewModels.Voucher;
+using HuloToys_Service.Controllers.Client.Business;
+using HuloToys_Service.Controllers.Order.Business;
+using HuloToys_Service.Models.APIRequest;
+using HuloToys_Service.Models.Models;
+using HuloToys_Service.Models.Orders;
 using HuloToys_Service.RedisWorker;
 using HuloToys_Service.Utilities.Lib;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Repositories.Repositories;
 using REPOSITORIES.IRepositories;
 using Utilities;
 using Utilities.Contants;
@@ -15,15 +24,21 @@ namespace API_CORE.Controllers.VOUCHER
     public class VoucherController : Controller
     {
         private readonly IConfiguration configuration;
+        private readonly OrderESService orderESService;
         private readonly IVoucherRepository voucherRepository;
         private readonly RedisConn redisService;
+        private readonly ClientServices clientServices;
+        private readonly ClientESService clientESService;
 
         public VoucherController(IConfiguration _Configuration, IVoucherRepository _VoucherRepository, RedisConn _redisService)
         {
             configuration = _Configuration;
             voucherRepository = _VoucherRepository;
-           
-            redisService=_redisService;
+            orderESService = new OrderESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
+            redisService = _redisService;
+            clientServices = new ClientServices(configuration);
+            clientESService = new ClientESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
+
         }
 
         /// <summary>
@@ -32,9 +47,9 @@ namespace API_CORE.Controllers.VOUCHER
         /// <param name="token"></param>
         /// <returns></returns>
 
-       
+
         [HttpPost("apply.json")]
-        public async Task<IActionResult> ApplyVoucherB2B(string token)
+        public async Task<IActionResult> ApplyVoucher([FromBody] APIRequestGenericModel input)
         {
             JArray objParr = null;
             bool is_voucher_valid = false;
@@ -46,38 +61,56 @@ namespace API_CORE.Controllers.VOUCHER
                 var j_param = new Dictionary<string, string>
                 {
                         {"voucher_name", "KSWDPQ"}, // mã voucher: truyền động từ fe
-                        {"user_id","165" }, // user_id login ngoài hệ thống b2b
-                        {"service_id","172" }, // hotel id được áp mã. Truyền động lấy từ thông tin khách sạn muốn áp mã
+                        {"product_id","172" }, // hotel id được áp mã. Truyền động lấy từ thông tin khách sạn muốn áp mã
                         {"total_order_amount_before","1000000" }, // Tổn giá trị đơn hàng
                        
                 };
                 var data_product = JsonConvert.SerializeObject(j_param);
                 // token = CommonHelper.Encode(data_product, configuration["DataBaseConfig:key_api:b2b"]);
                 #endregion
-
-
-                if (!CommonHelper.GetParamWithKey(token, out objParr, configuration["DataBaseConfig:key_api:b2b"]))
+                if(input==null || input.token==null || input.token.Trim() == "")
                 {
-                    LogHelper.InsertLogTelegram("[API] VoucherController - ApplyVoucherB2B Token invalid!!! => token= " + token.ToString() + " voucher name = " + objParr.ToString());
+                    return Ok(new { status = (int)ResponseType.FAILED, msg = "Token invalid !!!" });
+
+                }
+
+                if (!CommonHelper.GetParamWithKey(input.token, out objParr, configuration["KEY:private_key"]))
+                {
+                    LogHelper.InsertLogTelegram("[API] VoucherController - ApplyVoucherB2B Token invalid!!! => token= " + input.token.ToString() + " voucher name = " + objParr.ToString());
                     return Ok(new { status = (int)ResponseType.FAILED, msg = "Token invalid !!!" });
                 }
                 else
                 {
+
                     string voucher_name = objParr[0]["voucher_name"].ToString(); // tên voucher
                     if (string.IsNullOrEmpty(voucher_name))
                     {
                         return Ok(new { status = (int)ResponseType.EMPTY, msg = "Mã voucher không được để trống" });
                     }
+                    //-- Get Token để lấy AccountClientId
+                    string token_user = objParr[0]["token"].ToString(); //token đăng nhập
+                    if (string.IsNullOrEmpty(token_user))
+                    {
+                        return Ok(new { status = (int)ResponseType.EMPTY, msg = ResponseMessages.DataInvalid });
+                    }
+                    long account_client_id = await clientServices.GetAccountClientIdFromToken(token_user);
+                    if (account_client_id <= 0)
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
 
-                    long account_client_id = Convert.ToInt64(objParr[0]["user_id"].ToString()); // thông tin user_id login ngoài hệ thống b2c
-                    string service_id = objParr[0]["service_id"].ToString(); //hotel id được áp mã
+                    string product_id = objParr[0]["product_id"].ToString(); //hotel id được áp mã
 
                     double total_order_amount_before = Convert.ToDouble(objParr[0]["total_order_amount_before"].ToString()); // tổng giá trị đơn hàng trước giảm
                     double total_order_amount_after = 0; // tổng giá trị đơn hàng sau giảm
                     double total_discount = 0; // Số tiền được giảm
 
-                   var user_detail = await userRepository.GetAccountClient(account_client_id);
-                   string email_user_current = user_detail != null ? user_detail.UserName : ""; //b2b thì là ko có @
+                    var client = clientESService.GetById(account_client_id);
+                    string email_user_current = client != null ? client.Email : ""; 
 
                     #region VALIDATION
 
@@ -132,12 +165,12 @@ namespace API_CORE.Controllers.VOUCHER
                         if (voucher.StoreApply != "-1")
                         {
                             // Kiểm tra store mã voucher này có nằm trong store cart thanh toán không ?
-                            string store_current_cart = "," + service_id + ",";
+                            string store_current_cart = "," + product_id + ",";
                             string store_apply_voucher = "," + voucher.StoreApply + ",";
                             if (store_apply_voucher.IndexOf(store_current_cart) == -1)
                             {
 
-                                return Ok(new { status = (int)ResponseType.FAILED, msg = "Mã " + voucher_name + " không áp dụng cho dịch vụ này. Vui lòng liên hệ với bộ phận CSKH để được hỗ trợ" });
+                                return Ok(new { status = (int)ResponseType.FAILED, msg = "Mã " + voucher_name + " không áp dụng cho sản phẩm này. Vui lòng liên hệ với bộ phận CSKH để được hỗ trợ" });
                             }
                         }
                     }
@@ -157,7 +190,7 @@ namespace API_CORE.Controllers.VOUCHER
                     //{
                     if (voucher.IsLimitVoucher == true)
                     {
-                        var total_used = await orderRepository.GetTotalVoucherUse(voucher.Id, -1); // Lay  ra so lan voucher da duoc su dung
+                        var total_used =  orderESService.CountOrdersByVoucherIdAndClientId(voucher.Id,-1); // Lay  ra so lan voucher da duoc su dung
                         if (total_used == -1)
                         {
                             return Ok(new { status = ((int)ResponseType.FAILED).ToString(), msg = "Mã " + voucher_name + " đã hết số lần sử dụng. Vui lòng liên hệ với bộ phận CSKH để được hỗ trợ" });
@@ -169,7 +202,7 @@ namespace API_CORE.Controllers.VOUCHER
                     }
                     else
                     {
-                        var total_client_use = await orderRepository.GetTotalVoucherUse(voucher.Id, account_client_id); // lay ra so lan voucher da duoc su dung cua 1 user
+                        var total_client_use =  orderESService.CountOrdersByVoucherIdAndClientId(voucher.Id, account_client_id); // lay ra so lan voucher da duoc su dung cua 1 user
                         if (total_client_use >= voucher.LimitUse)
                         {
                             return Ok(new { status = ((int)ResponseType.FAILED).ToString(), msg = "Mã " + voucher_name + " đã hết số lần sử dụng với tài khoản của bạn. Vui lòng liên hệ với bộ phận CSKH để được hỗ trợ" });
@@ -241,7 +274,7 @@ namespace API_CORE.Controllers.VOUCHER
             }
         }
         [HttpPost("get-list")]
-        public async Task<IActionResult> GetListVoucherB2B(string token)
+        public async Task<IActionResult> GetListVoucher([FromBody] APIRequestGenericModel input)
         {
             JArray objParr = null;
             
@@ -250,35 +283,54 @@ namespace API_CORE.Controllers.VOUCHER
                 #region Giả lập test
                 var j_param = new Dictionary<string, string>
                 {
-                        {"hotel_id", ""}, // mã voucher: truyền động từ fe
-                        {"user_id","173" }, // user_id login ngoài hệ thống b2b
+                        {"product_id", ""},
+                        {"token", ""},
                 };
                 var data_product = JsonConvert.SerializeObject(j_param);
-               //  token = CommonHelper.Encode(data_product, configuration["DataBaseConfig:key_api:b2b"]);
+                //  token = CommonHelper.Encode(data_product,  configuration["KEY:private_key"]);
                 #endregion
-
-
-                if (!CommonHelper.GetParamWithKey(token, out objParr, configuration["DataBaseConfig:key_api:b2b"]))
+                if (input == null || input.token == null || input.token.Trim() == "")
                 {
-                    LogHelper.InsertLogTelegram("[API] VoucherController - GetListVoucherB2B Token invalid!!! => token= " + token.ToString() + " voucher name = " + objParr.ToString());
+                    return Ok(new { status = (int)ResponseType.FAILED, msg = "Token invalid !!!" });
+
+                }
+
+                if (!CommonHelper.GetParamWithKey(input.token, out objParr, configuration["KEY:private_key"]))
+                {
+                    LogHelper.InsertLogTelegram("[API] VoucherController - GetListVoucher Token invalid!!! => token= " + input.token.ToString() + " voucher name = " + objParr.ToString());
                     return Ok(new { status = (int)ResponseType.FAILED, msg = "Token invalid !!!" });
                 }
                 else
                 {
-                    long account_client_id = Convert.ToInt64(objParr[0]["user_id"].ToString()); // thông tin user_id login ngoài hệ thống b2c
-                    string hotel_id = objParr[0]["hotel_id"].ToString(); // tên voucher
-                    if (hotel_id ==null || hotel_id.Trim()=="" || account_client_id<=0)
+                    //-- Get Token để lấy AccountClientId
+                    string token_user = objParr[0]["token"].ToString(); //token đăng nhập
+                    if (string.IsNullOrEmpty(token_user))
+                    {
+                        return Ok(new { status = (int)ResponseType.EMPTY, msg = ResponseMessages.DataInvalid });
+                    }
+                    long account_client_id = await clientServices.GetAccountClientIdFromToken(token_user);
+                    if (account_client_id <= 0)
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+
+                    string product_id = objParr[0]["product_id"].ToString(); // tên voucher
+                    if (product_id == null || product_id.Trim()=="")
                     {
                         return Ok(new { status = (int)ResponseType.FAILED, msg = "Dữ liệu gửi lên không chính xác, vui lòng thử lại" });
                     }
                     // -- Read from Cache:
-                    string cache_name = CacheType.VOUCHER + hotel_id + account_client_id;
+                    string cache_name = CacheType.VOUCHER + product_id + account_client_id;
                     var str = redisService.Get(cache_name, Convert.ToInt32(configuration["DataBaseConfig:Redis:Database:db_search_result"]));
                     if (str != null && str.Trim() != "")
                     {
                         List<VoucherFEModel> list = JsonConvert.DeserializeObject<List<VoucherFEModel>>(str);
-                        list = list.Where(x => x.store_apply.Trim().StartsWith(hotel_id + ",") || x.store_apply.Trim().EndsWith(","+hotel_id)
-                        || x.store_apply.Trim().Contains("," + hotel_id+ ",")|| x.store_apply.Trim()== hotel_id).ToList();
+                        list = list.Where(x => x.store_apply.Trim().StartsWith(product_id + ",") || x.store_apply.Trim().EndsWith(","+ product_id)
+                        || x.store_apply.Trim().Contains("," + product_id + ",")|| x.store_apply.Trim()== product_id).ToList();
                         return Ok(new
                         {
                             status = (int)ResponseType.SUCCESS,
@@ -286,11 +338,11 @@ namespace API_CORE.Controllers.VOUCHER
                             data = list
                         });
                     }
-                    var data = await voucherRepository.GetVoucherList(0, hotel_id);
+                    var data = await voucherRepository.GetVoucherList(0, product_id);
                     if (data != null && data.Count > 0)
                     {
-                        data = data.Where(x => x.store_apply.Trim().StartsWith(hotel_id + ",") || x.store_apply.Trim().EndsWith("," + hotel_id)
-                      || x.store_apply.Trim().Contains("," + hotel_id + ",") || x.store_apply.Trim() == hotel_id).ToList();
+                        data = data.Where(x => x.store_apply.Trim().StartsWith(product_id + ",") || x.store_apply.Trim().EndsWith("," + product_id)
+                      || x.store_apply.Trim().Contains("," + product_id + ",") || x.store_apply.Trim() == product_id).ToList();
                         int db_index = Convert.ToInt32(configuration["DataBaseConfig:Redis:Database:db_search_result"].ToString());
                         redisService.Set(cache_name, JsonConvert.SerializeObject(data), DateTime.Now.AddMinutes(15), db_index);
                         return Ok(new

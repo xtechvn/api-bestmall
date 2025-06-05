@@ -294,5 +294,49 @@ namespace Caching.Elasticsearch
             }
             return null;
         }
+        public long CountOrdersByVoucherIdAndClientId(int voucher_id, long client_id)
+        {
+            try
+            {
+                var nodes = new Uri[] { new Uri(_ElasticHost) };
+                var connectionPool = new StaticConnectionPool(nodes);
+                // Đảm bảo rằng bạn đang sử dụng đúng index cho OrderESModel của mình.
+                var connectionSettings = new ConnectionSettings(connectionPool).DisableDirectStreaming().DefaultIndex("people");
+                var elasticClient = new ElasticClient(connectionSettings);
+
+                var searchResponse = elasticClient.Search<OrderESModel>(sd => sd
+                    .Index(index) // Sử dụng biến 'index' của bạn ở đây
+                    .Query(q => {
+                        // Khởi tạo một Container cho các điều kiện query
+                        QueryContainer queryContainer = q.Term(m => m.VoucherId, voucher_id);
+
+                        // Thêm điều kiện ClientId nếu client_id > 0
+                        if (client_id > 0)
+                        {
+                            queryContainer &= q.Term(m => m.ClientId, client_id);
+                        }
+                        return queryContainer;
+                    })
+                    .Size(0) // Chỉ quan tâm đến tổng số, không cần trả về tài liệu
+                );
+
+                if (!searchResponse.IsValid)
+                {
+                    string error_msg = $"Elasticsearch query failed: {searchResponse.DebugInformation ?? searchResponse.ServerError?.Error.ToString()}";
+                    LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
+                    return 0;
+                }
+                else
+                {
+                    return searchResponse.Total; // Lấy tổng số lượng khớp
+                }
+            }
+            catch (Exception ex)
+            {
+                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
+                return 0; // Trả về 0 nếu có lỗi
+            }
+        }
     }
 }

@@ -24,5 +24,9 @@ namespace Repositories.IRepositories
         {
             return await labelDAL.Listing(status,label_name, label_code, page_index,page_size);
         }
+        public async Task<Label> GetById(int id)
+        {
+            return await labelDAL.GetById(id);
+        }
     }
 }

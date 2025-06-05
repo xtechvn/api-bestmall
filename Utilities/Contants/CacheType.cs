@@ -25,7 +25,7 @@
         public const string PROVINCE = "PROVINCE";
         public const string DISTRICT = "DISTRICT";
         public const string WARD = "WARD";
-        public const string LABEL = "LABEL";
+        public const string LABEL = "LABEL_";
         public const string VOUCHER = "VOUCHER";
 
 

@@ -23,8 +23,10 @@ using Nest;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OtpNet;
+using Repositories.IRepositories;
 using System.Drawing.Printing;
 using System.Reflection;
+using System.Xml.Linq;
 using Utilities;
 using Utilities.Contants;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -33,7 +35,7 @@ namespace WEB.CMS.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    
+
     public class ProductController : ControllerBase
     {
         private readonly ProductDetailMongoAccess _productDetailMongoAccess;
@@ -50,10 +52,11 @@ namespace WEB.CMS.Controllers
         private readonly AttachFileESModelESRepository attachFileESModelESRepository;
         private readonly ProductFavouritesMongoAccess _productFavouritesMongoAccess;
         private readonly ClientServices clientServices;
-        private readonly NewsBusiness _newsBusiness;
+		private readonly NewsBusiness _newsBusiness;
         private readonly DataMSContext _dbContext;
+		private readonly ILabelRepository _labelRepository;
 
-        public ProductController(IConfiguration configuration, RedisConn redisService, DataMSContext dbContext)
+        public ProductController(IConfiguration configuration, RedisConn redisService, ILabelRepository labelRepository, DataMSContext dbContext)
         {
             _productDetailMongoAccess = new ProductDetailMongoAccess(configuration);
             _productSpecificationMongoAccess = new ProductSpecificationMongoAccess(configuration);
@@ -71,6 +74,8 @@ namespace WEB.CMS.Controllers
             _redisService = new RedisConn(configuration);
             _redisService.Connect();
             _newsBusiness = new NewsBusiness(configuration, dbContext);
+            _labelRepository = labelRepository;
+
         }
 
         [HttpPost("get-list")]
@@ -105,14 +110,14 @@ namespace WEB.CMS.Controllers
                     ProductListFEResponseModel result = null;
                     var cache_name = CacheType.PRODUCT_LISTING + (request.keyword ?? "") + request.group_id + request.page_index + request.page_size;
                     // Kiểm tra các tham số giá
-                    if (request.group_id <= 0 ) request.group_id = -1; // Mặc định là 0 nếu không có giá trị
+                    if (request.group_id <= 0) request.group_id = -1; // Mặc định là 0 nếu không có giá trị
                     if (request.price_from <= 0 || request.price_from == null) request.price_from = 0; // Mặc định là 0 nếu không có giá trị
                     if (request.price_to <= 0 || request.price_to == null) request.price_to = 0; // Mặc định là giá trị tối đa
                     if (request.keyword == null) request.keyword = "";
                     if (request.page_size <= 0) request.page_size = 10;
                     if (request.page_index < 1) request.page_index = 1;
                     // Nếu không lọc theo giá, sử dụng cache Redis
-                    if (request.price_from <= 0 && request.price_to <=0 )
+                    if (request.price_from <= 0 && request.price_to <= 0)
                     {
                         var j_data = await _redisService.GetAsync(cache_name, Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
                         if (j_data != null && j_data.Trim() != "")
@@ -120,12 +125,12 @@ namespace WEB.CMS.Controllers
                             result = JsonConvert.DeserializeObject<ProductListFEResponseModel>(j_data);
 
                         }
-                        
+
                     }
                     if (result == null || result.items == null || result.items.Count <= 0)
                     {
                         result = await productDetailService.ProductListing(request);
-                        if (request.price_from <= 0 && request.price_to <= 0&& result != null && result.items.Count > 0)
+                        if (request.price_from <= 0 && request.price_to <= 0 && result != null && result.items.Count > 0)
                         {
                             _redisService.Set(cache_name, JsonConvert.SerializeObject(result), DateTime.Now.AddDays(1), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
                         }
@@ -221,8 +226,8 @@ namespace WEB.CMS.Controllers
                                 msg = "Success",
                                 data = new
                                 {
-                                    product_main=result.product_main,
-                                    product_sub=result.product_sub
+                                    product_main = result.product_main,
+                                    product_sub = result.product_sub
                                 },
                                 cert = result.cert,
                                 favourite = result.favourite,
@@ -232,14 +237,15 @@ namespace WEB.CMS.Controllers
                     }
                     result = new ProductDetailResponseModel()
                     {
-                        cert=new ProductDetailResponseModelCertificate(),
-                        favourite=new ProductDetailResponseModelFavourite() { count=0, is_favourite=false},
-                        product_buy_with=new List<ProductMongoDbModel>(),
-                        product_main=new ProductMongoDbModel(),
-                        product_sub=new List<ProductMongoDbModel>()
+                        cert = new ProductDetailResponseModelCertificate(),
+                        favourite = new ProductDetailResponseModelFavourite() { count = 0, is_favourite = false },
+                        product_buy_with = new List<ProductMongoDbModel>(),
+                        product_main = new ProductMongoDbModel(),
+                        product_sub = new List<ProductMongoDbModel>()
                     };
                     var data = await _productDetailMongoAccess.GetFullProductById(request.id);
-                    if (data == null ||(data.product_main!=null && data.product_main.status!=(int)ProductStatus.ACTIVE)) {
+                    if (data == null || (data.product_main != null && data.product_main.status != (int)ProductStatus.ACTIVE))
+                    {
                         return Ok(new
                         {
                             status = (int)ResponseType.FAILED,
@@ -260,7 +266,7 @@ namespace WEB.CMS.Controllers
                         var attach_product = await attachFileESModelESRepository.GetByDataidAndType(data.product_main.supplier_id, (int)AttachmentType.Supplier_Cert_Product);
                         var attach_supply = await attachFileESModelESRepository.GetByDataidAndType(data.product_main.supplier_id, (int)AttachmentType.Supplier_Cert_Supply);
                         var attach_confirm = await attachFileESModelESRepository.GetByDataidAndType(data.product_main.supplier_id, (int)AttachmentType.Supplier_Cert_Confirm);
-                        if(attach_root != null && attach_root.Count > 0)
+                        if (attach_root != null && attach_root.Count > 0)
                         {
                             result.cert.root_product = attach_root.Select(x => x.Path).ToList();
                         }
@@ -291,11 +297,11 @@ namespace WEB.CMS.Controllers
                             }
                         }
                         result.favourite.count = await _productFavouritesMongoAccess.CountByProductId(request.id);
-                        if (data.product_main.products_buy_with!=null && data.product_main.products_buy_with.Count > 0)
+                        if (data.product_main.products_buy_with != null && data.product_main.products_buy_with.Count > 0)
                         {
                             result.product_buy_with = await _productDetailMongoAccess.ListByProducts(data.product_main.products_buy_with);
                             string static_url = _configuration["config_value:ImageStatic"];
-                            if (result.product_buy_with!=null && result.product_buy_with.Count > 0)
+                            if (result.product_buy_with != null && result.product_buy_with.Count > 0)
                             {
                                 result.product_buy_with_output = result.product_buy_with.Select(x => new ProductDetailResponseModelProductBuyWith()
                                 {
@@ -303,22 +309,22 @@ namespace WEB.CMS.Controllers
                                     amount = (x.amount_min == null ? x.amount : (double)x.amount_min),
                                     name = x.name,
                                     code = x.code,
-                                    avatar = (!x.avatar.Contains(static_url) && !x.avatar.Contains("data:image") && !x.avatar.Contains("http")) ?(static_url + x.avatar):x.avatar,
-                                    variation_detail= ProductVariationHelper.RenderVariationDetail(x.attributes,x.attributes_detail,x.variation_detail)
+                                    avatar = (!x.avatar.Contains(static_url) && !x.avatar.Contains("data:image") && !x.avatar.Contains("http")) ? (static_url + x.avatar) : x.avatar,
+                                    variation_detail = ProductVariationHelper.RenderVariationDetail(x.attributes, x.attributes_detail, x.variation_detail)
                                 }).ToList();
                             }
                         }
-                        _redisService.Set(cache_name,JsonConvert.SerializeObject(result),DateTime.Now.AddDays(1), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
+                        _redisService.Set(cache_name, JsonConvert.SerializeObject(result), DateTime.Now.AddDays(1), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
 
                     }
-                    
+
                     return Ok(new
                     {
                         status = (int)ResponseType.SUCCESS,
                         msg = "Success",
                         data = data,
-                        cert= result.cert,
-                        favourite= result.favourite,
+                        cert = result.cert,
+                        favourite = result.favourite,
                         buywith = result.product_buy_with_output
                     });
 
@@ -407,14 +413,14 @@ namespace WEB.CMS.Controllers
         }
         [HttpPost("search")]
         public async Task<IActionResult> ProductSearch([FromBody] APIRequestGenericModel input)
-       {
+        {
             try
             {
                 JArray objParr = null;
                 if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, _configuration["KEY:private_key"]))
                 {
                     var request = JsonConvert.DeserializeObject<ProductGlobalSearchRequestModel>(objParr[0].ToString());
-                    if (request == null|| request.keyword == null)
+                    if (request == null || request.keyword == null)
                     {
                         return Ok(new
                         {
@@ -428,9 +434,9 @@ namespace WEB.CMS.Controllers
                     string normalizedKeyword = StringHelper.NormalizeKeyword(rawKeyword); // Dùng cho no_space_name
                     ProductListResponseModel data = new ProductListResponseModel();
                     var list = await _productESRepository.SearchByKeywordAsync(rawKeyword, normalizedKeyword);
-                    if(list!=null && list.Count > 0)
+                    if (list != null && list.Count > 0)
                     {
-                        data.count=list.Count;
+                        data.count = list.Count;
                         data.items = list.Select(x => new ProductMongoDbModel()
                         {
                             amount = x.amount,
@@ -438,7 +444,7 @@ namespace WEB.CMS.Controllers
                             code = x.product_code,
                             description = x.description,
                             name = x.name,
-                            avatar=x.avatar,
+                            avatar = x.avatar,
                         }).ToList();
                     }
                     return Ok(new
@@ -459,7 +465,7 @@ namespace WEB.CMS.Controllers
                 msg = ResponseMessages.DataInvalid,
             });
         }
-        
+
         [HttpPost("raiting-count")]
         public async Task<IActionResult> ProductRaitingCount([FromBody] APIRequestGenericModel input)
         {
@@ -482,8 +488,8 @@ namespace WEB.CMS.Controllers
                     {
                         request.id
                     };
-                    var product=await _productDetailMongoAccess.SubListing(request.id);
-                    if(product!=null && product.Count > 0)
+                    var product = await _productDetailMongoAccess.SubListing(request.id);
+                    if (product != null && product.Count > 0)
                     {
                         product_ids.AddRange(product.Select(x => x._id));
                     }
@@ -525,7 +531,7 @@ namespace WEB.CMS.Controllers
                     }
                     if (request.page_index < 1) request.page_index = 1;
                     if (request.page_size < 1) request.page_size = 5;
-                    var data= await productRaitingService.GetListByFilter(request);
+                    var data = await productRaitingService.GetListByFilter(request);
                     return Ok(new
                     {
                         status = (int)ResponseType.SUCCESS,
@@ -565,13 +571,13 @@ namespace WEB.CMS.Controllers
                     List<ProductSpecificationDetailMongoDbModel> brands = new List<ProductSpecificationDetailMongoDbModel>();
                     List<GroupProductESModel> groups = new List<GroupProductESModel>();
                     ProductListResponseModel items = new ProductListResponseModel();
-                    if (data!=null && data.items!=null && data.items.Count > 0)
+                    if (data != null && data.items != null && data.items.Count > 0)
                     {
                         var value = string.Join(",", data.items.Select(x => x.group_product_id));
-                        var ids = value.Split(",").Where(x=>x!=null && x.Trim()!="").Select(x => Convert.ToInt64(x)).ToList();
-                        groups =  groupProductESService.GetGroupProductByIDs(ids);
-                        brands = data.items.Where(x=>x.specification!=null && x.specification.Count>0).SelectMany(x => x.specification).Where(x=>x.attribute_id==1).Distinct().ToList();
-                        brands = brands.Where(x => x.value != null &&x.value != "null" && x.value.Trim() != "").DistinctBy(x => x.value).ToList();
+                        var ids = value.Split(",").Where(x => x != null && x.Trim() != "").Select(x => Convert.ToInt64(x)).ToList();
+                        groups = groupProductESService.GetGroupProductByIDs(ids);
+                        brands = data.items.Where(x => x.specification != null && x.specification.Count > 0).SelectMany(x => x.specification).Where(x => x.attribute_id == 1).Distinct().ToList();
+                        brands = brands.Where(x => x.value != null && x.value != "null" && x.value.Trim() != "").DistinctBy(x => x.value).ToList();
                         string brand_split = string.Join(",", brands.Select(x => x.value));
                         brands = brand_split.Split(",").Distinct().Select(x => new ProductSpecificationDetailMongoDbModel()
                         {
@@ -591,9 +597,9 @@ namespace WEB.CMS.Controllers
                     {
                         status = (int)ResponseType.SUCCESS,
                         msg = ResponseMessages.Success,
-                        data= items,
+                        data = items,
                         brands = brands,
-                        groups= groups
+                        groups = groups
                     });
                 }
             }
@@ -627,7 +633,7 @@ namespace WEB.CMS.Controllers
                     if (request.page_index == null || request.page_index <= 0) request.page_index = 1;
                     if (request.page_size == null || request.page_size <= 0) request.page_index = 12;
                     var data = await _productDetailMongoAccess.GlobalSearch(request.keyword, request.stars, request.group_product_id, request.brands, (int)request.page_index, (int)request.page_size);
-                  
+
                     return Ok(new
                     {
                         status = (int)ResponseType.SUCCESS,
@@ -656,7 +662,7 @@ namespace WEB.CMS.Controllers
                 if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, _configuration["KEY:private_key"]))
                 {
                     var request = JsonConvert.DeserializeObject<ProductListByIdRequestModel>(objParr[0].ToString());
-                    if (request == null || request.supplier_id ==null || request.supplier_id<=0)
+                    if (request == null || request.supplier_id == null || request.supplier_id <= 0)
                     {
                         return Ok(new
                         {
@@ -689,7 +695,7 @@ namespace WEB.CMS.Controllers
                         }
                         if (result != null && result.items.Count > 0)
                         {
-                            _redisService.Set(cache_name, JsonConvert.SerializeObject(result),DateTime.Now.AddDays(1), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
+                            _redisService.Set(cache_name, JsonConvert.SerializeObject(result), DateTime.Now.AddDays(1), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
                             var list = result.items.Select(x => new
                             {
                                 x._id,
@@ -781,7 +787,7 @@ namespace WEB.CMS.Controllers
                     }
                     // Kiểm tra các tham số giá
                     if (request.price_from == 0 || request.price_from == null) request.price_from = 0; // Mặc định là 0 nếu không có giá trị
-                    if (request.price_to == 0 || request.price_to == null) request.price_to =0; // Mặc định là giá trị tối đa
+                    if (request.price_to == 0 || request.price_to == null) request.price_to = 0; // Mặc định là giá trị tối đa
                     if (request.keyword == null) request.keyword = "";
                     if (request.rating == null) request.rating = 0;
 
@@ -789,8 +795,25 @@ namespace WEB.CMS.Controllers
                     if (request.page_size <= 0) request.page_size = 10;
                     if (request.page_index < 1) request.page_index = 1;
                     ProductListFEResponseModel result = null;
+                    Label label = new Label();
+                    //--Get Label:
+                    var cache_name_label = CacheType.LABEL + request.label_id;
+                    var j_data_label = await _redisService.GetAsync(cache_name_label, Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
+                    if (j_data_label != null && j_data_label.Trim() != "")
+                    {
+                        label = JsonConvert.DeserializeObject<Label>(j_data_label);
+                    }
+                    else
+                    {
+                        label = await _labelRepository.GetById((int)request.label_id);
+                        if(label!=null && label.Id > 0)
+                        {
+                            _redisService.Set(cache_name_label, JsonConvert.SerializeObject(label), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
+
+                        }
+                    }
                     // Nếu không lọc theo giá, sử dụng cache Redis
-                    if (request.price_from == 0 && request.price_to <=0 && request.rating <= 0)
+                    if (request.price_from == 0 && request.price_to <= 0 && request.rating <= 0)
                     {
                         var cache_name = CacheType.PRODUCT_LISTING + (request.keyword ?? "") + request.group_id + request.label_id + request.page_index + request.page_size;
                         var j_data = await _redisService.GetAsync(cache_name, Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
@@ -803,10 +826,10 @@ namespace WEB.CMS.Controllers
                         {
                             request.supplier_id = -1;
                             result = await productDetailService.ProductListingByLabelAndSupplier(request);
+                            _redisService.Set(cache_name, JsonConvert.SerializeObject(result), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
                         }
                         if (result != null && result.items.Count > 0)
                         {
-                            _redisService.Set(cache_name, JsonConvert.SerializeObject(result), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
                             var list = result.items.Select(x => new
                             {
                                 x._id,
@@ -831,7 +854,15 @@ namespace WEB.CMS.Controllers
                                 data = new
                                 {
                                     items = list,
-                                    count = result.count
+                                    count = result.count,
+                                    label_detail = new
+                                    {
+                                        label.Id,
+                                        label.LabelName,
+                                        label.LabelCode,
+                                        label.Icon,
+                                        label.Banner
+                                    }
                                 }
                             });
                         }
@@ -839,14 +870,40 @@ namespace WEB.CMS.Controllers
                     result = await productDetailService.ProductListingByLabelAndSupplier(request);
                     if (result != null && result.items.Count > 0)
                     {
+                        var list = result.items.Select(x => new
+                        {
+                            x._id,
+                            x.code,
+                            x.name,
+                            x.avatar,
+                            x.price,
+                            x.amount,
+                            x.amount_min,
+                            x.amount_max,
+                            x.rating,
+                            x.star,
+                            x.total_sold,
+                            x.review_count,
+                            x.old_price,
+                            x.discount
+                        });
                         return Ok(new
                         {
                             status = (int)ResponseType.SUCCESS,
                             msg = ResponseMessages.Success,
                             data = new
                             {
-                                items = result.items,
-                                count = result.count
+                                items = list,
+                                count = result.count,
+                                label_detail = new
+                                {
+                                   label.Id,
+                                   label.LabelName,
+                                   label.LabelCode,
+                                   label.Icon,
+                                   label.Banner
+                                }
+
                             }
                         });
                     }
@@ -881,7 +938,7 @@ namespace WEB.CMS.Controllers
                 if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, _configuration["KEY:private_key"]))
                 {
                     var request = JsonConvert.DeserializeObject<ProductFavouritesListRequestModel>(objParr[0].ToString());
-                    if (request == null || request.token==null || request.token.Trim()=="")
+                    if (request == null || request.token == null || request.token.Trim() == "")
                     {
                         return Ok(new
                         {
@@ -909,11 +966,11 @@ namespace WEB.CMS.Controllers
                     //    result = JsonConvert.DeserializeObject<ProductsFavouritesListingResponseModel>(j_data);
 
                     //}
-                   // if (result == null ||result.items == null || result.items.Count <= 0)
-                   // {
-                        result = await _productFavouritesMongoAccess.Listing(account_client_id);
-                   // }
-                    if (result != null && result.items !=null && result.items.Count > 0)
+                    // if (result == null ||result.items == null || result.items.Count <= 0)
+                    // {
+                    result = await _productFavouritesMongoAccess.Listing(account_client_id);
+                    // }
+                    if (result != null && result.items != null && result.items.Count > 0)
                     {
                         //_redisService.Set(cache_name, JsonConvert.SerializeObject(result), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
                         result.items = (request.page_size * request.page_index) >= result.count ? result.items.Skip(skip).Take(request.page_size).ToList() : new List<ProductsFavouritesMongoDbModel>();
@@ -922,7 +979,7 @@ namespace WEB.CMS.Controllers
                             status = (int)ResponseType.SUCCESS,
                             msg = ResponseMessages.Success,
                             data = result.items,
-                            total=result.count
+                            total = result.count
                         });
                     }
                 }
@@ -948,7 +1005,7 @@ namespace WEB.CMS.Controllers
                 if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, _configuration["KEY:private_key"]))
                 {
                     var request = JsonConvert.DeserializeObject<ProductFavouritesInsertRequestModel>(objParr[0].ToString());
-                    if (request == null || request.token == null || request.token.Trim() == "" || request.product_id==null || request.product_id.Trim() =="")
+                    if (request == null || request.token == null || request.token.Trim() == "" || request.product_id == null || request.product_id.Trim() == "")
                     {
                         return Ok(new
                         {
@@ -966,7 +1023,7 @@ namespace WEB.CMS.Controllers
                         });
                     }
                     var detail = await _productDetailMongoAccess.GetByID(request.product_id);
-                    if (detail == null|| detail._id == null)
+                    if (detail == null || detail._id == null)
                     {
                         return Ok(new
                         {
@@ -976,13 +1033,13 @@ namespace WEB.CMS.Controllers
                     }
                     var id = await _productFavouritesMongoAccess.AddNewAsync(new ProductsFavouritesMongoDbModel()
                     {
-                        product_id=request.product_id,
-                        updated_last=DateTime.Now,
+                        product_id = request.product_id,
+                        updated_last = DateTime.Now,
                         account_client_id = account_client_id,
-                         detail= detail,
+                        detail = detail,
                     });
-                   // var cache_name = CacheType.PRODUCT_FAVOURITES + request.user_id;
-                  //  _redisService.clear(cache_name,  Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
+                    // var cache_name = CacheType.PRODUCT_FAVOURITES + request.user_id;
+                    //  _redisService.clear(cache_name,  Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
                     return Ok(new
                     {
                         status = (int)ResponseType.SUCCESS,
@@ -1039,7 +1096,7 @@ namespace WEB.CMS.Controllers
                         });
                     }
                     var id = await _productFavouritesMongoAccess.DeleteAsync(account_client_id, request.product_id);
-                   // var cache_name = CacheType.PRODUCT_FAVOURITES + request.user_id;
+                    // var cache_name = CacheType.PRODUCT_FAVOURITES + request.user_id;
                     //_redisService.clear(cache_name, Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
                     return Ok(new
                     {
@@ -1064,7 +1121,7 @@ namespace WEB.CMS.Controllers
         public async Task<IActionResult> ProductSearchListing([FromBody] APIRequestGenericModel input)
         {
             try
-            { 
+            {
 
                 //var request_json = new ProductGlobalSearchRequestModel()
                 //{
@@ -1092,7 +1149,7 @@ namespace WEB.CMS.Controllers
                     if (list != null && list.Count > 0)
                     {
                         var list_product_mongo = await _productDetailMongoAccess.ListByProducts(list.Select(x => x.product_id).ToList());
-                        var list_data= list_product_mongo.Select(x => new
+                        var list_data = list_product_mongo.Select(x => new
                         {
                             x._id,
                             x.code,
@@ -1142,7 +1199,7 @@ namespace WEB.CMS.Controllers
                 msg = ResponseMessages.DataInvalid,
             });
         }
-        
+
     }
 
 }

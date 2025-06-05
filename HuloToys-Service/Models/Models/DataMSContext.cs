@@ -712,7 +712,7 @@ public partial class DataMSContext : DbContext
             entity.HasKey(e => e.Id).HasName("PK_Store");
 
             entity.ToTable("Label");
-
+            entity.Property(e => e.Banner).HasMaxLength(500);
             entity.Property(e => e.CreateTime).HasColumnType("datetime");
             entity.Property(e => e.Description).HasMaxLength(500);
             entity.Property(e => e.Icon).HasMaxLength(500);

@@ -72,8 +72,15 @@ namespace HuloToys_Service.Controllers.Flashsale
         {
             try
             {
-                //input.token = "F081O1oSKR4nJktCB3d5ekEyMysRMQY0LBBoCGN6TgYGUTYtKygpBxF9Xn85";
-               
+                //var model_input = new
+                //{
+                //    id = 2,
+                //};
+                //input = new APIRequestGenericModel()
+                //{
+                //    token = CommonHelper.Encode(JsonConvert.SerializeObject(model_input), _configuration["KEY:private_key"])
+                //};
+
                 JArray objParr = null;
 
                 if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, _configuration["KEY:private_key"]))

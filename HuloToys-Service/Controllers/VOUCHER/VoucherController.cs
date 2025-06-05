@@ -247,7 +247,7 @@ namespace API_CORE.Controllers.VOUCHER
                     }
                     else
                     {
-                        LogHelper.InsertLogTelegram("[API] VoucherController - ApplyVoucher  b2c: Số tiền giảm k hợp lệ, token = " + token + "--discount = " + total_discount);
+                        LogHelper.InsertLogTelegram("[API] VoucherController - ApplyVoucher  b2c: Số tiền giảm k hợp lệ, token = " + input.token + "--discount = " + total_discount);
                         return Ok(new { status = ((int)ResponseType.FAILED).ToString(), msg = "Mã " + voucher_name + " không hợp lệ, tổng tiền phải > 200.000 đồng. Vui lòng liên hệ với bộ phận CSKH để được hỗ trợ" });
                     }
 
@@ -270,7 +270,7 @@ namespace API_CORE.Controllers.VOUCHER
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegram("[API] VoucherController - ApplyVoucher ex =  " + ex.ToString() + " token=" + token.ToString());
+                LogHelper.InsertLogTelegram("[API] VoucherController - ApplyVoucher ex =  " + ex.ToString() + " token=" + input.token.ToString());
                 return Ok(new { status = (int)ResponseType.ERROR, msg = "Token invalid !!!" });
             }
         }
@@ -358,7 +358,7 @@ namespace API_CORE.Controllers.VOUCHER
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegram("[API] VoucherController - ApplyVoucher ex =  " + ex.ToString() + " token=" + token.ToString());
+                LogHelper.InsertLogTelegram("[API] VoucherController - ApplyVoucher ex =  " + ex.ToString() + " token=" + input.token.ToString());
                 return Ok(new { status = (int)ResponseType.ERROR, msg = "Token invalid !!!" });
             }
             return Ok(new { status = (int)ResponseType.FAILED, msg = "Không tìm thấy dữ liệu" });

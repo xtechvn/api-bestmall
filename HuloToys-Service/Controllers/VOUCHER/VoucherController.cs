@@ -61,6 +61,7 @@ namespace API_CORE.Controllers.VOUCHER
                 var j_param = new Dictionary<string, string>
                 {
                         {"voucher_name", "KSWDPQ"}, // mã voucher: truyền động từ fe
+                        {"token","172" }, // token đăng nhập
                         {"product_id","172" }, // hotel id được áp mã. Truyền động lấy từ thông tin khách sạn muốn áp mã
                         {"total_order_amount_before","1000000" }, // Tổn giá trị đơn hàng
                        

@@ -37,7 +37,7 @@ namespace HuloToys_Service.Controllers.Flashsale.Bussiness
             }
             return new FlashSaleProductResposeModel()
             {
-                amount = product.amount,
+                amount = amount,
                 amount_after_flashsale = amount- total_discount,
                 discountvalue = flashsale_product.discountvalue,
                 position = flashsale_product.position,

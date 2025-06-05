@@ -30,6 +30,8 @@ namespace API_CORE.Controllers.VOUCHER
             voucherRepository = _VoucherRepository;
             orderESService = new OrderESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
             redisService = _redisService;
+            redisService = new RedisConn(_Configuration);
+            redisService.Connect();
             clientServices = new ClientServices(configuration);
             clientESService = new ClientESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
 

@@ -1085,11 +1085,24 @@ namespace HuloToys_Service.Controllers.News.Business
             try
             {
                 var group = GetByParentId(parent_id);
-                group = group.Where(x => x.IsShowFooter == true).ToList();
+               // group = group.Where(x => x.IsShowFooter == true).ToList();
                 var list = new List<ArticleGroupViewModel>();
 
-                list.AddRange(group.Select(x => new ArticleGroupViewModel() { id = x.Id, image_path = x.ImagePath, name = x.Name, order_no = (int)x.OrderNo, url_path = x.Path }).OrderBy(x => x.order_no).ToList());
-                return list;
+                // Lấy chỉ mấy thằng con có IsShowFooter == true
+                var childFooterGroups = group
+                    .SelectMany(x => x.group_product_child)
+                    .Where(child => child.IsShowFooter == true);
+
+                list.AddRange(childFooterGroups.Select(child => new ArticleGroupViewModel()
+                {
+                    id = child.Id,
+                    image_path = child.ImagePath,
+                    name = child.Name,
+                    order_no = child.OrderNo ?? 0, // fix lỗi nullable ở đây
+                    url_path = child.Path
+                }));
+
+                return list.OrderBy(x => x.order_no).ToList();
             }
             catch (Exception ex)
             {

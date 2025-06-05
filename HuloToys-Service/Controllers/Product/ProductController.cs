@@ -3,10 +3,13 @@ using Caching.Elasticsearch;
 using Entities.ViewModels.Products;
 using HuloToys_Front_End.Models.Products;
 using HuloToys_Service.Controllers.Client.Business;
+using HuloToys_Service.Controllers.News.Business;
 using HuloToys_Service.Controllers.Product.Bussiness;
 using HuloToys_Service.ElasticSearch;
 using HuloToys_Service.Models.APIRequest;
+using HuloToys_Service.Models.Article;
 using HuloToys_Service.Models.ElasticSearch;
+using HuloToys_Service.Models.Models;
 using HuloToys_Service.Models.ProductsFavourites;
 using HuloToys_Service.Models.Raiting;
 using HuloToys_Service.MongoDb;
@@ -15,6 +18,7 @@ using HuloToys_Service.Utilities.constants.Product;
 using HuloToys_Service.Utilities.lib;
 using HuloToys_Service.Utilities.Lib;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Nest;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -46,8 +50,10 @@ namespace WEB.CMS.Controllers
         private readonly AttachFileESModelESRepository attachFileESModelESRepository;
         private readonly ProductFavouritesMongoAccess _productFavouritesMongoAccess;
         private readonly ClientServices clientServices;
+        private readonly NewsBusiness _newsBusiness;
+        private readonly DataMSContext _dbContext;
 
-        public ProductController(IConfiguration configuration, RedisConn redisService)
+        public ProductController(IConfiguration configuration, RedisConn redisService, DataMSContext dbContext)
         {
             _productDetailMongoAccess = new ProductDetailMongoAccess(configuration);
             _productSpecificationMongoAccess = new ProductSpecificationMongoAccess(configuration);
@@ -64,6 +70,7 @@ namespace WEB.CMS.Controllers
             _configuration = configuration;
             _redisService = new RedisConn(configuration);
             _redisService.Connect();
+            _newsBusiness = new NewsBusiness(configuration, dbContext);
         }
 
         [HttpPost("get-list")]
@@ -345,7 +352,39 @@ namespace WEB.CMS.Controllers
                             msg = ResponseMessages.DataInvalid
                         });
                     }
-                    var data = groupProductESService.GetListGroupProductByParentId(request.group_id);
+                    string cache_name = "ARTICLE_B2C_CATEGORY_MENU_FOOTER" + request.group_id;
+                    string j_data = null;
+                    List<ArticleGroupViewModel> data = null;
+
+                    try
+                    {
+                        j_data = await _redisService.GetAsync(cache_name, Convert.ToInt32(_configuration["Redis:Database:db_common"]));
+                    }
+                    catch (Exception ex)
+                    {
+                        LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"],
+                            "GroupProductController - Redis GET failed: " + ex);
+                    }
+                    if (j_data != null)
+                    {
+                        data = JsonConvert.DeserializeObject<List<ArticleGroupViewModel>>(j_data);
+                    }
+                    else
+                    {
+                        data = await _newsBusiness.GetFooterCategoryByParentID(request.group_id);
+                        if (data != null && data.Count > 0)
+                        {
+                            try
+                            {
+                                 _redisService.Set(cache_name, JsonConvert.SerializeObject(data), Convert.ToInt32(_configuration["Redis:Database:db_common"]));
+                            }
+                            catch (Exception ex)
+                            {
+                                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"],
+                                    "GroupProductController - Redis SET failed: " + ex);
+                            }
+                        }
+                    }
                     return Ok(new
                     {
                         status = (int)ResponseType.SUCCESS,

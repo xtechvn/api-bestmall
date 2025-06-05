@@ -7,6 +7,8 @@ using Repositories.IRepositories;
 using Repositories.Repositories;
 using HuloToys_Service.Controllers.Repositories;
 using HuloToys_Service.Controllers.IRepositories;
+using REPOSITORIES.IRepositories;
+using REPOSITORIES.Repositories;
 
 internal class Program
 {
@@ -57,6 +59,7 @@ internal class Program
         builder.Services.AddSingleton<IWardRepository, WardRepository>();
         builder.Services.AddSingleton<ILabelRepository, LabelRepository>();
         builder.Services.AddSingleton<IAddressClientRepository, AddressClientRepository>();
+        builder.Services.AddSingleton<IVoucherRepository, VoucherRepository>();
 
 
         builder.Services.AddSingleton<RedisConn>();

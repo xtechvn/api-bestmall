@@ -45,10 +45,6 @@ public partial class DataMSContext : DbContext
 
     public virtual DbSet<Brand> Brands { get; set; }
 
-    public virtual DbSet<Campaign> Campaigns { get; set; }
-
-    public virtual DbSet<CampaignAd> CampaignAds { get; set; }
-
     public virtual DbSet<Client> Clients { get; set; }
 
     public virtual DbSet<ClientLinkAff> ClientLinkAffs { get; set; }
@@ -68,6 +64,10 @@ public partial class DataMSContext : DbContext
     public virtual DbSet<DepositHistory> DepositHistories { get; set; }
 
     public virtual DbSet<District> Districts { get; set; }
+
+    public virtual DbSet<FlashSale> FlashSales { get; set; }
+
+    public virtual DbSet<FlashSaleProduct> FlashSaleProducts { get; set; }
 
     public virtual DbSet<GroupProduct> GroupProducts { get; set; }
 
@@ -166,7 +166,7 @@ public partial class DataMSContext : DbContext
     public virtual DbSet<Ward> Wards { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
         => optionsBuilder.UseSqlServer("Data Source=103.163.216.41;Initial Catalog=Hulotoy_Bestmall;Persist Security Info=True;User ID=us;Password=us@585668;TrustServerCertificate=True");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -395,33 +395,6 @@ public partial class DataMSContext : DbContext
             entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
         });
 
-        modelBuilder.Entity<Campaign>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK_tblPrice");
-
-            entity.ToTable("Campaign");
-
-            entity.Property(e => e.CampaignCode)
-                .HasMaxLength(50)
-                .IsUnicode(false);
-            entity.Property(e => e.CreateDate)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-            entity.Property(e => e.Description).HasMaxLength(500);
-            entity.Property(e => e.FromDate).HasColumnType("datetime");
-            entity.Property(e => e.ToDate).HasColumnType("datetime");
-            entity.Property(e => e.UpdateLast).HasColumnType("datetime");
-        });
-
-        modelBuilder.Entity<CampaignAd>(entity =>
-        {
-            entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.CampaignName).HasMaxLength(300);
-            entity.Property(e => e.EndDate).HasColumnType("datetime");
-            entity.Property(e => e.Note).HasMaxLength(400);
-            entity.Property(e => e.StartDate).HasColumnType("datetime");
-        });
-
         modelBuilder.Entity<Client>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK_tblAccount");
@@ -499,7 +472,7 @@ public partial class DataMSContext : DbContext
             entity.Property(e => e.ExportDate)
                 .HasComment("Ngày xuất hóa đơn")
                 .HasColumnType("datetime");
-            entity.Property(e => e.IsDelete).HasDefaultValueSql("((0))");
+            entity.Property(e => e.IsDelete).HasDefaultValue(false);
             entity.Property(e => e.Note).HasMaxLength(300);
             entity.Property(e => e.PayType).HasComment("1: Tiền mặt , 2: Chuyển khoản");
             entity.Property(e => e.Type).HasComment("1:Thu tiền đơn hàng , 2: Thu tiền nạp quỹ");
@@ -529,12 +502,10 @@ public partial class DataMSContext : DbContext
             entity.Property(e => e.Currency).HasMaxLength(50);
             entity.Property(e => e.DeclineReason).HasMaxLength(500);
             entity.Property(e => e.Description).HasMaxLength(500);
-            entity.Property(e => e.FromDate).HasColumnType("date");
             entity.Property(e => e.Note).HasMaxLength(500);
             entity.Property(e => e.OrderIds)
                 .HasMaxLength(200)
                 .IsUnicode(false);
-            entity.Property(e => e.ToDate).HasColumnType("date");
             entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
             entity.Property(e => e.VerifyDate).HasColumnType("datetime");
         });
@@ -552,8 +523,8 @@ public partial class DataMSContext : DbContext
             entity.Property(e => e.FullParent)
                 .HasMaxLength(50)
                 .IsUnicode(false);
-            entity.Property(e => e.IsDelete).HasDefaultValueSql("((0))");
-            entity.Property(e => e.IsReport).HasDefaultValueSql("((1))");
+            entity.Property(e => e.IsDelete).HasDefaultValue(false);
+            entity.Property(e => e.IsReport).HasDefaultValue(true);
             entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
         });
 
@@ -605,6 +576,30 @@ public partial class DataMSContext : DbContext
             entity.Property(e => e.Type).HasMaxLength(30);
         });
 
+        modelBuilder.Entity<FlashSale>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK_tblPrice");
+
+            entity.ToTable("FlashSale");
+
+            entity.Property(e => e.CreateDate)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.FromDate).HasColumnType("datetime");
+            entity.Property(e => e.Name).HasMaxLength(500);
+            entity.Property(e => e.ToDate).HasColumnType("datetime");
+            entity.Property(e => e.UpdateLast).HasColumnType("datetime");
+        });
+
+        modelBuilder.Entity<FlashSaleProduct>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK_CampaignAds");
+
+            entity.ToTable("FlashSaleProduct");
+
+            entity.Property(e => e.ProductId).HasMaxLength(200);
+        });
+
         modelBuilder.Entity<GroupProduct>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK_groupProduct");
@@ -641,7 +636,6 @@ public partial class DataMSContext : DbContext
                 .HasMaxLength(1000)
                 .IsUnicode(false);
             entity.Property(e => e.CreatedDate).HasColumnType("datetime");
-            entity.Property(e => e.ExportDate).HasColumnType("date");
             entity.Property(e => e.InvoiceCode)
                 .HasMaxLength(20)
                 .IsUnicode(false);
@@ -655,7 +649,6 @@ public partial class DataMSContext : DbContext
                 .HasMaxLength(20)
                 .IsUnicode(false);
             entity.Property(e => e.Note).HasMaxLength(500);
-            entity.Property(e => e.UpdatedDate).HasColumnType("date");
             entity.Property(e => e.VerifyDate).HasColumnType("datetime");
         });
 
@@ -664,7 +657,6 @@ public partial class DataMSContext : DbContext
             entity.ToTable("InvoiceDetail");
 
             entity.Property(e => e.CreatedDate).HasColumnType("datetime");
-            entity.Property(e => e.UpdatedDate).HasColumnType("date");
         });
 
         modelBuilder.Entity<InvoiceRequest>(entity =>
@@ -682,7 +674,6 @@ public partial class DataMSContext : DbContext
                 .HasMaxLength(20)
                 .IsUnicode(false);
             entity.Property(e => e.Note).HasMaxLength(500);
-            entity.Property(e => e.PlanDate).HasColumnType("date");
             entity.Property(e => e.TaxNo)
                 .HasMaxLength(20)
                 .IsUnicode(false);
@@ -726,8 +717,8 @@ public partial class DataMSContext : DbContext
             entity.Property(e => e.Description).HasMaxLength(500);
             entity.Property(e => e.Icon).HasMaxLength(500);
             entity.Property(e => e.LabelCode)
-                     .HasMaxLength(100)
-                     .IsUnicode(false);
+                .HasMaxLength(100)
+                .IsUnicode(false);
             entity.Property(e => e.LabelName).HasMaxLength(200);
             entity.Property(e => e.UpdateTime).HasColumnType("datetime");
         });
@@ -833,6 +824,7 @@ public partial class DataMSContext : DbContext
             entity.ToTable("OrderDetail");
 
             entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+            entity.Property(e => e.ParentProductId).HasMaxLength(50);
             entity.Property(e => e.ProductCode)
                 .HasMaxLength(200)
                 .IsUnicode(false);
@@ -878,7 +870,7 @@ public partial class DataMSContext : DbContext
                 .HasMaxLength(50)
                 .HasComment("Chi nhánh");
             entity.Property(e => e.CreatedDate).HasColumnType("datetime");
-            entity.Property(e => e.IsDelete).HasDefaultValueSql("((0))");
+            entity.Property(e => e.IsDelete).HasDefaultValue(0);
             entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
         });
 
@@ -895,7 +887,7 @@ public partial class DataMSContext : DbContext
             entity.Property(e => e.CreatedDate).HasColumnType("datetime");
             entity.Property(e => e.DeclineReason).HasMaxLength(500);
             entity.Property(e => e.Description).HasMaxLength(3000);
-            entity.Property(e => e.IsPaymentBefore).HasDefaultValueSql("((0))");
+            entity.Property(e => e.IsPaymentBefore).HasDefaultValue(false);
             entity.Property(e => e.Note).HasMaxLength(500);
             entity.Property(e => e.PaymentCode)
                 .HasMaxLength(50)
@@ -959,8 +951,8 @@ public partial class DataMSContext : DbContext
 
             entity.Property(e => e.CreatedDate).HasColumnType("datetime");
             entity.Property(e => e.EffectiveDate).HasColumnType("datetime");
-            entity.Property(e => e.IsDelete).HasDefaultValueSql("((0))");
-            entity.Property(e => e.IsPrivate).HasDefaultValueSql("((0))");
+            entity.Property(e => e.IsDelete).HasDefaultValue(false);
+            entity.Property(e => e.IsPrivate).HasDefaultValue(false);
             entity.Property(e => e.PolicyCode)
                 .HasMaxLength(50)
                 .IsUnicode(false);
@@ -1133,7 +1125,7 @@ public partial class DataMSContext : DbContext
                 .HasMaxLength(500)
                 .IsUnicode(false);
             entity.Property(e => e.FullName).HasMaxLength(500);
-            entity.Property(e => e.IsDisplayWebsite).HasDefaultValueSql("((0))");
+            entity.Property(e => e.IsDisplayWebsite).HasDefaultValue(false);
             entity.Property(e => e.Phone)
                 .HasMaxLength(20)
                 .IsUnicode(false);
@@ -1217,7 +1209,6 @@ public partial class DataMSContext : DbContext
 
             entity.ToTable("User");
 
-            entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.Address).HasMaxLength(500);
             entity.Property(e => e.Avata).HasMaxLength(500);
             entity.Property(e => e.BirthDay).HasColumnType("datetime");
@@ -1270,8 +1261,6 @@ public partial class DataMSContext : DbContext
             entity.ToTable("UserDepart");
 
             entity.Property(e => e.CreatedDate).HasColumnType("datetime");
-            entity.Property(e => e.JoinDate).HasColumnType("date");
-            entity.Property(e => e.LeaveDate).HasColumnType("date");
             entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
         });
 

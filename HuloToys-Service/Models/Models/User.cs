@@ -23,7 +23,7 @@ public partial class User
 
     public int? Gender { get; set; }
 
-    public string Email { get; set; } = null!;
+    public string? Email { get; set; }
 
     public string? Avata { get; set; }
 
@@ -50,6 +50,8 @@ public partial class User
     public int? UserPositionId { get; set; }
 
     public int? CompanyType { get; set; }
+
+    public int? SupplierId { get; set; }
 
     public virtual ICollection<UserAgent> UserAgents { get; set; } = new List<UserAgent>();
 

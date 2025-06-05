@@ -5,7 +5,7 @@ using Utilities;
 
 namespace Caching.Elasticsearch
 {
-    //https://www.steps2code.com/post/how-to-use-elasticsearch-in-csharp
+    
     public class ProductESRepository : ESRepository<ProductESModel>
     {
         public string index = "hulotoys_mongodb_product";

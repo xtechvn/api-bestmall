@@ -21,6 +21,8 @@ public partial class Label
 
     public string? Description { get; set; }
 
+    public int? UserSupplierId { get; set; }
+
     public short? Status { get; set; }
 
     public DateTime? CreateTime { get; set; }

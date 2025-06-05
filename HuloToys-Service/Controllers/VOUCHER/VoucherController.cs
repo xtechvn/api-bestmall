@@ -98,7 +98,7 @@ namespace API_CORE.Controllers.VOUCHER
                         });
                     }
 
-                    string product_id = objParr[0]["product_id"].ToString(); //hotel id được áp mã
+                   // string product_id = objParr[0]["product_id"].ToString(); //hotel id được áp mã
 
                     double total_order_amount_before = Convert.ToDouble(objParr[0]["total_order_amount_before"].ToString()); // tổng giá trị đơn hàng trước giảm
                     double total_order_amount_after = 0; // tổng giá trị đơn hàng sau giảm
@@ -155,20 +155,20 @@ namespace API_CORE.Controllers.VOUCHER
                     }
 
                     //5. Kiểm tra voucher này có được giới hạn nhãn hàng không
-                    if (voucher.StoreApply != null)
-                    {
-                        if (voucher.StoreApply != "-1")
-                        {
-                            // Kiểm tra store mã voucher này có nằm trong store cart thanh toán không ?
-                            string store_current_cart = "," + product_id + ",";
-                            string store_apply_voucher = "," + voucher.StoreApply + ",";
-                            if (store_apply_voucher.IndexOf(store_current_cart) == -1)
-                            {
+                    //if (voucher.StoreApply != null)
+                    //{
+                    //    if (voucher.StoreApply != "-1")
+                    //    {
+                    //        // Kiểm tra store mã voucher này có nằm trong store cart thanh toán không ?
+                    //      //  string store_current_cart = "," + product_id + ",";
+                    //        string store_apply_voucher = "," + voucher.StoreApply + ",";
+                    //        if (store_apply_voucher.IndexOf(store_current_cart) == -1)
+                    //        {
 
-                                return Ok(new { status = (int)ResponseType.FAILED, msg = "Mã " + voucher_name + " không áp dụng cho sản phẩm này. Vui lòng liên hệ với bộ phận CSKH để được hỗ trợ" });
-                            }
-                        }
-                    }
+                    //            return Ok(new { status = (int)ResponseType.FAILED, msg = "Mã " + voucher_name + " không áp dụng cho sản phẩm này. Vui lòng liên hệ với bộ phận CSKH để được hỗ trợ" });
+                    //        }
+                    //    }
+                    //}
                     #endregion
 
                     //Thưc hiện Apply rule theo type               
@@ -278,7 +278,7 @@ namespace API_CORE.Controllers.VOUCHER
                 #region Giả lập test
                 var j_param = new Dictionary<string, string>
                 {
-                        {"product_id", ""},
+                       // {"product_id", ""},
                         {"token", ""},
                 };
                 var data_product = JsonConvert.SerializeObject(j_param);
@@ -313,19 +313,19 @@ namespace API_CORE.Controllers.VOUCHER
                         });
                     }
 
-                    string product_id = objParr[0]["product_id"].ToString(); // tên voucher
-                    if (product_id == null || product_id.Trim()=="")
-                    {
-                        return Ok(new { status = (int)ResponseType.FAILED, msg = "Dữ liệu gửi lên không chính xác, vui lòng thử lại" });
-                    }
+                    //string product_id = objParr[0]["product_id"].ToString(); // tên voucher
+                    //if (product_id == null || product_id.Trim()=="")
+                    //{
+                    //    return Ok(new { status = (int)ResponseType.FAILED, msg = "Dữ liệu gửi lên không chính xác, vui lòng thử lại" });
+                    //}
                     // -- Read from Cache:
-                    string cache_name = CacheType.VOUCHER + product_id + account_client_id;
+                    string cache_name = CacheType.VOUCHER + /*product_id + */account_client_id;
                     var str = redisService.Get(cache_name, Convert.ToInt32(configuration["DataBaseConfig:Redis:Database:db_search_result"]));
                     if (str != null && str.Trim() != "")
                     {
                         List<VoucherFEModel> list = JsonConvert.DeserializeObject<List<VoucherFEModel>>(str);
-                        list = list.Where(x => x.store_apply.Trim().StartsWith(product_id + ",") || x.store_apply.Trim().EndsWith(","+ product_id)
-                        || x.store_apply.Trim().Contains("," + product_id + ",")|| x.store_apply.Trim()== product_id).ToList();
+                        //list = list.Where(x => x.store_apply.Trim().StartsWith(product_id + ",") || x.store_apply.Trim().EndsWith(","+ product_id)
+                        //|| x.store_apply.Trim().Contains("," + product_id + ",")|| x.store_apply.Trim()== product_id).ToList();
                         return Ok(new
                         {
                             status = (int)ResponseType.SUCCESS,
@@ -333,11 +333,11 @@ namespace API_CORE.Controllers.VOUCHER
                             data = list
                         });
                     }
-                    var data = await voucherRepository.GetVoucherList(0, product_id);
+                    var data = await voucherRepository.GetVoucherList(0, null);
                     if (data != null && data.Count > 0)
                     {
-                        data = data.Where(x => x.store_apply.Trim().StartsWith(product_id + ",") || x.store_apply.Trim().EndsWith("," + product_id)
-                      || x.store_apply.Trim().Contains("," + product_id + ",") || x.store_apply.Trim() == product_id).ToList();
+                      //  data = data.Where(x => x.store_apply.Trim().StartsWith(product_id + ",") || x.store_apply.Trim().EndsWith("," + product_id)
+                      //|| x.store_apply.Trim().Contains("," + product_id + ",") || x.store_apply.Trim() == product_id).ToList();
                         int db_index = Convert.ToInt32(configuration["DataBaseConfig:Redis:Database:db_search_result"].ToString());
                         redisService.Set(cache_name, JsonConvert.SerializeObject(data), DateTime.Now.AddMinutes(15), db_index);
                         return Ok(new

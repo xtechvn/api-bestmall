@@ -7,4 +7,10 @@
         public const string PHAN_TRAM = "percent";
 
     }
+    public enum FlashSaleValueType
+    {
+        VND=0,
+        PERCENT=1
+
+    }
 }

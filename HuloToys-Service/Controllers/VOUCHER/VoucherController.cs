@@ -259,7 +259,8 @@ namespace API_CORE.Controllers.VOUCHER
                         discount = Math.Round(total_discount),
                         total_order_amount_after = total_order_amount_after,
                         value = Convert.ToDouble(voucher.PriceSales),
-                        type = voucher.Unit
+                        type = voucher.Unit,
+                        rule_type=voucher.RuleType
 
                     });
                 }

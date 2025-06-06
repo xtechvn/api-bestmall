@@ -16,6 +16,7 @@ using Newtonsoft.Json;
 using APP_CHECKOUT.Models.Orders;
 using System.Net;
 using ADAVIGO_FRONTEND.Models.Flights.TrackingVoucher;
+using APP_CHECKOUT.Constants;
 
 namespace APP_CHECKOUT.Repositories
 {
@@ -245,15 +246,52 @@ namespace APP_CHECKOUT.Repositories
                     var voucher_apply = await ApplyVoucher(input);
                     if (voucher_apply != null && voucher_apply.status == 0)
                     {
+                        //    switch (voucher_apply.rule_type)
+                        //    {
+                        //        case (int)VoucherRuleType.ALL_PRODUCT:
+                        //            {
+
+                        //            }break;
+                        //        case (int)VoucherRuleType.SPECIFIC_PRODUCT:
+                        //            {
+
+                        //            }
+                        //            break;
+                        //        default:
+                        //            {
+                        //                double percent = Convert.ToDouble(voucher_apply.value);
+                        //                switch (voucher_apply.type)
+                        //                {
+                        //                    case "percent":
+                        //                        //Tinh số tiền giảm theo %
+                        //                        total_discount += ((double)order_summit.Amount * Convert.ToDouble(percent / 100));
+                        //                        break;
+                        //                    case "vnd":
+                        //                        total_discount += percent; //Math.Min(Convert.ToDouble(voucher.LimitTotalDiscount), total_fee_not_luxury) ;
+                        //                        break;
+
+                        //                    default: break;
+
+                        //                }
+                        //                voucher_apply.discount = total_discount;
+                        //                voucher_apply.total_order_amount_after = voucher_apply.total_order_amount_before - total_discount;
+                        //                order_summit.VoucherId = voucher_apply.voucher_id;
+                        //                order_summit.Discount = voucher_apply.discount;
+                        //                order_summit.Amount = voucher_apply.total_order_amount_after;
+                        //                order_summit.Profit -= order_summit.Discount;
+                        //            }break;
+
+                        //    }
+
+                        //}
                         double percent = Convert.ToDouble(voucher_apply.value);
                         switch (voucher_apply.type)
                         {
                             case "percent":
-                                //Tinh số tiền giảm theo %
                                 total_discount += ((double)order_summit.Amount * Convert.ToDouble(percent / 100));
                                 break;
                             case "vnd":
-                                total_discount += percent; //Math.Min(Convert.ToDouble(voucher.LimitTotalDiscount), total_fee_not_luxury) ;
+                                total_discount += percent;
                                 break;
 
                             default: break;
@@ -265,12 +303,11 @@ namespace APP_CHECKOUT.Repositories
                         order_summit.Discount = voucher_apply.discount;
                         order_summit.Amount = voucher_apply.total_order_amount_after;
                         order_summit.Profit -= order_summit.Discount;
-
                     }
-                }
 
+                }
                 var order_id = await orderDAL.CreateOrder(order_summit);
-               // Console.WriteLine("Created Order - " + order.order_no+": "+ order_id);
+                // Console.WriteLine("Created Order - " + order.order_no+": "+ order_id);
                 logging_service.InsertLogTelegramDirect("Order Created - " + order.order_no + " - " + total_amount);
                 workQueueClient.SyncES(order_id, "SP_GetOrder", "hulotoys_sp_getorder", Convert.ToInt16(ProjectType.HULOTOYS));
 

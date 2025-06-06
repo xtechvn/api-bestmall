@@ -13,6 +13,6 @@
         public int voucher_id { get; set; }
         public double value { get; set; }
         public string type { get; set; }
-
+        public int? rule_type { get; set; }
     }
 }

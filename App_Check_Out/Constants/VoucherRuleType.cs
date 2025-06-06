@@ -8,5 +8,8 @@ namespace APP_CHECKOUT.Constants
 {
     public enum VoucherRuleType
     {
+        ALL_PRODUCT=1,
+        SPECIFIC_PRODUCT=2,
+
     }
 }

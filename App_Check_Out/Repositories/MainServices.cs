@@ -17,6 +17,9 @@ using APP_CHECKOUT.Models.Orders;
 using System.Net;
 using ADAVIGO_FRONTEND.Models.Flights.TrackingVoucher;
 using APP_CHECKOUT.Constants;
+using System.Text;
+using Nest;
+using System.Net.Http;
 
 namespace APP_CHECKOUT.Repositories
 {
@@ -241,7 +244,8 @@ namespace APP_CHECKOUT.Repositories
                     {
                         total_order_amount_before = (double)order_summit.Amount,
                         user_id = Convert.ToInt64(order.account_client_id),
-                        voucher_name = order.voucher_code
+                        voucher_name = order.voucher_code,
+                        token = CommonHelpers.Encode("{\"user_name\":\"" + account_client.UserName + "\"}", ConfigurationManager.AppSettings["key_private"])
                     };
                     var voucher_apply = await ApplyVoucher(input);
                     if (voucher_apply != null && voucher_apply.status == 0)
@@ -400,15 +404,28 @@ namespace APP_CHECKOUT.Repositories
             TrackingVoucherResponse result = new TrackingVoucherResponse();
             try
             {
-                string url = ConfigurationManager.AppSettings["domain_api_core"] + ConfigurationManager.AppSettings["APPLY_VOUCHER_B2B"];
-                HttpClient client = new HttpClient();
-
-                var token = CommonHelpers.Encode(JsonConvert.SerializeObject(input), ConfigurationManager.AppSettings["key_encrypt_b2b"]);
-                var content_2 = new FormUrlEncodedContent(new[]
+                HttpClient _HttpClient = new HttpClient(new HttpClientHandler
                 {
-                       new KeyValuePair<string, string>("token", token),
-                });
-                var response = await client.PostAsync(url, content_2);
+                    ServerCertificateCustomValidationCallback = (message, certificate2, arg3, arg4) => true
+                })
+                {
+                    BaseAddress = new Uri(ConfigurationManager.AppSettings["API_Domain"])
+                };
+                string url = ConfigurationManager.AppSettings["API_Get_Voucher"];
+                //HttpClient client = new HttpClient();
+
+                //var token = CommonHelpers.Encode(JsonConvert.SerializeObject(input), ConfigurationManager.AppSettings["key_private"]);
+                //var content_2 = new FormUrlEncodedContent(new[]
+                //{
+                //       new KeyValuePair<string, string>("token", token),
+                //});
+               // var content = new StringContent(JsonConvert.SerializeObject(input), Encoding.UTF8, "application/json");
+                string token = CommonHelpers.Encode(JsonConvert.SerializeObject(input), ConfigurationManager.AppSettings["key_private"]);
+                var request_message = new HttpRequestMessage(HttpMethod.Post, url);
+                //request_message.Headers.Add("Authorization", "Bearer " + TOKEN);
+                var content = new StringContent("{\"token\":\"" + token + "\"}", Encoding.UTF8, "application/json");
+                request_message.Content = content;
+                var response = await _HttpClient.SendAsync(request_message);
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
                     result = JsonConvert.DeserializeObject<TrackingVoucherResponse>(response.Content.ReadAsStringAsync().Result);

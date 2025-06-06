@@ -528,15 +528,7 @@ namespace HuloToys_Service.Controllers
                         voucher_id=request.voucher_id,
                         voucher_code=request.voucher_code
                     };
-                    if(model.voucher_code!=null && model.voucher_code.Trim() != "")
-                    {
-                        var exists = await _voucherRepository.getDetailVoucher(model.voucher_code);
-                        if (exists != null && exists.Id>0)
-                        {
-                            model.voucher_code = exists.Code;
-                            model.voucher_id = exists.Id;
-                        }
-                    }
+                    
                     foreach (var item in request.carts)
                     {
                         var cart = await _cartMongodbService.FindById(item.id);
@@ -567,6 +559,31 @@ namespace HuloToys_Service.Controllers
                             await _cartMongodbService.Delete(item.id);
                         }
 
+                    }
+                    if (model.voucher_code != null && model.voucher_code.Trim() != "")
+                    {
+                        var voucher_apply = await _voucherRepository.getDetailVoucher(model.voucher_code);
+                        if (voucher_apply != null && voucher_apply.Id > 0)
+                        {
+                            double total_discount = 0;
+                            double percent = Convert.ToDouble(voucher_apply.PriceSales);
+                            switch (voucher_apply.Unit)
+                            {
+                                case "percent":
+                                    total_discount += ((double)model.total_amount * Convert.ToDouble(percent / 100));
+                                    break;
+                                case "vnd":
+                                    total_discount += percent;
+                                    break;
+
+                                default: break;
+                            }
+                            model.voucher_code = voucher_apply.Code;
+                            model.voucher_id = voucher_apply.Id;
+                            model.total_discount += total_discount;
+                            model.total_amount -= total_discount;
+                            model.total_profit -= total_discount;
+                        }
                     }
                     //-- Shipping fee
                     //var shipping_fee = await shippingBussinessSerice.GetShippingFeeResponse(request.delivery_detail);

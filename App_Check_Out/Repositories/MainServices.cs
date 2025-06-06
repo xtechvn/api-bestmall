@@ -14,6 +14,8 @@ using System.Configuration;
 using Caching.Elasticsearch;
 using Newtonsoft.Json;
 using APP_CHECKOUT.Models.Orders;
+using System.Net;
+using ADAVIGO_FRONTEND.Models.Flights.TrackingVoucher;
 
 namespace APP_CHECKOUT.Repositories
 {
@@ -101,7 +103,6 @@ namespace APP_CHECKOUT.Repositories
                 List<OrderDetail> details = new List<OrderDetail>();
                 double total_price = 0;
                 double total_profit = 0;
-                double total_discount = 0;
                 double total_amount = 0;
                 float total_weight = 0;
                 foreach (var cart in order.carts)
@@ -144,7 +145,6 @@ namespace APP_CHECKOUT.Repositories
                     });
                     total_price += (cart.product.price * cart.quanity);
                     total_profit += (cart.product.profit * cart.quanity);
-                    total_discount += (cart.product.discount * cart.quanity);
                     total_amount += (cart.product.amount * cart.quanity);
                     cart.total_price = cart.product.price * cart.quanity;
                     cart.total_discount = cart.product.discount * cart.quanity;
@@ -167,7 +167,7 @@ namespace APP_CHECKOUT.Repositories
                     Amount = total_amount + order.shipping_fee,
                     ClientId = (long)account_client.ClientId,
                     CreatedDate = DateTime.Now,
-                    Discount = total_discount,
+                    Discount = 0,
                     IsDelete = 0,
                     Note = "",
                     OrderId = 0,
@@ -232,7 +232,42 @@ namespace APP_CHECKOUT.Repositories
                     order_summit.Phone = order.phone;
                     order_summit.Address = order.address;
                 }
-               
+                //--apply voucher:
+                double total_discount = 0;
+                if (order.voucher_code != null && order.voucher_code.Trim() != "")
+                {
+                    var input = new TrackingVoucherRequest
+                    {
+                        total_order_amount_before = (double)order_summit.Amount,
+                        user_id = Convert.ToInt64(order.account_client_id),
+                        voucher_name = order.voucher_code
+                    };
+                    var voucher_apply = await ApplyVoucher(input);
+                    if (voucher_apply != null && voucher_apply.status == 0)
+                    {
+                        double percent = Convert.ToDouble(voucher_apply.value);
+                        switch (voucher_apply.type)
+                        {
+                            case "percent":
+                                //Tinh số tiền giảm theo %
+                                total_discount += ((double)order_summit.Amount * Convert.ToDouble(percent / 100));
+                                break;
+                            case "vnd":
+                                total_discount += percent; //Math.Min(Convert.ToDouble(voucher.LimitTotalDiscount), total_fee_not_luxury) ;
+                                break;
+
+                            default: break;
+
+                        }
+                        voucher_apply.discount = total_discount;
+                        voucher_apply.total_order_amount_after = voucher_apply.total_order_amount_before - total_discount;
+                        order_summit.VoucherId = voucher_apply.voucher_id;
+                        order_summit.Discount = voucher_apply.discount;
+                        order_summit.Amount = voucher_apply.total_order_amount_after;
+                        order_summit.Profit -= order_summit.Discount;
+
+                    }
+                }
 
                 var order_id = await orderDAL.CreateOrder(order_summit);
                // Console.WriteLine("Created Order - " + order.order_no+": "+ order_id);
@@ -323,6 +358,31 @@ namespace APP_CHECKOUT.Repositories
             }
             return wards;
         }
-        
+        private async Task<TrackingVoucherResponse> ApplyVoucher(TrackingVoucherRequest input)
+        {
+            TrackingVoucherResponse result = new TrackingVoucherResponse();
+            try
+            {
+                string url = ConfigurationManager.AppSettings["domain_api_core"] + ConfigurationManager.AppSettings["APPLY_VOUCHER_B2B"];
+                HttpClient client = new HttpClient();
+
+                var token = CommonHelpers.Encode(JsonConvert.SerializeObject(input), ConfigurationManager.AppSettings["key_encrypt_b2b"]);
+                var content_2 = new FormUrlEncodedContent(new[]
+                {
+                       new KeyValuePair<string, string>("token", token),
+                });
+                var response = await client.PostAsync(url, content_2);
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    result = JsonConvert.DeserializeObject<TrackingVoucherResponse>(response.Content.ReadAsStringAsync().Result);
+
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return result;
+        }
     }
 }

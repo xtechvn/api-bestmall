@@ -26,6 +26,7 @@ using HuloToys_Service.Models.Models;
 using System.Data;
 using Nest;
 using System.Drawing.Printing;
+using REPOSITORIES.IRepositories;
 
 namespace HuloToys_Service.Controllers
 {
@@ -48,8 +49,9 @@ namespace HuloToys_Service.Controllers
         private readonly ClientESService clientESService;
         private readonly RaitingESService raitingESService;
         private readonly ShippingBussinessSerice shippingBussinessSerice;
+        private readonly IVoucherRepository _voucherRepository;
 
-        public OrderController(IConfiguration _configuration, RedisConn redisService)
+        public OrderController(IConfiguration _configuration, RedisConn redisService, IVoucherRepository voucherRepository)
         {
             configuration = _configuration;
 
@@ -67,7 +69,7 @@ namespace HuloToys_Service.Controllers
             clientServices = new ClientServices(_configuration);
             clientESService = new ClientESService(_configuration["DataBaseConfig:Elastic:Host"], _configuration);
             shippingBussinessSerice = new ShippingBussinessSerice(_configuration);
-
+            _voucherRepository = voucherRepository;
         }
 
         [HttpPost("history")]
@@ -523,8 +525,18 @@ namespace HuloToys_Service.Controllers
                         address_id=request.address_id,
                         receivername=request.address.ReceiverName,
                         phone=request.address.Phone,
+                        voucher_id=request.voucher_id,
+                        voucher_code=request.voucher_code
                     };
-                    
+                    if(model.voucher_code!=null && model.voucher_code.Trim() != "")
+                    {
+                        var exists = await _voucherRepository.getDetailVoucher(model.voucher_code);
+                        if (exists != null && exists.Id>0)
+                        {
+                            model.voucher_code = exists.Code;
+                            model.voucher_id = exists.Id;
+                        }
+                    }
                     foreach (var item in request.carts)
                     {
                         var cart = await _cartMongodbService.FindById(item.id);

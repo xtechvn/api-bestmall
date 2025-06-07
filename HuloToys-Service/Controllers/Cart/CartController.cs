@@ -14,6 +14,7 @@ using HuloToys_Service.Models.Cart;
 using HuloToys_Service.Models.APIRequest;
 using HuloToys_Service.Controllers.Cart.Business;
 using HuloToys_Service.Controllers.Client.Business;
+using HuloToys_Service.Controllers.Product.Bussiness;
 
 namespace HuloToys_Service.Controllers
 {
@@ -29,6 +30,7 @@ namespace HuloToys_Service.Controllers
         private readonly ProductDetailMongoAccess _productDetailMongoAccess;
         private readonly OrderMongodbService orderMongodbService;
         private readonly ClientServices clientServices;
+        private readonly ProductDetailService productDetailService;
 
         public CartController(IConfiguration configuration)
         {
@@ -39,7 +41,7 @@ namespace HuloToys_Service.Controllers
             _productDetailMongoAccess = new ProductDetailMongoAccess(configuration);
             _cartService = new CartService(configuration);
             clientServices = new ClientServices(configuration);
-
+            productDetailService = new ProductDetailService(configuration);
         }
         [HttpPost("add")]
         public async Task<IActionResult> AddToCart([FromBody] APIRequestGenericModel input)
@@ -71,7 +73,7 @@ namespace HuloToys_Service.Controllers
                     int id = 0;
                     if (data == null || data.product == null)
                     {
-                        var product = await _productDetailMongoAccess.GetByID(request.product_id);
+                        var product = await productDetailService.GetByID(request.product_id);
 
                         await _cartMongodbService.Insert(new CartItemMongoDbModel()
                         {

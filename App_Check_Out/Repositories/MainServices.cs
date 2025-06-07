@@ -124,7 +124,12 @@ namespace APP_CHECKOUT.Repositories
                         }
                     }
                     catch { }
-                    
+                    var amount_product = cart.product.amount;
+                    if (cart.product.flash_sale_todate >= DateTime.Now && cart.product.amount_after_flashsale != null && cart.product.amount_after_flashsale > 0)
+                    {
+                        amount_product = (double)cart.product.amount_after_flashsale;
+
+                    }
                     details.Add(new OrderDetail()
                     {
                         CreatedDate = time,
@@ -134,7 +139,7 @@ namespace APP_CHECKOUT.Repositories
                         Price = cart.product.price,
                         Profit = cart.product.profit,
                         Quantity = cart.quanity,
-                        Amount = cart.product.amount,
+                        Amount = amount_product,
                         ProductCode = cart.product.code,
                         ProductId = cart.product._id,
                         ProductLink = ConfigurationManager.AppSettings["Setting_Domain"] + "/san-pham/" + name_url + "--" + cart.product._id,
@@ -149,7 +154,7 @@ namespace APP_CHECKOUT.Repositories
                     });
                     total_price += (cart.product.price * cart.quanity);
                     total_profit += (cart.product.profit * cart.quanity);
-                    total_amount += (cart.product.amount * cart.quanity);
+                    total_amount += (amount_product * cart.quanity);
                     cart.total_price = cart.product.price * cart.quanity;
                     cart.total_discount = cart.product.discount * cart.quanity;
                     cart.total_profit = cart.product.profit * cart.quanity;

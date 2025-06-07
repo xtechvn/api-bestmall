@@ -27,6 +27,7 @@ using System.Data;
 using Nest;
 using System.Drawing.Printing;
 using REPOSITORIES.IRepositories;
+using HuloToys_Service.Controllers.Product.Bussiness;
 
 namespace HuloToys_Service.Controllers
 {
@@ -49,6 +50,7 @@ namespace HuloToys_Service.Controllers
         private readonly ClientESService clientESService;
         private readonly RaitingESService raitingESService;
         private readonly ShippingBussinessSerice shippingBussinessSerice;
+        private readonly ProductDetailService productDetailService;
         private readonly IVoucherRepository _voucherRepository;
 
         public OrderController(IConfiguration _configuration, RedisConn redisService, IVoucherRepository voucherRepository)
@@ -70,6 +72,7 @@ namespace HuloToys_Service.Controllers
             clientESService = new ClientESService(_configuration["DataBaseConfig:Elastic:Host"], _configuration);
             shippingBussinessSerice = new ShippingBussinessSerice(_configuration);
             _voucherRepository = voucherRepository;
+            productDetailService = new ProductDetailService(_configuration);
         }
 
         [HttpPost("history")]
@@ -544,11 +547,17 @@ namespace HuloToys_Service.Controllers
                         }
                         else
                         {
-                            cart.product= await _productDetailMongoAccess.GetByID(cart.product._id);
+                            cart.product= await productDetailService.GetByID(cart.product._id);
+                            var amount_product = cart.product.amount;
+                            if(cart.product.flash_sale_todate>=DateTime.Now && cart.product.amount_after_flashsale!=null&& cart.product.amount_after_flashsale > 0)
+                            {
+                                amount_product = (double)cart.product.amount_after_flashsale;
+
+                            }
                             cart.quanity = item.quanity;
                             cart.total_price = cart.product.price * item.quanity;
                             cart.total_profit = cart.product.profit * item.quanity;
-                            cart.total_amount = cart.product.amount * item.quanity;
+                            cart.total_amount = amount_product * item.quanity;
                             cart.total_discount = cart.product.discount * item.quanity;
                             model.total_price += cart.total_price;
                             model.total_profit += cart.total_profit;

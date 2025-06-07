@@ -71,4 +71,12 @@ namespace Entities.ViewModels.Products
         public string key { get; set; }
         public string value { get; set; }
     }
+    public class ProductMongoDbModelFEResponse : ProductMongoDbModel
+    {
+        public int? exists_flashsale_id { get; set; }
+        public string exists_flashsale_name { get; set; }
+        public double? amount_after_flashsale { get; set; }
+        public DateTime? flash_sale_fromdate { get; set; }
+        public DateTime? flash_sale_todate { get; set; }
+    }
 }

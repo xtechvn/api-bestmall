@@ -1,4 +1,5 @@
 ﻿using Entities.ViewModels.Products;
+using HuloToys_Service.Controllers.Product.Bussiness;
 using HuloToys_Service.MongoDb;
 using HuloToys_Service.RedisWorker;
 using HuloToys_Service.Utilities.Lib;
@@ -14,12 +15,14 @@ namespace HuloToys_Service.Controllers.Cart.Business
         private readonly IConfiguration _configuration;
         private readonly CartMongodbService _cartMongodbService;
         private readonly ProductDetailMongoAccess _productDetailMongoAccess;
+        private readonly ProductDetailService productDetailService;
         public CartService(IConfiguration configuration)
         {
             _configuration = configuration;
 
             _cartMongodbService = new CartMongodbService(configuration);
             _productDetailMongoAccess = new ProductDetailMongoAccess(configuration);
+            productDetailService = new ProductDetailService(configuration);
         }
         public async Task<List<CartItemMongoDbModel>> GetList(long account_client_id)
         {
@@ -32,7 +35,7 @@ namespace HuloToys_Service.Controllers.Cart.Business
                     {
                         foreach(var item in model)
                         {
-                            item.product= await _productDetailMongoAccess.GetByID(item.product._id);
+                            item.product= await productDetailService.GetByID(item.product._id);
                         }
                     }
                     return model;

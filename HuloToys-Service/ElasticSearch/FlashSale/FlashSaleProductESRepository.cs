@@ -86,10 +86,10 @@ namespace Caching.Elasticsearch.FlashSale
 
             var response = await _client.SearchAsync<FlashSaleProductESModel>(s => s
                 .Query(q => q
-                    .Term(t => t
-                                .Field(f => f.flashsale_id)
-                                .Value(flashsale_ids)
-                                )
+                    .Terms(t => t
+                        .Field(f => f.flashsale_id)
+                        .Terms(flashsale_ids) 
+                    )
                 )
             );
 

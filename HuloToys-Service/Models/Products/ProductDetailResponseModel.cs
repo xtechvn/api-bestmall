@@ -11,6 +11,8 @@ namespace HuloToys_Front_End.Models.Products
         public ProductDetailResponseModelFavourite favourite { get; set; }
         public List<ProductMongoDbModel> product_buy_with { get; set; }
         public List<ProductDetailResponseModelProductBuyWith> product_buy_with_output { get; set; }
+        public ProductMongoDbModelFEResponse flashsale_main { get; set; }
+        public List<ProductMongoDbModelFEResponse>  flashsale_sub { get; set; }
 
     }
     public class ProductDetailResponseModelCertificate {

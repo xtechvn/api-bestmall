@@ -1,7 +1,9 @@
 ﻿using Azure.Core;
 using Caching.Elasticsearch;
+using Caching.Elasticsearch.FlashSale;
 using Entities.ViewModels.Products;
 using HuloToys_Front_End.Models.Products;
+using HuloToys_Service.Controllers.Flashsale.Bussiness;
 using HuloToys_Service.ElasticSearch;
 using HuloToys_Service.Models.APIRequest;
 using HuloToys_Service.Models.Raiting;
@@ -12,6 +14,7 @@ using Microsoft.AspNetCore.Mvc;
 using Nest;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
 using System.Reflection;
 using Utilities.Contants;
 
@@ -27,7 +30,9 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
         private readonly GroupProductESService groupProductESService;
         private readonly OrderDetailESService orderDetailESService;
         private readonly ProductFavouritesMongoAccess _productFavouritesMongoAccess;
-
+        private readonly FlashSaleESRepository flashSaleESRepository;
+        private readonly FlashSaleProductESRepository flashSaleProductESRepository;
+        private readonly FlashsaleService flashsaleService;
         public ProductDetailService(IConfiguration configuration)
         {
             _productDetailMongoAccess = new ProductDetailMongoAccess(configuration);
@@ -37,7 +42,10 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             _clientESService = new ClientESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
             _configuration = configuration;
             orderDetailESService = new OrderDetailESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
-            _productFavouritesMongoAccess= new ProductFavouritesMongoAccess(configuration);
+            _productFavouritesMongoAccess = new ProductFavouritesMongoAccess(configuration);
+            flashSaleESRepository = new FlashSaleESRepository(configuration["DataBaseConfig:Elastic:Host"], configuration);
+            flashSaleProductESRepository = new FlashSaleProductESRepository(configuration["DataBaseConfig:Elastic:Host"], configuration);
+            flashsaleService = new FlashsaleService(configuration);
 
         }
         public async Task<ProductListFEResponseModel> ProductListing(ProductListRequestModel request)
@@ -49,14 +57,15 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                 request.keyword = StringHelper.ValidateTextForSearch(request.keyword);
 
 
-                var data = await _productDetailMongoAccess.ResponseListing(request.keyword, request.group_id,request.page_index,request.page_size , request.price_from,request.price_to, request.rating);
+                var data = await _productDetailMongoAccess.ResponseListing(request.keyword, request.group_id, request.page_index, request.page_size, request.price_from, request.price_to, request.rating);
                 result = JsonConvert.DeserializeObject<ProductListFEResponseModel>(JsonConvert.SerializeObject(data));
                 if (result != null && result.items != null && result.items.Count > 0)
                 {
-                    await UpdateProductDetail(result.items);
+                    result.items_flashsale= JsonConvert.DeserializeObject<List<ProductMongoDbModelFEResponse>>(JsonConvert.SerializeObject(data.items));
+                    await UpdateProductDetail(result.items_flashsale);
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
                 LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
@@ -72,11 +81,12 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                 request.keyword = StringHelper.ValidateTextForSearch(request.keyword);
 
 
-                var data = await _productDetailMongoAccess.ResponseListing(request.keyword, request.group_id, request.page_index, request.page_size, request.price_from, request.price_to, request.rating,request.supplier_id,request.label_id);
+                var data = await _productDetailMongoAccess.ResponseListing(request.keyword, request.group_id, request.page_index, request.page_size, request.price_from, request.price_to, request.rating, request.supplier_id, request.label_id);
                 result = JsonConvert.DeserializeObject<ProductListFEResponseModel>(JsonConvert.SerializeObject(data));
                 if (result != null && result.items != null && result.items.Count > 0)
                 {
-                    await UpdateProductDetail(result.items);
+                    result.items_flashsale = JsonConvert.DeserializeObject<List<ProductMongoDbModelFEResponse>>(JsonConvert.SerializeObject(data.items));
+                    await UpdateProductDetail(result.items_flashsale);
                 }
             }
             catch (Exception ex)
@@ -86,9 +96,143 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             }
             return result;
         }
-       private async Task UpdateProductDetail(List<ProductMongoDbModel> products) {
+        public async Task<ProductMongoDbModelFEResponse> GetByID(string id)
+        {
+            ProductMongoDbModelFEResponse result = new ProductMongoDbModelFEResponse();
             try
             {
+                var detail = await _productDetailMongoAccess.GetByID(id);
+                if (detail != null)
+                {
+                    await UpdateProductDetail(detail);
+                }
+            }
+            catch (Exception ex)
+            {
+                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
+                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
+            }
+            return result;
+        }
+        public async Task<ProductDetailResponseModel> GetFullProductById(string id)
+        {
+            ProductDetailResponseModel result = new ProductDetailResponseModel();
+            try
+            {
+                result = await _productDetailMongoAccess.GetFullProductById(id);
+                if (result != null && result.product_main != null && result.product_main._id.Trim() != "")
+                {
+                    result.flashsale_main = JsonConvert.DeserializeObject<ProductMongoDbModelFEResponse>(JsonConvert.SerializeObject(result.product_main));
+                    await UpdateProductDetail(result.flashsale_main);
+                    if (result != null && result.product_sub != null && result.product_sub.Count > 0)
+                    {
+                        result.flashsale_sub = JsonConvert.DeserializeObject<List<ProductMongoDbModelFEResponse>>(JsonConvert.SerializeObject(result.product_sub));
+                        result.flashsale_main.amount_min = result.flashsale_sub.Min(x => x.amount);
+                        result.flashsale_main.amount_max = result.flashsale_sub.Max(x => x.amount);
+
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
+                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
+            }
+            return result;
+        }
+        public async Task<List<ProductMongoDbModelFEResponse>> ListByProducts(List<string> ids)
+        {
+            List<ProductMongoDbModelFEResponse> result = new List<ProductMongoDbModelFEResponse>();
+            try
+            {
+                var list_product_mongo = await _productDetailMongoAccess.ListByProducts(ids);
+                if (list_product_mongo != null && list_product_mongo.Count > 0)
+                {
+                    result = JsonConvert.DeserializeObject<List<ProductMongoDbModelFEResponse>>(JsonConvert.SerializeObject(list_product_mongo));
+                    await UpdateProductDetail(result);
+                }
+            }
+            catch (Exception ex)
+            {
+                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
+                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
+            }
+            return result;
+        }
+        public async Task<ProductMongoDbModelFEResponse> UpdateProductDetail(ProductMongoDbModel product)
+        {
+            ProductMongoDbModelFEResponse item = new ProductMongoDbModelFEResponse();
+            try
+            {
+
+                item = JsonConvert.DeserializeObject<ProductMongoDbModelFEResponse>(JsonConvert.SerializeObject(product));
+                var active_flashsale = await flashSaleESRepository.SearchActiveFlashSales();
+                List<FlashSaleProductESModel> list_item = new List<FlashSaleProductESModel>();
+                var raiting = _raitingESService.GetListByFilter(new Models.Raiting.ProductRaitingRequestModel()
+                {
+                    id = item._id,
+                    has_comment = false,
+                    has_media = false,
+                    page_index = 1,
+                    page_size = 500,
+                    stars = 0
+                });
+                if (raiting != null && raiting.Count > 0)
+                {
+                    var sum_raiting = raiting.Average(x => x.Star);
+                    item.star = sum_raiting == null ? 5 : (float)sum_raiting;
+                    item.review_count = raiting.Count;
+                    item.rating = (sum_raiting == null ? 5 : (float)sum_raiting);
+                }
+                item.total_sold = (item.total_sold == null) ? 0 : (long)item.total_sold;
+                var total_sold = orderDetailESService.SumQuantityByProductId(new List<string>() { item._id });
+                item.total_sold += total_sold;
+                if (active_flashsale != null && active_flashsale.Count > 0 && list_item != null && list_item.Count > 0)
+                {
+                    var exists_flash_sale_product = list_item.FirstOrDefault(x => x.productid == item._id);
+                    if (exists_flash_sale_product != null && exists_flash_sale_product.id != null)
+                    {
+                        var exists_flash_sale = active_flashsale.First(x => x.flashsale_id == exists_flash_sale_product.flashsale_id);
+                        double total_discount = 0;
+                        double percent = Convert.ToDouble(exists_flash_sale_product.discountvalue);
+                        switch (exists_flash_sale_product.valuetype)
+                        {
+                            case 0:
+                                total_discount += ((double)item.amount * Convert.ToDouble(percent / 100));
+                                break;
+                            case 1:
+                                total_discount += percent;
+                                break;
+
+                            default: break;
+                        }
+                        item.exists_flashsale_id = exists_flash_sale.flashsale_id;
+                        item.flash_sale_fromdate = exists_flash_sale.fromdate;
+                        item.flash_sale_todate = exists_flash_sale.todate;
+                        item.exists_flashsale_name = exists_flash_sale.name;
+                        item.amount_after_flashsale = item.amount - total_discount;
+                        item.profit -= total_discount;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
+                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
+            }
+            return item;
+        }
+
+        public async Task UpdateProductDetail(List<ProductMongoDbModelFEResponse> products,string product_flashsale_main_id=null)
+        {
+            try
+            {
+                var active_flashsale = await flashSaleESRepository.SearchActiveFlashSales();
+                List<FlashSaleProductESModel> list_item = new List<FlashSaleProductESModel>();
+                if (active_flashsale != null && active_flashsale.Count > 0)
+                {
+                    list_item = await flashSaleProductESRepository.GetByListFlashsaleId(active_flashsale.Select(x => x.flashsale_id).ToList());
+                }
                 foreach (var item in products)
                 {
                     if (item == null || item._id == null) continue;
@@ -111,6 +255,46 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                     item.total_sold = (item.total_sold == null) ? 0 : (long)item.total_sold;
                     var total_sold = orderDetailESService.SumQuantityByProductId(new List<string>() { item._id });
                     item.total_sold += total_sold;
+                    if (active_flashsale != null && active_flashsale.Count > 0 && list_item != null && list_item.Count > 0)
+                    {
+                        var exists_flash_sale_product = list_item.FirstOrDefault(x => x.productid == (product_flashsale_main_id!=null && product_flashsale_main_id.Trim()!=""? product_flashsale_main_id:item._id));
+                        if (exists_flash_sale_product != null && exists_flash_sale_product.flashsale_id != null)
+                        {
+                            var exists_flash_sale = active_flashsale.First(x => x.flashsale_id == exists_flash_sale_product.flashsale_id);
+                            double total_discount = 0;
+                            double percent = Convert.ToDouble(exists_flash_sale_product.discountvalue);
+                            var amount_product = item.amount;
+                            if (item.amount<=0 && item.amount_min !=null && item.amount_min>0)
+                            {
+                                amount_product = (double)item.amount_min;
+
+                            }
+                            switch (exists_flash_sale_product.valuetype)
+                            {
+                                case 0:
+                                    total_discount += (amount_product * Convert.ToDouble(percent / 100));
+                                    break;
+                                case 1:
+                                    total_discount += percent;
+                                    break;
+
+                                default: break;
+                            }
+                            item.exists_flashsale_id = exists_flash_sale.flashsale_id;
+                            item.flash_sale_fromdate = exists_flash_sale.fromdate;
+                            item.flash_sale_todate = exists_flash_sale.todate;
+                            item.exists_flashsale_name = exists_flash_sale.name;
+                            item.amount_after_flashsale = amount_product - total_discount;
+                            item.profit -= total_discount;
+                            if (item.amount <= 0 && item.amount_min != null && item.amount_min > 0) {
+                                item.amount_min -= total_discount;
+                            }
+                            if (item.amount <= 0 && item.amount_max != null && item.amount_max > 0)
+                            {
+                                item.amount_max -= total_discount;
+                            }
+                        }
+                    }
                 }
             }
             catch (Exception ex)
@@ -119,6 +303,6 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                 LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
             }
 
-       }
+        }
     }
 }

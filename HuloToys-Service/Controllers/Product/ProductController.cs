@@ -324,7 +324,7 @@ namespace WEB.CMS.Controllers
                         msg = "Success",
                         data = new
                         {
-                            result.flashsale_main,
+                            product_main=result.flashsale_main,
                             product_sub= result.flashsale_sub
                         },
                         cert = result.cert,

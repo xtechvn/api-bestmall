@@ -121,16 +121,16 @@ namespace WEB.CMS.Controllers
                     if (request.page_size <= 0) request.page_size = 10;
                     if (request.page_index < 1) request.page_index = 1;
                     // Nếu không lọc theo giá, sử dụng cache Redis
-                    //if (request.price_from <= 0 && request.price_to <= 0)
-                    //{
-                    //    var j_data = await _redisService.GetAsync(cache_name, Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
-                    //    if (j_data != null && j_data.Trim() != "")
-                    //    {
-                    //        result = JsonConvert.DeserializeObject<ProductListFEResponseModel>(j_data);
+                    if (request.price_from <= 0 && request.price_to <= 0)
+                    {
+                        var j_data = await _redisService.GetAsync(cache_name, Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
+                        if (j_data != null && j_data.Trim() != "")
+                        {
+                            result = JsonConvert.DeserializeObject<ProductListFEResponseModel>(j_data);
 
-                    //    }
+                        }
 
-                    //}
+                    }
                     if (result == null || result.items == null || result.items.Count <= 0)
                     {
                         result = await productDetailService.ProductListing(request);
@@ -139,7 +139,7 @@ namespace WEB.CMS.Controllers
                             _redisService.Set(cache_name, JsonConvert.SerializeObject(result), DateTime.Now.AddDays(1), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
                         }
                     }
-                    if (result != null && result.items_flashsale.Count > 0)
+                    if (result != null && result.items_flashsale !=null&& result.items_flashsale.Count > 0)
                     {
                         var list = result.items_flashsale.Select(x => new
                         {
@@ -838,7 +838,7 @@ namespace WEB.CMS.Controllers
                             result = await productDetailService.ProductListingByLabelAndSupplier(request);
                             _redisService.Set(cache_name, JsonConvert.SerializeObject(result), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
                         }
-                        if (result != null && result.items_flashsale.Count > 0)
+                        if (result != null && result.items_flashsale!=null&& result.items_flashsale.Count > 0)
                         {
                             var list = result.items_flashsale.Select(x => new
                             {

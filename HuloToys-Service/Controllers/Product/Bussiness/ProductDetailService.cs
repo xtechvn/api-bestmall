@@ -6,6 +6,7 @@ using HuloToys_Front_End.Models.Products;
 using HuloToys_Service.Controllers.Flashsale.Bussiness;
 using HuloToys_Service.ElasticSearch;
 using HuloToys_Service.Models.APIRequest;
+using HuloToys_Service.Models.Models;
 using HuloToys_Service.Models.Raiting;
 using HuloToys_Service.MongoDb;
 using HuloToys_Service.Utilities.lib;
@@ -17,6 +18,7 @@ using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Reflection;
 using Utilities.Contants;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace HuloToys_Service.Controllers.Product.Bussiness
 {
@@ -104,7 +106,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                 var detail = await _productDetailMongoAccess.GetByID(id);
                 if (detail != null)
                 {
-                    await UpdateProductDetail(detail);
+                    result= await UpdateProductDetail(detail);
                 }
             }
             catch (Exception ex)
@@ -168,6 +170,10 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                 item = JsonConvert.DeserializeObject<ProductMongoDbModelFEResponse>(JsonConvert.SerializeObject(product));
                 var active_flashsale = await flashSaleESRepository.SearchActiveFlashSales();
                 List<FlashSaleProductESModel> list_item = new List<FlashSaleProductESModel>();
+                if (active_flashsale != null && active_flashsale.Count > 0)
+                {
+                    list_item = await flashSaleProductESRepository.GetByListFlashsaleId(active_flashsale.Select(x => x.flashsale_id).ToList());
+                }
                 var raiting = _raitingESService.GetListByFilter(new Models.Raiting.ProductRaitingRequestModel()
                 {
                     id = item._id,
@@ -189,18 +195,24 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                 item.total_sold += total_sold;
                 if (active_flashsale != null && active_flashsale.Count > 0 && list_item != null && list_item.Count > 0)
                 {
-                    var exists_flash_sale_product = list_item.FirstOrDefault(x => x.productid == item._id);
-                    if (exists_flash_sale_product != null && exists_flash_sale_product.id != null)
+                    var exists_flash_sale_product = list_item.FirstOrDefault(x => x.productid == (product.parent_product_id != null && product.parent_product_id.Trim() != "" ? product.parent_product_id : item._id));
+                    if (exists_flash_sale_product != null && exists_flash_sale_product.flashsale_id != null)
                     {
                         var exists_flash_sale = active_flashsale.First(x => x.flashsale_id == exists_flash_sale_product.flashsale_id);
                         double total_discount = 0;
                         double percent = Convert.ToDouble(exists_flash_sale_product.discountvalue);
+                        var amount_product = item.amount;
+                        if (item.amount <= 0 && item.amount_min != null && item.amount_min > 0)
+                        {
+                            amount_product = (double)item.amount_min;
+
+                        }
                         switch (exists_flash_sale_product.valuetype)
                         {
-                            case 0:
-                                total_discount += ((double)item.amount * Convert.ToDouble(percent / 100));
-                                break;
                             case 1:
+                                total_discount += (amount_product * Convert.ToDouble(percent / 100));
+                                break;
+                            case 0:
                                 total_discount += percent;
                                 break;
 
@@ -210,8 +222,16 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                         item.flash_sale_fromdate = exists_flash_sale.fromdate;
                         item.flash_sale_todate = exists_flash_sale.todate;
                         item.exists_flashsale_name = exists_flash_sale.name;
-                        item.amount_after_flashsale = item.amount - total_discount;
+                        item.amount_after_flashsale = amount_product - total_discount;
                         item.profit -= total_discount;
+                        if (item.amount <= 0 && item.amount_min != null && item.amount_min > 0)
+                        {
+                            item.amount_min -= total_discount;
+                        }
+                        if (item.amount <= 0 && item.amount_max != null && item.amount_max > 0)
+                        {
+                            item.amount_max -= total_discount;
+                        }
                     }
                 }
             }
@@ -223,7 +243,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             return item;
         }
 
-        public async Task UpdateProductDetail(List<ProductMongoDbModelFEResponse> products,string product_flashsale_main_id=null)
+        public async Task UpdateProductDetail(List<ProductMongoDbModelFEResponse> products)
         {
             try
             {
@@ -257,7 +277,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                     item.total_sold += total_sold;
                     if (active_flashsale != null && active_flashsale.Count > 0 && list_item != null && list_item.Count > 0)
                     {
-                        var exists_flash_sale_product = list_item.FirstOrDefault(x => x.productid == (product_flashsale_main_id!=null && product_flashsale_main_id.Trim()!=""? product_flashsale_main_id:item._id));
+                        var exists_flash_sale_product = list_item.FirstOrDefault(x => x.productid == (item.parent_product_id != null && item.parent_product_id.Trim() != "" ? item.parent_product_id : item._id));
                         if (exists_flash_sale_product != null && exists_flash_sale_product.flashsale_id != null)
                         {
                             var exists_flash_sale = active_flashsale.First(x => x.flashsale_id == exists_flash_sale_product.flashsale_id);

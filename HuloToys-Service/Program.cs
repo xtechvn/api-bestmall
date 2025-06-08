@@ -1,12 +1,14 @@
 using Entities.ConfigModels;
+using HuloToys_Service.Controllers.IRepositories;
+using HuloToys_Service.Controllers.Product.Bussiness;
+using HuloToys_Service.Controllers.Repositories;
 using HuloToys_Service.IRepositories;
 using HuloToys_Service.Models.Models;
+using HuloToys_Service.MongoDb;
 using HuloToys_Service.RedisWorker;
 using Microsoft.EntityFrameworkCore;
 using Repositories.IRepositories;
 using Repositories.Repositories;
-using HuloToys_Service.Controllers.Repositories;
-using HuloToys_Service.Controllers.IRepositories;
 using REPOSITORIES.IRepositories;
 using REPOSITORIES.Repositories;
 
@@ -49,7 +51,6 @@ internal class Program
         builder.Services.AddDbContext<DataMSContext>(options =>
                 options.UseSqlServer(connectionString));
 
-
         // Register services
         builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
         builder.Services.AddSingleton<IClientRepository, ClientRepository>();
@@ -60,6 +61,8 @@ internal class Program
         builder.Services.AddSingleton<ILabelRepository, LabelRepository>();
         builder.Services.AddSingleton<IAddressClientRepository, AddressClientRepository>();
         builder.Services.AddSingleton<IVoucherRepository, VoucherRepository>();
+        builder.Services.AddSingleton<ProductDetailService>();
+        builder.Services.AddSingleton<ProductDetailMongoAccess>();
 
 
         builder.Services.AddSingleton<RedisConn>();

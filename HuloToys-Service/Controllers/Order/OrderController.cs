@@ -53,7 +53,7 @@ namespace HuloToys_Service.Controllers
         private readonly ProductDetailService productDetailService;
         private readonly IVoucherRepository _voucherRepository;
 
-        public OrderController(IConfiguration _configuration, RedisConn redisService, IVoucherRepository voucherRepository)
+        public OrderController(IConfiguration _configuration, RedisConn redisService, IVoucherRepository voucherRepository, ProductDetailService _productDetailService)
         {
             configuration = _configuration;
 
@@ -72,7 +72,7 @@ namespace HuloToys_Service.Controllers
             clientESService = new ClientESService(_configuration["DataBaseConfig:Elastic:Host"], _configuration);
             shippingBussinessSerice = new ShippingBussinessSerice(_configuration);
             _voucherRepository = voucherRepository;
-            productDetailService = new ProductDetailService(_configuration);
+            productDetailService = _productDetailService;
         }
 
         [HttpPost("history")]

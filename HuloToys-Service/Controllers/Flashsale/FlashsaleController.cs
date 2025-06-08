@@ -49,14 +49,14 @@ namespace HuloToys_Service.Controllers.Flashsale
         private readonly FlashSaleProductESRepository flashSaleProductESRepository;
         private readonly FlashsaleService flashsaleService;
 
-        public FlashsaleController(IConfiguration configuration, RedisConn redisService)
+        public FlashsaleController(IConfiguration configuration, RedisConn redisService, ProductDetailService _productDetailService)
         {
             _productDetailMongoAccess = new ProductDetailMongoAccess(configuration);
             _productSpecificationMongoAccess = new ProductSpecificationMongoAccess(configuration);
             _productFavouritesMongoAccess = new ProductFavouritesMongoAccess(configuration);
             _cartMongodbService = new CartMongodbService(configuration);
             productRaitingService = new ProductRaitingService(configuration);
-            productDetailService = new ProductDetailService(configuration);
+            productDetailService = _productDetailService;
             orderDetailESService = new OrderDetailESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
             groupProductESService = new GroupProductESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
             _raitingESService = new RaitingESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
@@ -76,14 +76,14 @@ namespace HuloToys_Service.Controllers.Flashsale
         {
             try
             {
-                var model_input = new
-                {
-                    id = 2,
-                };
-                input = new APIRequestGenericModel()
-                {
-                    token = CommonHelper.Encode(JsonConvert.SerializeObject(model_input), _configuration["KEY:private_key"])
-                };
+                //var model_input = new
+                //{
+                //    id = 2,
+                //};
+                //input = new APIRequestGenericModel()
+                //{
+                //    token = CommonHelper.Encode(JsonConvert.SerializeObject(model_input), _configuration["KEY:private_key"])
+                //};
 
                 JArray objParr = null;
 

@@ -32,16 +32,17 @@ namespace HuloToys_Service.Controllers
         private readonly ClientServices clientServices;
         private readonly ProductDetailService productDetailService;
 
-        public CartController(IConfiguration configuration)
+        public CartController(IConfiguration configuration, ProductDetailMongoAccess productDetailMongoAccess, ProductDetailService _productDetailService)
         {
             _configuration  = configuration;
             orderMongodbService = new OrderMongodbService(configuration);
             workQueueClient = new WorkQueueClient(configuration);
             _cartMongodbService = new CartMongodbService(configuration);
-            _productDetailMongoAccess = new ProductDetailMongoAccess(configuration);
-            _cartService = new CartService(configuration);
+            _productDetailMongoAccess = productDetailMongoAccess;
             clientServices = new ClientServices(configuration);
-            productDetailService = new ProductDetailService(configuration);
+            productDetailService = _productDetailService;
+            _cartService = new CartService(configuration, _productDetailService);
+
         }
         [HttpPost("add")]
         public async Task<IActionResult> AddToCart([FromBody] APIRequestGenericModel input)

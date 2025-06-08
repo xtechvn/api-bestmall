@@ -235,12 +235,13 @@ namespace WEB.CMS.Controllers
                                 msg = "Success",
                                 data = new
                                 {
-                                    product_main = result.product_main,
-                                    product_sub = result.product_sub
+                                    product_main = result.flashsale_main,
+                                    product_sub = result.flashsale_sub
                                 },
                                 cert = result.cert,
                                 favourite = result.favourite,
-                                buywith = result.product_buy_with_output
+                                buywith = result.product_buy_with_output,
+
                             });
                         }
                     }
@@ -775,7 +776,7 @@ namespace WEB.CMS.Controllers
             {
                 //var model_json = new
                 //{
-                //    label_id = 19,
+                //    label_id = 11,
                 //    page_size = 10,
                 //    page_index = 1
                 //};

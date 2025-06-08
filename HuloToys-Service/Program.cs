@@ -62,7 +62,12 @@ internal class Program
         builder.Services.AddSingleton<IAddressClientRepository, AddressClientRepository>();
         builder.Services.AddSingleton<IVoucherRepository, VoucherRepository>();
         builder.Services.AddSingleton<ProductDetailService>();
+        builder.Services.AddSingleton<ProductRaitingService>();
+        builder.Services.AddSingleton<CartMongodbService>();
+        builder.Services.AddSingleton<OrderMongodbService>();
         builder.Services.AddSingleton<ProductDetailMongoAccess>();
+        builder.Services.AddSingleton<ProductFavouritesMongoAccess>();
+        builder.Services.AddSingleton<ProductSpecificationMongoAccess>();
 
 
         builder.Services.AddSingleton<RedisConn>();

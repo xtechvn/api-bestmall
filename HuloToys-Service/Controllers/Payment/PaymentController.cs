@@ -26,12 +26,12 @@ namespace HuloToys_Service.Controllers
         private readonly VietQRServices _vietQRServices;
         private readonly OrderMongodbService _orderMongodbService;
 
-        public PaymentController(IConfiguration _configuration)
+        public PaymentController(IConfiguration _configuration, OrderMongodbService orderMongodbService)
         {
             configuration = _configuration;
             workQueueClient = new WorkQueueClient(configuration);
             _vietQRServices = new VietQRServices(configuration);
-            _orderMongodbService = new OrderMongodbService(configuration);
+            _orderMongodbService = orderMongodbService;
 
         }
         [HttpPost("qr-code")]

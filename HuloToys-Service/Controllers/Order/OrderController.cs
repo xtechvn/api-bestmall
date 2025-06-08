@@ -53,7 +53,8 @@ namespace HuloToys_Service.Controllers
         private readonly ProductDetailService productDetailService;
         private readonly IVoucherRepository _voucherRepository;
 
-        public OrderController(IConfiguration _configuration, RedisConn redisService, IVoucherRepository voucherRepository, ProductDetailService _productDetailService)
+        public OrderController(IConfiguration _configuration, RedisConn redisService, IVoucherRepository voucherRepository, ProductDetailMongoAccess productDetailMongoAccess,
+            ProductDetailService _productDetailService, CartMongodbService cartMongodbService, OrderMongodbService _orderMongodbService)
         {
             configuration = _configuration;
 
@@ -61,9 +62,8 @@ namespace HuloToys_Service.Controllers
             orderESRepository = new OrderESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
             raitingESService = new RaitingESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
             accountClientESService = new AccountClientESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
-            orderMongodbService = new OrderMongodbService( configuration);
-            _productDetailMongoAccess = new ProductDetailMongoAccess( configuration);
-            _cartMongodbService = new CartMongodbService(configuration);
+            orderMongodbService = _orderMongodbService;
+            _productDetailMongoAccess = productDetailMongoAccess;
             work_queue = new WorkQueueClient(configuration);
             identiferService = new IdentiferService(_configuration);
             _redisService = new RedisConn(configuration);
@@ -73,6 +73,7 @@ namespace HuloToys_Service.Controllers
             shippingBussinessSerice = new ShippingBussinessSerice(_configuration);
             _voucherRepository = voucherRepository;
             productDetailService = _productDetailService;
+            _cartMongodbService = cartMongodbService;
         }
 
         [HttpPost("history")]

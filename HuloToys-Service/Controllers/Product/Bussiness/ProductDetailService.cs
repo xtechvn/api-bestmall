@@ -37,7 +37,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
         private readonly FlashsaleService flashsaleService;
         public ProductDetailService(IConfiguration configuration)
         {
-            _productDetailMongoAccess = new ProductDetailMongoAccess(configuration);
+             _productDetailMongoAccess = new ProductDetailMongoAccess(configuration);
             _cartMongodbService = new CartMongodbService(configuration);
             groupProductESService = new GroupProductESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
             _raitingESService = new RaitingESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
@@ -247,7 +247,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                             amount_product = (double)item.amount_min;
 
                         }
-                        double old_price = item.price;
+                        double old_price = item.old_price ==null ||item.old_price<=0? amount_product: (double)item.old_price;
                         if (old_price <= 0)
                         {
                             old_price = amount_product;
@@ -280,6 +280,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                         }
                         item.discount = Math.Round(((old_price - (double)item.amount_after_flashsale) / old_price * 100), 0);
                         item.discount = item.discount <= 0 ? 0 : item.discount;
+                        item.old_price = old_price;
                     }
                 }
             }

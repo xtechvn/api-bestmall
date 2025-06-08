@@ -15,11 +15,11 @@ namespace HuloToys_Service.Controllers.Cart.Business
         private readonly IConfiguration _configuration;
         private readonly CartMongodbService _cartMongodbService;
         private readonly ProductDetailService productDetailService;
-        public CartService(IConfiguration configuration,ProductDetailService _productDetailService)
+        public CartService(IConfiguration configuration,ProductDetailService _productDetailService, CartMongodbService cartMongodbService)
         {
             _configuration = configuration;
 
-            _cartMongodbService = new CartMongodbService(configuration);
+            _cartMongodbService = cartMongodbService;
             productDetailService = _productDetailService;
         }
         public async Task<List<CartItemMongoDbModel>> GetList(long account_client_id)

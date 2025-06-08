@@ -49,7 +49,7 @@ namespace WEB.CMS.Controllers
         private readonly RedisConn _redisService;
         private readonly GroupProductESService groupProductESService;
         private readonly ProductRaitingService productRaitingService;
-        private readonly ProductDetailService productDetailService;
+        private readonly ProductDetailService _productDetailService;
         private readonly ProductESRepository _productESRepository;
         private readonly AttachFileESModelESRepository attachFileESModelESRepository;
         private readonly ProductFavouritesMongoAccess _productFavouritesMongoAccess;
@@ -60,14 +60,14 @@ namespace WEB.CMS.Controllers
         private readonly FlashSaleESRepository flashSaleESRepository;
         private readonly FlashSaleProductESRepository flashSaleProductESRepository;
         private readonly FlashsaleService flashsaleService;
-        public ProductController(IConfiguration configuration, RedisConn redisService, ILabelRepository labelRepository, DataMSContext dbContext)
+        public ProductController(IConfiguration configuration, RedisConn redisService, ILabelRepository labelRepository, DataMSContext dbContext, ProductRaitingService _productRaitingService
+            , ProductDetailService productDetailService, ProductDetailMongoAccess productDetailMongoAccess, ProductFavouritesMongoAccess productFavouritesMongoAccess)
         {
-            _productDetailMongoAccess = new ProductDetailMongoAccess(configuration);
+            _productDetailMongoAccess = productDetailMongoAccess;
             _productSpecificationMongoAccess = new ProductSpecificationMongoAccess(configuration);
-            _productFavouritesMongoAccess = new ProductFavouritesMongoAccess(configuration);
+            _productFavouritesMongoAccess = productFavouritesMongoAccess;
             _cartMongodbService = new CartMongodbService(configuration);
-            productRaitingService = new ProductRaitingService(configuration);
-            productDetailService = new ProductDetailService(configuration);
+            _productDetailService = productDetailService;
             orderDetailESService = new OrderDetailESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
             groupProductESService = new GroupProductESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
             _raitingESService = new RaitingESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
@@ -79,6 +79,7 @@ namespace WEB.CMS.Controllers
             _redisService.Connect();
             _newsBusiness = new NewsBusiness(configuration, dbContext);
             _labelRepository = labelRepository;
+            productRaitingService=_productRaitingService;
 
         }
 
@@ -133,7 +134,7 @@ namespace WEB.CMS.Controllers
                     }
                     if (result == null || result.items == null || result.items.Count <= 0)
                     {
-                        result = await productDetailService.ProductListing(request);
+                        result = await _productDetailService.ProductListing(request);
                         if (request.price_from <= 0 && request.price_to <= 0 && result != null && result.items.Count > 0)
                         {
                             _redisService.Set(cache_name, JsonConvert.SerializeObject(result), DateTime.Now.AddDays(1), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
@@ -245,7 +246,7 @@ namespace WEB.CMS.Controllers
                             });
                         }
                     }
-                    result  = await productDetailService.GetFullProductById(request.id);
+                    result  = await _productDetailService.GetFullProductById(request.id);
                     if (result == null || result.product_main == null || (result.product_main != null && result.product_main.status != (int)ProductStatus.ACTIVE))
                     {
                         return Ok(new
@@ -697,7 +698,7 @@ namespace WEB.CMS.Controllers
                         if (result == null || result.items == null || result.items.Count <= 0)
                         {
                             request.label_id = -1;
-                            result = await productDetailService.ProductListingByLabelAndSupplier(request);
+                            result = await _productDetailService.ProductListingByLabelAndSupplier(request);
                         }
                         if (result != null && result.items.Count > 0)
                         {
@@ -736,7 +737,7 @@ namespace WEB.CMS.Controllers
                             });
                         }
                     }
-                    result = await productDetailService.ProductListingByLabelAndSupplier(request);
+                    result = await _productDetailService.ProductListingByLabelAndSupplier(request);
                     if (result != null && result.items.Count > 0)
                     {
                         return Ok(new
@@ -836,7 +837,7 @@ namespace WEB.CMS.Controllers
                         if (result == null || result.items == null || result.items.Count <= 0)
                         {
                             request.supplier_id = -1;
-                            result = await productDetailService.ProductListingByLabelAndSupplier(request);
+                            result = await _productDetailService.ProductListingByLabelAndSupplier(request);
                             _redisService.Set(cache_name, JsonConvert.SerializeObject(result), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
                         }
                         if (result != null && result.items_flashsale!=null&& result.items_flashsale.Count > 0)
@@ -884,7 +885,7 @@ namespace WEB.CMS.Controllers
                             });
                         }
                     }
-                    result = await productDetailService.ProductListingByLabelAndSupplier(request);
+                    result = await _productDetailService.ProductListingByLabelAndSupplier(request);
                     if (result != null && result.items.Count > 0)
                     {
                         var list = result.items_flashsale.Select(x => new
@@ -1044,7 +1045,7 @@ namespace WEB.CMS.Controllers
                             msg = ResponseMessages.DataInvalid
                         });
                     }
-                    var detail = await productDetailService.GetByID(request.product_id);
+                    var detail = await _productDetailService.GetByID(request.product_id);
                     if (detail == null || detail._id == null)
                     {
                         return Ok(new
@@ -1170,7 +1171,7 @@ namespace WEB.CMS.Controllers
                     var list = await _productESRepository.SearchByKeywordAsync(rawKeyword, normalizedKeyword);
                     if (list != null && list.Count > 0)
                     {
-                        var list_product_mongo = await productDetailService.ListByProducts(list.Select(x => x.product_id).ToList());
+                        var list_product_mongo = await _productDetailService.ListByProducts(list.Select(x => x.product_id).ToList());
                         var list_data = list_product_mongo.Select(x => new
                         {
                             x._id,

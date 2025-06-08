@@ -49,12 +49,14 @@ namespace HuloToys_Service.Controllers.Flashsale
         private readonly FlashSaleProductESRepository flashSaleProductESRepository;
         private readonly FlashsaleService flashsaleService;
 
-        public FlashsaleController(IConfiguration configuration, RedisConn redisService, ProductDetailService _productDetailService)
+        public FlashsaleController(IConfiguration configuration, RedisConn redisService, ProductDetailService _productDetailService, CartMongodbService cartMongodbService
+            , ProductFavouritesMongoAccess productFavouritesMongoAccess, ProductSpecificationMongoAccess productSpecificationMongoAccess,
+            ProductDetailMongoAccess productDetailMongoAccess)
         {
-            _productDetailMongoAccess = new ProductDetailMongoAccess(configuration);
-            _productSpecificationMongoAccess = new ProductSpecificationMongoAccess(configuration);
-            _productFavouritesMongoAccess = new ProductFavouritesMongoAccess(configuration);
-            _cartMongodbService = new CartMongodbService(configuration);
+            _productDetailMongoAccess = productDetailMongoAccess;
+            _productSpecificationMongoAccess = productSpecificationMongoAccess;
+            _productFavouritesMongoAccess = productFavouritesMongoAccess;
+            _cartMongodbService = cartMongodbService;
             productRaitingService = new ProductRaitingService(configuration);
             productDetailService = _productDetailService;
             orderDetailESService = new OrderDetailESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
@@ -72,18 +74,18 @@ namespace HuloToys_Service.Controllers.Flashsale
         }
         [HttpPost("get-by-id")]
 
-        public async Task<IActionResult> ListingByFlashSaleId ([FromBody] APIRequestGenericModel input)
+        public async Task<IActionResult> ListingByFlashSaleId([FromBody] APIRequestGenericModel input)
         {
             try
             {
-                //var model_input = new
-                //{
-                //    id = 2,
-                //};
-                //input = new APIRequestGenericModel()
-                //{
-                //    token = CommonHelper.Encode(JsonConvert.SerializeObject(model_input), _configuration["KEY:private_key"])
-                //};
+                var model_input = new
+                {
+                    id = 2,
+                };
+                input = new APIRequestGenericModel()
+                {
+                    token = CommonHelper.Encode(JsonConvert.SerializeObject(model_input), _configuration["KEY:private_key"])
+                };
 
                 JArray objParr = null;
 
@@ -134,7 +136,7 @@ namespace HuloToys_Service.Controllers.Flashsale
                             if (selected == null) continue;
                             list_output.Add(new FlashSaleProductResposeModel()
                             {
-                                amount = ((selected.amount_min != null && selected.amount_min > 0) ? (double)selected.amount_min : selected.amount),
+                                amount = ((selected.old_price != null && selected.old_price > 0) ? (double)selected.old_price : (selected.amount_min!=null && selected.amount_min>0? (double)selected.amount_min:selected.amount )),
                                 amount_after_flashsale = selected.amount_after_flashsale,
                                 discountvalue = order.discountvalue,
                                 position = order.position,

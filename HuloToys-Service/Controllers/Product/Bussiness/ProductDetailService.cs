@@ -291,10 +291,10 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                             }
                             switch (exists_flash_sale_product.valuetype)
                             {
-                                case 0:
+                                case 1:
                                     total_discount += (amount_product * Convert.ToDouble(percent / 100));
                                     break;
-                                case 1:
+                                case 0:
                                     total_discount += percent;
                                     break;
 

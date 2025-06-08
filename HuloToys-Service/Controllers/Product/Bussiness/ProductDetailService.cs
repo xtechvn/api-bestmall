@@ -321,6 +321,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                                 item.amount_max -= total_discount;
                             }
                             item.discount = Math.Round(((old_price - (double)item.amount_after_flashsale) / old_price * 100),0);
+                            item.discount = item.discount <= 0 ? 0 : item.discount;
                         }
                     }
                 }

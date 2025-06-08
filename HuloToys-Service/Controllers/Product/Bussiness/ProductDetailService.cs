@@ -282,12 +282,18 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                         {
                             var exists_flash_sale = active_flashsale.First(x => x.flashsale_id == exists_flash_sale_product.flashsale_id);
                             double total_discount = 0;
+                           
                             double percent = Convert.ToDouble(exists_flash_sale_product.discountvalue);
                             var amount_product = item.amount;
                             if (item.amount<=0 && item.amount_min !=null && item.amount_min>0)
                             {
                                 amount_product = (double)item.amount_min;
 
+                            }
+                            double old_price = item.price;
+                            if (old_price <= 0)
+                            {
+                                old_price = amount_product;
                             }
                             switch (exists_flash_sale_product.valuetype)
                             {
@@ -300,6 +306,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
 
                                 default: break;
                             }
+                            total_discount = Math.Round(total_discount, 0);
                             item.exists_flashsale_id = exists_flash_sale.flashsale_id;
                             item.flash_sale_fromdate = exists_flash_sale.fromdate;
                             item.flash_sale_todate = exists_flash_sale.todate;
@@ -313,6 +320,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                             {
                                 item.amount_max -= total_discount;
                             }
+                            item.discount = Math.Round(((old_price - (double)item.amount_after_flashsale) / old_price * 100),0);
                         }
                     }
                 }

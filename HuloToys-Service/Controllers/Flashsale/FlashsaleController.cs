@@ -1,24 +1,28 @@
 ﻿using Caching.Elasticsearch;
+using Caching.Elasticsearch.FlashSale;
+using Elasticsearch.Net;
 using HuloToys_Front_End.Models.Products;
 using HuloToys_Service.Controllers.Client.Business;
+using HuloToys_Service.Controllers.Flashsale.Bussiness;
 using HuloToys_Service.Controllers.Product.Bussiness;
 using HuloToys_Service.ElasticSearch;
 using HuloToys_Service.Models.APIRequest;
-using HuloToys_Service.MongoDb;
-using HuloToys_Service.RedisWorker;
-using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json.Linq;
-using System.Reflection;
-using Utilities.Contants;
-using Utilities;
-using Newtonsoft.Json;
-using Nest;
-using System.Collections.Generic;
-using HuloToys_Service.Utilities.Lib;
-using Caching.Elasticsearch.FlashSale;
 using HuloToys_Service.Models.Flashsale;
 using HuloToys_Service.Models.Models;
-using HuloToys_Service.Controllers.Flashsale.Bussiness;
+using HuloToys_Service.MongoDb;
+using HuloToys_Service.RedisWorker;
+using HuloToys_Service.Utilities.Lib;
+using Microsoft.AspNetCore.Mvc;
+using Nest;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.Reflection;
+using System.Security.Cryptography;
+using Utilities;
+using Utilities.Contants;
+using static MongoDB.Driver.WriteConcern;
 
 namespace HuloToys_Service.Controllers.Flashsale
 {
@@ -72,14 +76,14 @@ namespace HuloToys_Service.Controllers.Flashsale
         {
             try
             {
-                //var model_input = new
-                //{
-                //    id = 2,
-                //};
-                //input = new APIRequestGenericModel()
-                //{
-                //    token = CommonHelper.Encode(JsonConvert.SerializeObject(model_input), _configuration["KEY:private_key"])
-                //};
+                var model_input = new
+                {
+                    id = 2,
+                };
+                input = new APIRequestGenericModel()
+                {
+                    token = CommonHelper.Encode(JsonConvert.SerializeObject(model_input), _configuration["KEY:private_key"])
+                };
 
                 JArray objParr = null;
 
@@ -114,17 +118,40 @@ namespace HuloToys_Service.Controllers.Flashsale
                     }
                     list = list.OrderBy(x => x.position).ToList();
                     var product_mongo = await productDetailService.ListByProducts(list.Select(x => x.productid).ToList());
-                    List<FlashSaleProductResposeModel> combinedList = [.. list
-                        .Join(product_mongo, // List thứ hai để join
-                              fsp => fsp.productid, // Khóa từ list đầu tiên
-                              p => p._id,     // Khóa từ list thứ hai
-                              (fsp, p) => flashsaleService.CombineModel(fsp,p)) // Tạo đối tượng mới
-                        .OrderBy(fspc => fspc.position)];
+                    //List<FlashSaleProductResposeModel> combinedList = [.. list
+                    //    .Join(product_mongo, // List thứ hai để join
+                    //          fsp => fsp.productid, // Khóa từ list đầu tiên
+                    //          p => p._id,     // Khóa từ list thứ hai
+                    //          (fsp, p) => flashsaleService.CombineModel(fsp,p)) // Tạo đối tượng mới
+                    //    .OrderBy(fspc => fspc.position)];
+                    
+                    var list_output = new List<FlashSaleProductResposeModel>();
+                    if(product_mongo != null && product_mongo.Count>0)
+                    {
+                        foreach (var order in list)
+                        {
+                            var selected = product_mongo.FirstOrDefault(x => x._id == order.productid);
+                            if (selected == null) continue;
+                            list_output.Add(new FlashSaleProductResposeModel()
+                            {
+                                amount = ((selected.amount_min != null && selected.amount_min > 0) ? (double)selected.amount_min : selected.amount),
+                                amount_after_flashsale = selected.amount_after_flashsale,
+                                discountvalue = order.discountvalue,
+                                position = order.position,
+                                total_discount = selected.discount,
+                                valuetype = order.valuetype,
+                                _id = selected._id,
+                                avatar = selected.avatar,
+                                name = selected.name,
+                                code = selected.code
+                            });
+                        }
+                    }
                     return Ok(new
                     {
                         status = (int)ResponseType.SUCCESS,
                         msg = ResponseMessages.Success,
-                        data = combinedList
+                        data = list_output
                     });
                 }
                 return Ok(new

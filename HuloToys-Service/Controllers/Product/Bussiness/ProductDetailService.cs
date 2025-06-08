@@ -63,8 +63,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                 result = JsonConvert.DeserializeObject<ProductListFEResponseModel>(JsonConvert.SerializeObject(data));
                 if (result != null && result.items != null && result.items.Count > 0)
                 {
-                    result.items_flashsale= JsonConvert.DeserializeObject<List<ProductMongoDbModelFEResponse>>(JsonConvert.SerializeObject(data.items));
-                    await UpdateProductDetail(result.items_flashsale);
+                    result.items_flashsale= await UpdateProductDetail(data.items);
                 }
             }
             catch (Exception ex)
@@ -87,8 +86,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                 result = JsonConvert.DeserializeObject<ProductListFEResponseModel>(JsonConvert.SerializeObject(data));
                 if (result != null && result.items != null && result.items.Count > 0)
                 {
-                    result.items_flashsale = JsonConvert.DeserializeObject<List<ProductMongoDbModelFEResponse>>(JsonConvert.SerializeObject(data.items));
-                    await UpdateProductDetail(result.items_flashsale);
+                    result.items_flashsale = await UpdateProductDetail(data.items);
                 }
             }
             catch (Exception ex)
@@ -124,11 +122,11 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                 result = await _productDetailMongoAccess.GetFullProductById(id);
                 if (result != null && result.product_main != null && result.product_main._id.Trim() != "")
                 {
-                    result.flashsale_main = JsonConvert.DeserializeObject<ProductMongoDbModelFEResponse>(JsonConvert.SerializeObject(result.product_main));
-                    await UpdateProductDetail(result.flashsale_main);
+                    result.flashsale_main=await UpdateProductDetail(result.product_main);
                     if (result != null && result.product_sub != null && result.product_sub.Count > 0)
                     {
-                        result.flashsale_sub = JsonConvert.DeserializeObject<List<ProductMongoDbModelFEResponse>>(JsonConvert.SerializeObject(result.product_sub));
+                        result.flashsale_sub = await UpdateProductDetail(result.product_sub);
+
                         result.flashsale_main.amount_min = result.flashsale_sub.Min(x => x.amount);
                         result.flashsale_main.amount_max = result.flashsale_sub.Max(x => x.amount);
 
@@ -150,8 +148,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                 var list_product_mongo = await _productDetailMongoAccess.ListByProducts(ids);
                 if (list_product_mongo != null && list_product_mongo.Count > 0)
                 {
-                    result = JsonConvert.DeserializeObject<List<ProductMongoDbModelFEResponse>>(JsonConvert.SerializeObject(list_product_mongo));
-                    await UpdateProductDetail(result);
+                    result =  await UpdateProductDetail(list_product_mongo);
                 }
             }
             catch (Exception ex)
@@ -185,19 +182,23 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             return item;
         }
 
-        public async Task UpdateProductDetail(List<ProductMongoDbModelFEResponse> products)
+        public async Task<List<ProductMongoDbModelFEResponse>> UpdateProductDetail(List<ProductMongoDbModel> products_original)
         {
+            List<ProductMongoDbModelFEResponse> products=new List<ProductMongoDbModelFEResponse> ();
             try
             {
+                products=JsonConvert.DeserializeObject<List<ProductMongoDbModelFEResponse>>(JsonConvert.SerializeObject(products_original));
+                if (products == null || products.Count <= 0) return products;
                 var active_flashsale = await flashSaleESRepository.SearchActiveFlashSales();
                 List<FlashSaleProductESModel> list_item = new List<FlashSaleProductESModel>();
                 if (active_flashsale != null && active_flashsale.Count > 0)
                 {
                     list_item = await flashSaleProductESRepository.GetByListFlashsaleId(active_flashsale.Select(x => x.flashsale_id).ToList());
                 }
+                List<ProductMongoDbModelFEResponse> output=new List<ProductMongoDbModelFEResponse>();
                 foreach (var item in products)
                 {
-                   UpdateProductItem(item,active_flashsale,list_item);
+                    UpdateProductItem(item, active_flashsale, list_item);
                 }
             }
             catch (Exception ex)
@@ -205,7 +206,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
                 LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
             }
-
+            return products;
         }
         private bool UpdateProductItem(ProductMongoDbModelFEResponse item, List<FlashSaleESModel> active_flashsale, List<FlashSaleProductESModel> list_item)
         {
@@ -281,14 +282,14 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                         item.discount = item.discount <= 0 ? 0 : item.discount;
                     }
                 }
-                return true;
             }
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
                 LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
+                return false;
             }
-            return false;
+            return true;
         }
 
     }

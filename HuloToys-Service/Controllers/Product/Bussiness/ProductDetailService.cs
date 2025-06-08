@@ -127,8 +127,8 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                     {
                         result.flashsale_sub = await UpdateProductDetail(result.product_sub);
 
-                        result.flashsale_main.amount_min = result.flashsale_sub.Min(x => x.amount);
-                        result.flashsale_main.amount_max = result.flashsale_sub.Max(x => x.amount);
+                        result.flashsale_main.amount_min = result.flashsale_sub.Min(x => (x.amount_after_flashsale!=null&& x.amount_after_flashsale>0 ? x.amount_after_flashsale: x.amount));
+                        result.flashsale_main.amount_max = result.flashsale_sub.Max(x => (x.amount_after_flashsale != null && x.amount_after_flashsale > 0 ? x.amount_after_flashsale : x.amount));
 
                     }
                 }

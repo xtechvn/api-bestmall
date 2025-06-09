@@ -285,7 +285,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                         }
                         item.discount = Math.Round(((old_price - (double)item.amount_after_flashsale) / old_price * 100), 0);
                         item.discount = item.discount <= 0 ? 0 : item.discount;
-                        item.price = amount_product- item.profit;
+                        //item.price = amount_product- item.profit;
                         item.old_price = old_price;
                         item.amount_after_flashsale = NumberHelpers.RoundUpToHundredsDouble((double)item.amount_after_flashsale);
                         item.profit = NumberHelpers.RoundUpToHundredsDouble((double)item.profit);

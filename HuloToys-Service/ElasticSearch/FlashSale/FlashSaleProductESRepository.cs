@@ -60,16 +60,24 @@ namespace Caching.Elasticsearch.FlashSale
         }
         public async Task<List<FlashSaleProductESModel>> GetByFlashsaleId(int flashsale_id)
         {
-            var now = DateTime.Now; 
+            var now = DateTime.Now;
 
             var response = await _client.SearchAsync<FlashSaleProductESModel>(s => s
-                .Query(q => q
-                    .Term(t => t
-                                .Field(f => f.flashsale_id)
-                                .Value(flashsale_id)
-                                )
-                )
-            );
+                 .Query(q => q
+                     .Bool(b => b // Sử dụng Bool query để kết hợp nhiều điều kiện
+                         .Must(
+                             m => m.Term(t => t
+                                 .Field(f => f.flashsale_id)
+                                 .Value(flashsale_id)
+                             ),
+                             m => m.Term(t => t // Thêm điều kiện status = 1
+                                 .Field(f => f.status) // Giả sử tên trường là "status"
+                                 .Value(1)
+                             )
+                         )
+                     )
+                 )
+             );
 
             if (response.IsValid)
             {

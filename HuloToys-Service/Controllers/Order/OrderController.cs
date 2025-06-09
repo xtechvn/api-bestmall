@@ -40,7 +40,7 @@ namespace HuloToys_Service.Controllers
         private readonly WorkQueueClient workQueueClient;
         private readonly OrderESService orderESRepository;
         private readonly OrderMongodbService orderMongodbService;
-        private readonly ProductDetailMongoAccess _productDetailMongoAccess;
+       // private readonly ProductDetailMongoAccess _productDetailMongoAccess;
         private readonly AccountClientESService accountClientESService;
         private readonly CartMongodbService _cartMongodbService;
         private readonly WorkQueueClient work_queue;
@@ -53,7 +53,7 @@ namespace HuloToys_Service.Controllers
         private readonly ProductDetailService productDetailService;
         private readonly IVoucherRepository _voucherRepository;
 
-        public OrderController(IConfiguration _configuration, RedisConn redisService, IVoucherRepository voucherRepository, ProductDetailMongoAccess productDetailMongoAccess,
+        public OrderController(IConfiguration _configuration, RedisConn redisService, IVoucherRepository voucherRepository, /*ProductDetailMongoAccess productDetailMongoAccess,*/
             ProductDetailService _productDetailService, CartMongodbService cartMongodbService, OrderMongodbService _orderMongodbService)
         {
             configuration = _configuration;
@@ -63,7 +63,7 @@ namespace HuloToys_Service.Controllers
             raitingESService = new RaitingESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
             accountClientESService = new AccountClientESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
             orderMongodbService = _orderMongodbService;
-            _productDetailMongoAccess = productDetailMongoAccess;
+            //_productDetailMongoAccess = productDetailMongoAccess;
             work_queue = new WorkQueueClient(configuration);
             identiferService = new IdentiferService(_configuration);
             _redisService = new RedisConn(configuration);
@@ -550,7 +550,7 @@ namespace HuloToys_Service.Controllers
                         {
                             cart.product= await productDetailService.GetByID(cart.product._id);
                             var amount_product = cart.product.amount;
-                            if(cart.product.flash_sale_todate>=DateTime.Now && cart.product.amount_after_flashsale!=null&& cart.product.amount_after_flashsale > 0)
+                            if(cart.product.flash_sale_todate!=null &&cart.product.flash_sale_todate>=DateTime.Now && cart.product.amount_after_flashsale!=null&& cart.product.amount_after_flashsale > 0)
                             {
                                 amount_product = (double)cart.product.amount_after_flashsale;
 
@@ -672,7 +672,7 @@ namespace HuloToys_Service.Controllers
                     }
                     var account_client = accountClientESService.GetById(account_client_id);
                     string main_product_id = request.product_id;
-                    var product = await _productDetailMongoAccess.GetByID(request.product_id);
+                    var product = await productDetailService.GetByID(request.product_id);
                     if(product!=null && product.parent_product_id!=null && product.parent_product_id.Trim() != "")
                     {
                         main_product_id=product.parent_product_id;

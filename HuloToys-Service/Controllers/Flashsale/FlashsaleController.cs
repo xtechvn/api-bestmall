@@ -1,28 +1,20 @@
 ﻿using Caching.Elasticsearch;
 using Caching.Elasticsearch.FlashSale;
-using Elasticsearch.Net;
-using HuloToys_Front_End.Models.Products;
 using HuloToys_Service.Controllers.Client.Business;
 using HuloToys_Service.Controllers.Flashsale.Bussiness;
 using HuloToys_Service.Controllers.Product.Bussiness;
 using HuloToys_Service.ElasticSearch;
 using HuloToys_Service.Models.APIRequest;
 using HuloToys_Service.Models.Flashsale;
-using HuloToys_Service.Models.Models;
 using HuloToys_Service.MongoDb;
 using HuloToys_Service.RedisWorker;
 using HuloToys_Service.Utilities.Lib;
 using Microsoft.AspNetCore.Mvc;
-using Nest;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
 using System.Reflection;
-using System.Security.Cryptography;
 using Utilities;
 using Utilities.Contants;
-using static MongoDB.Driver.WriteConcern;
 
 namespace HuloToys_Service.Controllers.Flashsale
 {
@@ -31,7 +23,7 @@ namespace HuloToys_Service.Controllers.Flashsale
 
     public class FlashsaleController : ControllerBase
     {
-        private readonly ProductDetailMongoAccess _productDetailMongoAccess;
+        //private readonly ProductDetailMongoAccess _productDetailMongoAccess;
         private readonly ProductSpecificationMongoAccess _productSpecificationMongoAccess;
         private readonly CartMongodbService _cartMongodbService;
         private readonly RaitingESService _raitingESService;
@@ -50,10 +42,9 @@ namespace HuloToys_Service.Controllers.Flashsale
         private readonly FlashsaleService flashsaleService;
 
         public FlashsaleController(IConfiguration configuration, RedisConn redisService, ProductDetailService _productDetailService, CartMongodbService cartMongodbService
-            , ProductFavouritesMongoAccess productFavouritesMongoAccess, ProductSpecificationMongoAccess productSpecificationMongoAccess,
-            ProductDetailMongoAccess productDetailMongoAccess)
+            , ProductFavouritesMongoAccess productFavouritesMongoAccess, ProductSpecificationMongoAccess productSpecificationMongoAccess/*,ProductDetailMongoAccess productDetailMongoAccess*/)
         {
-            _productDetailMongoAccess = productDetailMongoAccess;
+           // _productDetailMongoAccess = productDetailMongoAccess;
             _productSpecificationMongoAccess = productSpecificationMongoAccess;
             _productFavouritesMongoAccess = productFavouritesMongoAccess;
             _cartMongodbService = cartMongodbService;
@@ -78,14 +69,14 @@ namespace HuloToys_Service.Controllers.Flashsale
         {
             try
             {
-                var model_input = new
-                {
-                    id = 2,
-                };
-                input = new APIRequestGenericModel()
-                {
-                    token = CommonHelper.Encode(JsonConvert.SerializeObject(model_input), _configuration["KEY:private_key"])
-                };
+                //var model_input = new
+                //{
+                //    id = 2,
+                //};
+                //input = new APIRequestGenericModel()
+                //{
+                //    token = CommonHelper.Encode(JsonConvert.SerializeObject(model_input), _configuration["KEY:private_key"])
+                //};
 
                 JArray objParr = null;
 
@@ -145,7 +136,10 @@ namespace HuloToys_Service.Controllers.Flashsale
                                 _id = selected._id,
                                 avatar = selected.avatar,
                                 name = selected.name,
-                                code = selected.code
+                                code = selected.code,
+                                rating=selected.rating,
+                                review_count=selected.review_count,
+                                total_sold=selected.total_sold
                             });
                         }
                     }

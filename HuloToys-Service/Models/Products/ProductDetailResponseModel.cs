@@ -3,16 +3,21 @@ using Entities.ViewModels.Products;
 
 namespace HuloToys_Front_End.Models.Products
 {
+    public class ProductDetailResponseDbModel
+    {
+        public ProductMongoDbModel product_main { get; set; }
+        public List<ProductMongoDbModel> product_sub { get; set; }
+       
+
+    }
     public class ProductDetailResponseModel
     {
-       public ProductMongoDbModel product_main { get; set; }
-       public List<ProductMongoDbModel> product_sub { get; set; }
+       public ProductMongoDbModelFEResponse product_main { get; set; }
+       public List<ProductMongoDbModelFEResponse> product_sub { get; set; }
         public ProductDetailResponseModelCertificate cert { get; set; }
         public ProductDetailResponseModelFavourite favourite { get; set; }
-        public List<ProductMongoDbModel> product_buy_with { get; set; }
+        public List<ProductMongoDbModelFEResponse> product_buy_with { get; set; }
         public List<ProductDetailResponseModelProductBuyWith> product_buy_with_output { get; set; }
-        public ProductMongoDbModelFEResponse flashsale_main { get; set; }
-        public List<ProductMongoDbModelFEResponse>  flashsale_sub { get; set; }
 
     }
     public class ProductDetailResponseModelCertificate {
@@ -39,6 +44,11 @@ namespace HuloToys_Front_End.Models.Products
 
         public string avatar { get; set; }
         public string variation_detail { get; set; }
+        public int? exists_flashsale_id { get; set; }
+        public string exists_flashsale_name { get; set; }
+        public double? amount_after_flashsale { get; set; }
+        public DateTime? flash_sale_fromdate { get; set; }
+        public DateTime? flash_sale_todate { get; set; }
 
     }
 }

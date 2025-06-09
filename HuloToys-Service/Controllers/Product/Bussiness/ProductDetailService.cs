@@ -17,6 +17,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Reflection;
+using Utilities;
 using Utilities.Contants;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -50,9 +51,9 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             flashsaleService = new FlashsaleService(configuration);
 
         }
-        public async Task<ProductListFEResponseModel> ProductListing(ProductListRequestModel request)
+        public async Task<ProductListResponseFEModel> ProductListing(ProductListRequestModel request)
         {
-            ProductListFEResponseModel result = new ProductListFEResponseModel();
+            ProductListResponseFEModel result = new ProductListResponseFEModel();
             try
             {
                 // Chuẩn hóa từ khóa tìm kiếm
@@ -60,10 +61,10 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
 
 
                 var data = await _productDetailMongoAccess.ResponseListing(request.keyword, request.group_id, request.page_index, request.page_size, request.price_from, request.price_to, request.rating);
-                result = JsonConvert.DeserializeObject<ProductListFEResponseModel>(JsonConvert.SerializeObject(data));
-                if (result != null && result.items != null && result.items.Count > 0)
+                if (data != null && data.items != null && data.items.Count > 0)
                 {
-                    result.items_flashsale= await UpdateProductDetail(data.items);
+                    result = JsonConvert.DeserializeObject<ProductListResponseFEModel>(JsonConvert.SerializeObject(data));
+                    result.items= await UpdateProductDetail(data.items);
                 }
             }
             catch (Exception ex)
@@ -73,9 +74,9 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             }
             return result;
         }
-        public async Task<ProductListFEResponseModel> ProductListingByLabelAndSupplier(ProductListByIdRequestModel request)
+        public async Task<ProductListResponseFEModel> ProductListingByLabelAndSupplier(ProductListByIdRequestModel request)
         {
-            ProductListFEResponseModel result = new ProductListFEResponseModel();
+            ProductListResponseFEModel result = new ProductListResponseFEModel();
             try
             {
                 // Chuẩn hóa từ khóa tìm kiếm
@@ -83,10 +84,10 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
 
 
                 var data = await _productDetailMongoAccess.ResponseListing(request.keyword, request.group_id, request.page_index, request.page_size, request.price_from, request.price_to, request.rating, request.supplier_id, request.label_id);
-                result = JsonConvert.DeserializeObject<ProductListFEResponseModel>(JsonConvert.SerializeObject(data));
+                result = JsonConvert.DeserializeObject<ProductListResponseFEModel>(JsonConvert.SerializeObject(data));
                 if (result != null && result.items != null && result.items.Count > 0)
                 {
-                    result.items_flashsale = await UpdateProductDetail(data.items);
+                    result.items = await UpdateProductDetail(data.items);
                 }
             }
             catch (Exception ex)
@@ -104,7 +105,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                 var detail = await _productDetailMongoAccess.GetByID(id);
                 if (detail != null)
                 {
-                    result= await UpdateProductDetail(detail);
+                    result = await UpdateProductDetail(detail);
                 }
             }
             catch (Exception ex)
@@ -119,18 +120,18 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             ProductDetailResponseModel result = new ProductDetailResponseModel();
             try
             {
-                result = await _productDetailMongoAccess.GetFullProductById(id);
-                if (result != null && result.product_main != null && result.product_main._id.Trim() != "")
+                var data = await _productDetailMongoAccess.GetFullProductById(id);
+                if (data != null && data.product_main != null && data.product_main._id.Trim() != "")
                 {
-                    result.flashsale_main=await UpdateProductDetail(result.product_main);
-                    if (result != null && result.product_sub != null && result.product_sub.Count > 0)
+                    result = JsonConvert.DeserializeObject<ProductDetailResponseModel>(JsonConvert.SerializeObject(data));
+                    result.product_main=await UpdateProductDetail(result.product_main);
+                    if(data.product_sub!=null && data.product_sub.Count > 0)
                     {
-                        result.flashsale_sub = await UpdateProductDetail(result.product_sub);
-
-                        result.flashsale_main.amount_min = result.flashsale_sub.Min(x => (x.amount_after_flashsale!=null&& x.amount_after_flashsale>0 ? x.amount_after_flashsale: x.amount));
-                        result.flashsale_main.amount_max = result.flashsale_sub.Max(x => (x.amount_after_flashsale != null && x.amount_after_flashsale > 0 ? x.amount_after_flashsale : x.amount));
-
+                        result.product_sub = await UpdateProductDetail(data.product_sub);
                     }
+                    result.product_main.amount_min = result.product_sub.Min(x => (x.amount_after_flashsale != null && x.amount_after_flashsale > 0 ? x.amount_after_flashsale : x.amount));
+                    result.product_main.amount_max = result.product_sub.Max(x => (x.amount_after_flashsale != null && x.amount_after_flashsale > 0 ? x.amount_after_flashsale : x.amount));
+
                 }
             }
             catch (Exception ex)
@@ -273,14 +274,21 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                         if (item.amount <= 0 && item.amount_min != null && item.amount_min > 0)
                         {
                             item.amount_min -= total_discount;
+                            item.amount_min = NumberHelpers.RoundUpToHundredsDouble((double)item.amount_min);
+
                         }
                         if (item.amount <= 0 && item.amount_max != null && item.amount_max > 0)
                         {
                             item.amount_max -= total_discount;
+                            item.amount_max = NumberHelpers.RoundUpToHundredsDouble((double)item.amount_max);
+
                         }
                         item.discount = Math.Round(((old_price - (double)item.amount_after_flashsale) / old_price * 100), 0);
                         item.discount = item.discount <= 0 ? 0 : item.discount;
+                        item.price = amount_product- item.profit;
                         item.old_price = old_price;
+                        item.amount_after_flashsale = NumberHelpers.RoundUpToHundredsDouble((double)item.amount_after_flashsale);
+                        item.profit = NumberHelpers.RoundUpToHundredsDouble((double)item.profit);
                     }
                 }
             }
@@ -293,5 +301,13 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             return true;
         }
 
+        public async Task<List<ProductMongoDbModel>> SubListing(string parent_id)
+        {
+            return await _productDetailMongoAccess.SubListing(parent_id);
+        }
+        public async Task<ProductListResponseModel> GlobalSearch(string keyword = "", int? stars = 0, string? group_product_id = "", string? brands = "", int page_index = 1, int page_size = 12)
+        {
+            return await _productDetailMongoAccess.GlobalSearch(keyword,stars,group_product_id,brands,page_index,page_size);
+        }
     }
 }

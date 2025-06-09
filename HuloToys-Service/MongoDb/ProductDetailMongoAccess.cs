@@ -3,14 +3,9 @@ using HuloToys_Front_End.Models.Products;
 using HuloToys_Service.Utilities.constants.Product;
 using HuloToys_Service.Utilities.lib;
 using HuloToys_Service.Utilities.Lib;
-using Microsoft.Extensions.FileSystemGlobbing.Internal;
 using MongoDB.Bson;
 using MongoDB.Driver;
-using Newtonsoft.Json;
 using System.Reflection;
-using System.Text.RegularExpressions;
-using Telegram.Bot.Types;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace HuloToys_Service.MongoDb
 {
@@ -85,7 +80,7 @@ namespace HuloToys_Service.MongoDb
                 return null;
             }
         }
-        public async Task<ProductDetailResponseModel> GetFullProductById(string id)
+        public async Task<ProductDetailResponseDbModel> GetFullProductById(string id)
         {
             try
             {
@@ -97,7 +92,7 @@ namespace HuloToys_Service.MongoDb
                 var model = await _productDetailCollection.Find(filterDefinition).FirstOrDefaultAsync();
                 if (model != null && model._id!=null)
                 {
-                    var result = new ProductDetailResponseModel()
+                    var result = new ProductDetailResponseDbModel()
                     {
                         product_main = model,
                         product_sub = await SubListing(id)

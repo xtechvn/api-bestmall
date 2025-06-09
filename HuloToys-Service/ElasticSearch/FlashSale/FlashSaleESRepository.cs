@@ -67,10 +67,6 @@ namespace Caching.Elasticsearch.FlashSale
                     .Bool(b => b
                         .Filter(
                             bs => bs.DateRange(r => r
-                                .Field(f => f.fromdate)
-                                .LessThanOrEquals(now)
-                            ),
-                            bs => bs.DateRange(r => r
                                 .Field(f => f.todate)
                                 .GreaterThanOrEquals(now)
                             ),

@@ -782,7 +782,7 @@ namespace WEB.CMS.Controllers
             {
                 //var model_json = new
                 //{
-                //    label_id = 11,
+                //    label_id = 19,
                 //    page_size = 10,
                 //    page_index = 1
                 //};
@@ -929,7 +929,8 @@ namespace WEB.CMS.Controllers
                                    label.LabelName,
                                    label.LabelCode,
                                    label.Icon,
-                                   label.Banner
+                                   label.Banner,
+                                    label.Description,
                                 }
 
                             }

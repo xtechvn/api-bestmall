@@ -1066,8 +1066,8 @@ namespace WEB.CMS.Controllers
                         account_client_id = account_client_id,
                         detail = detail,
                     });
-                    // var cache_name = CacheType.PRODUCT_FAVOURITES + request.user_id;
-                    //  _redisService.clear(cache_name,  Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
+                    var cache_name = CacheType.PRODUCT_DETAIL + request.product_id;
+                    _redisService.clear(cache_name,  Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
                     return Ok(new
                     {
                         status = (int)ResponseType.SUCCESS,

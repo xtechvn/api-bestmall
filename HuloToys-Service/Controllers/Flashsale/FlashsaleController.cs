@@ -138,14 +138,20 @@ namespace HuloToys_Service.Controllers.Flashsale
 
                                 default: break;
                             }
+                            double old_price = selected.old_price == null || selected.old_price <= 0 ? amount_product : (double)selected.old_price;
+                            if (old_price <= 0)
+                            {
+                                old_price = amount_product;
+                            }
+                            var discount_percent = Math.Round(total_discount / old_price * 100, 0);
+                            discount_percent = discount_percent <= 0 ? 0 : discount_percent;
                             list_output.Add(new FlashSaleProductResposeModel()
                             {
                                 amount = ((selected.old_price != null && selected.old_price > 0) ? (double)selected.old_price : (selected.amount_min!=null && selected.amount_min>0? (double)selected.amount_min:selected.amount )),
                                 amount_after_flashsale = amount_product - total_discount,
-                                discountvalue = product.discountvalue,
+                                discountvalue = discount_percent,
                                 position = product.position,
-                                total_discount = selected.discount,
-                                valuetype = product.valuetype,
+                                total_discount = total_discount,
                                 _id = selected._id,
                                 avatar = selected.avatar,
                                 name = selected.name,

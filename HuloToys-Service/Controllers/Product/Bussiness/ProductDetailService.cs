@@ -309,5 +309,9 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
         {
             return await _productDetailMongoAccess.GlobalSearch(keyword,stars,group_product_id,brands,page_index,page_size);
         }
+        public async Task<List<ProductMongoDbModel>> ListByProductNoExtend(List<string> ids)
+        {
+            return await _productDetailMongoAccess.ListByProducts(ids);
+        }
     }
 }

@@ -15,6 +15,7 @@ using Newtonsoft.Json.Linq;
 using System.Reflection;
 using Utilities;
 using Utilities.Contants;
+using static Nest.JoinField;
 
 namespace HuloToys_Service.Controllers.Flashsale
 {
@@ -110,29 +111,41 @@ namespace HuloToys_Service.Controllers.Flashsale
                         });
                     }
                     list = list.OrderBy(x => x.position).ToList();
-                    var product_mongo = await productDetailService.ListByProducts(list.Select(x => x.productid).ToList());
-                    //List<FlashSaleProductResposeModel> combinedList = [.. list
-                    //    .Join(product_mongo, // List thứ hai để join
-                    //          fsp => fsp.productid, // Khóa từ list đầu tiên
-                    //          p => p._id,     // Khóa từ list thứ hai
-                    //          (fsp, p) => flashsaleService.CombineModel(fsp,p)) // Tạo đối tượng mới
-                    //    .OrderBy(fspc => fspc.position)];
-                    
+                    var product_mongo = await productDetailService.ListByProductNoExtend(list.Select(x => x.productid).ToList());
                     var list_output = new List<FlashSaleProductResposeModel>();
                     if(product_mongo != null && product_mongo.Count>0)
                     {
-                        foreach (var order in list)
+                        foreach (var product in list)
                         {
-                            var selected = product_mongo.FirstOrDefault(x => x._id == order.productid);
+                            var selected = product_mongo.FirstOrDefault(x => x._id == product.productid);
                             if (selected == null) continue;
+                            var amount_product = selected.amount;
+                            if (selected.amount <= 0 && selected.amount_min != null && selected.amount_min > 0)
+                            {
+                                amount_product = (double)selected.amount_min;
+
+                            }
+                            double total_discount = 0;
+                            double percent = Convert.ToDouble(product.discountvalue);
+                            switch (product.valuetype)
+                            {
+                                case 1:
+                                    total_discount += (amount_product * Convert.ToDouble(percent / 100));
+                                    break;
+                                case 0:
+                                    total_discount += percent;
+                                    break;
+
+                                default: break;
+                            }
                             list_output.Add(new FlashSaleProductResposeModel()
                             {
                                 amount = ((selected.old_price != null && selected.old_price > 0) ? (double)selected.old_price : (selected.amount_min!=null && selected.amount_min>0? (double)selected.amount_min:selected.amount )),
-                                amount_after_flashsale = selected.amount_after_flashsale,
-                                discountvalue = order.discountvalue,
-                                position = order.position,
+                                amount_after_flashsale = amount_product - total_discount,
+                                discountvalue = product.discountvalue,
+                                position = product.position,
                                 total_discount = selected.discount,
-                                valuetype = order.valuetype,
+                                valuetype = product.valuetype,
                                 _id = selected._id,
                                 avatar = selected.avatar,
                                 name = selected.name,

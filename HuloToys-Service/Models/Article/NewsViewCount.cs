@@ -6,6 +6,7 @@ namespace ENTITIES.ViewModels.ArticleViewModels
     public class NewsViewCount
     {
         [BsonElement("_id")]
+        [BsonRepresentation(BsonType.ObjectId)]
         public string _id { get; set; }
         public void GenID()
         {

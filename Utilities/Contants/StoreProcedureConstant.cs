@@ -309,6 +309,8 @@ namespace Utilities.Contants
         public static string UpdateLabel = "sp_UpdateLabel";
         public static string GetListLabels = "SP_GetListLabels";
 
+        public static string sp_InsertAddressClient = "sp_InsertAddressClient";
+
 
         #region vin wonder
         public static string sp_InsertCampaign = "sp_InsertCampaign";
@@ -382,7 +384,8 @@ namespace Utilities.Contants
         public static string sp_UpdateHotelSurcharge = "sp_UpdateHotelSurcharge";
 
         public static string SP_GetHotelRoomByHotelId = "SP_GetHotelRoomByHotelId";
-        
+        public static string GetListVoucher = "SP_GetListVoucher";
+
         #endregion
     }
 }

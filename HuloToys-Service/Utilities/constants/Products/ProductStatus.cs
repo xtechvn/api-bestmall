@@ -11,4 +11,10 @@ namespace HuloToys_Service.Utilities.constants.Product
         ACTIVE=1,
         DEACTIVE=2
     }
+    public enum SUPPLIER_STATUS
+    {
+        ON_WAITING_CONFIRMATION = 0,
+        CONFIRMED = 1,
+        DELETED = 2
+    }
 }

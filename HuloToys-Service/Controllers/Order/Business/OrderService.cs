@@ -26,7 +26,7 @@ namespace HuloToys_Service.Controllers.Order.Business
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString());
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString());
                 return null;
             }
         }

@@ -58,6 +58,17 @@ namespace HuloToys_Service.Controllers
         [HttpPost("login")]
         public async Task<ActionResult> ClientLogin([FromBody] APIRequestGenericModel input)
         {
+            //var input_model = new ClientLoginRequestModel()
+            //{
+            //    user_name = "info@x-tech.vn",
+            //    password = "123331",
+            //    type = 2,
+                
+            //};
+            //input = new APIRequestGenericModel()
+            //{
+            //    token = CommonHelper.Encode(JsonConvert.SerializeObject(input_model), configuration["KEY:private_key"])
+            //};
             try
             {
                 var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
@@ -150,7 +161,7 @@ namespace HuloToys_Service.Controllers
                                         return Ok(new
                                         {
                                             status = (int)ResponseType.FAILED,
-                                            msg = "Không tìm thấy tài khoản nào tương ứng với thông tin đăng nhập này, vui lòng thử lại"
+                                            msg = "Không tìm thấy tài khoản nào tương ứng với thông tin đăng nhập này, vui lòng đăng ký hoặc thử lại"
                                         });
                                     }
                                     foreach (var client in clients)
@@ -177,6 +188,14 @@ namespace HuloToys_Service.Controllers
                                         }
                                     }
                                 }
+                                else
+                                {
+                                    return Ok(new
+                                    {
+                                        status = (int)ResponseType.FAILED,
+                                        msg = "Không tìm thấy tài khoản nào tương ứng với thông tin đăng nhập này, vui lòng đăng ký hoặc thử lại"
+                                    });
+                                }
                                    
                             }
                             break;
@@ -194,7 +213,7 @@ namespace HuloToys_Service.Controllers
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
                 return Ok(new
                 {
                     status = (int)ResponseType.FAILED,
@@ -221,7 +240,7 @@ namespace HuloToys_Service.Controllers
                 {
                     var request = JsonConvert.DeserializeObject<ClientRegisterRequestModel>(objParr[0].ToString());
                     if (request == null || request.user_name==null || request.user_name.Trim()==""
-                        || request.phone == null || request.phone.Trim() == ""
+                        
                         || request.password == null || request.password.Trim() == ""
                         || request.confirm_password == null || request.confirm_password.Trim() == ""
                         || request.password.Trim() != request.confirm_password.Trim() ) {
@@ -229,7 +248,8 @@ namespace HuloToys_Service.Controllers
                         return Ok(new
                         {
                             status = (int)ResponseType.FAILED,
-                            msg = ResponseMessages.DataInvalid
+                            msg = ResponseMessages.DataInvalid,
+                            code=ResponseCode.DataInvalid,
                         });
                     }
                     if(request.email != null && request.email.Trim() != "")
@@ -239,7 +259,8 @@ namespace HuloToys_Service.Controllers
                             return Ok(new
                             {
                                 status = (int)ResponseType.FAILED,
-                                msg = ResponseMessages.ClientEmailExists
+                                msg = ResponseMessages.ClientEmailExists,
+                                code = ResponseCode.EmailInvalid,
                             });
 
                         }
@@ -296,7 +317,8 @@ namespace HuloToys_Service.Controllers
                                 token = token,
                                 ip = ipAddress,
                                 time_expire = clientServices.GetExpiredTimeFromToken(token)
-                            }
+                            },
+                            code = ResponseCode.Success,
                         });
                     }
                     
@@ -306,17 +328,19 @@ namespace HuloToys_Service.Controllers
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
                 return Ok(new
                 {
                     status = (int)ResponseType.FAILED,
-                    msg = ResponseMessages.FunctionExcutionFailed
+                    msg = ResponseMessages.FunctionExcutionFailed,
+                    code = ResponseCode.ErrorOnExcution,
                 });
             }
             return Ok(new
             {
                 status = (int)ResponseType.FAILED,
-                msg = ResponseMessages.DataInvalid
+                msg = ResponseMessages.DataInvalid,
+                code = ResponseCode.DataInvalid,
             });
 
         }
@@ -400,7 +424,7 @@ namespace HuloToys_Service.Controllers
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
                 return Ok(new
                 {
                     status = (int)ResponseType.FAILED,
@@ -445,7 +469,7 @@ namespace HuloToys_Service.Controllers
                             msg = ResponseMessages.DataInvalid
                         });
                     }
-                        var client = clientESService.GetById((long)account_client);
+                        var client = accountClientESService.GetById((long)account_client);
                         if (client != null && client.Id > 0)
                         {
                             string new_password = CommonHelper.MD5Hash(request.password);
@@ -488,7 +512,7 @@ namespace HuloToys_Service.Controllers
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
             }
             return Ok(new
             {
@@ -557,7 +581,7 @@ namespace HuloToys_Service.Controllers
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
                 return Ok(new
                 {
                     status = (int)ResponseType.FAILED,

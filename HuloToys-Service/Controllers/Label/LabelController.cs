@@ -38,7 +38,7 @@ namespace HuloToys_Service.Controllers.Label
         {
             //var data = new
             //{
-            //    top=40
+            //    top = 40
             //};
             //input.token = CommonHelper.Encode(JsonConvert.SerializeObject(data), _configuration["KEY:private_key"]);
             try
@@ -65,7 +65,7 @@ namespace HuloToys_Service.Controllers.Label
                     }
                     if(request.top>200)
                     {
-                        result = await _labelRepository.Listing(0, null, 1, request.top);
+                        result = await _labelRepository.Listing(0, null, null,1, request.top);
                         return Ok(new
                         {
                             status = (int)ResponseType.SUCCESS,
@@ -75,6 +75,8 @@ namespace HuloToys_Service.Controllers.Label
                                 x.LabelName,
                                 x.Icon,
                                 x.LabelCode,
+                                x.Description,
+
                             }),
                             total= (result != null && result.Count > 0) ? result.First().TotalRow:0
                         });
@@ -89,37 +91,40 @@ namespace HuloToys_Service.Controllers.Label
                                 x.Id,
                                 x.LabelName,
                                 x.Icon,
-                                x.LabelCode
+                                x.LabelCode,
+                                x.Description,
                             }),
                             total = (result != null && result.Count > 0) ? result.First().TotalRow : 0
 
                         });
                     }
-                    result = await _labelRepository.Listing(0,null,1,200);
+                    result = await _labelRepository.Listing(0,null,null,1,200);
                     if (result != null && result.Count>0)
                     {
                         _redisService.Set(cache_name, JsonConvert.SerializeObject(result), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
-                    }
-                    return Ok(new
-                    {
-                        status = (int)ResponseType.SUCCESS,
-                        msg = ResponseMessages.Success,
-                        data = result.Take(request.top).Select(x => new {
-                            x.Id,
-                            x.LabelName,
-                            x.Icon,
-                            x.LabelCode
-                        }),
-                        total = (result != null && result.Count > 0) ? result.First().TotalRow : 0
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.SUCCESS,
+                            msg = ResponseMessages.Success,
+                            data = result.Take(request.top).Select(x => new {
+                                x.Id,
+                                x.LabelName,
+                                x.Icon,
+                                x.LabelCode,
+                                x.Description
+                            }),
+                            total = (result != null && result.Count > 0) ? result.First().TotalRow : 0
 
-                    });
+                        });
+                    }
+                   
                 }
 
             }
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(_configuration["telegram:log_try_catch:bot_token"], _configuration["telegram:log_try_catch:group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
             }
             return Ok(new
             {

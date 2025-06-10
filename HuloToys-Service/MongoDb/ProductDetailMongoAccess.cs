@@ -3,14 +3,9 @@ using HuloToys_Front_End.Models.Products;
 using HuloToys_Service.Utilities.constants.Product;
 using HuloToys_Service.Utilities.lib;
 using HuloToys_Service.Utilities.Lib;
-using Microsoft.Extensions.FileSystemGlobbing.Internal;
 using MongoDB.Bson;
 using MongoDB.Driver;
-using Newtonsoft.Json;
 using System.Reflection;
-using System.Text.RegularExpressions;
-using Telegram.Bot.Types;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace HuloToys_Service.MongoDb
 {
@@ -45,7 +40,7 @@ namespace HuloToys_Service.MongoDb
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(_configuration["telegram:log_try_catch:bot_token"], _configuration["telegram:log_try_catch:group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
                 return null;
             }
         }
@@ -62,7 +57,7 @@ namespace HuloToys_Service.MongoDb
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(_configuration["telegram:log_try_catch:bot_token"], _configuration["telegram:log_try_catch:group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
                 return null;
             }
         }
@@ -81,31 +76,39 @@ namespace HuloToys_Service.MongoDb
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(_configuration["telegram:log_try_catch:bot_token"], _configuration["telegram:log_try_catch:group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
                 return null;
             }
         }
-        public async Task<ProductDetailResponseModel> GetFullProductById(string id)
+        public async Task<ProductDetailResponseDbModel> GetFullProductById(string id)
         {
             try
             {
                 var filter = Builders<ProductMongoDbModel>.Filter;
                 var filterDefinition = filter.Empty;
-                filterDefinition &= Builders<ProductMongoDbModel>.Filter.Eq(x => x._id, id); ;
+                filterDefinition &= Builders<ProductMongoDbModel>.Filter.Eq(x => x._id, id);
+                filterDefinition &= Builders<ProductMongoDbModel>.Filter.Eq(x => x.status, (int)ProductStatus.ACTIVE);
+                filterDefinition &= Builders<ProductMongoDbModel>.Filter.Eq(x => x.supplier_status, (int)SUPPLIER_STATUS.CONFIRMED);
                 var model = await _productDetailCollection.Find(filterDefinition).FirstOrDefaultAsync();
-                var result = new ProductDetailResponseModel()
+                if (model != null && model._id!=null)
                 {
-                    product_main=model,
-                    product_sub=await SubListing(id)
-                };
-                return result;
+                    var result = new ProductDetailResponseDbModel()
+                    {
+                        product_main = model,
+                        product_sub = await SubListing(id)
+                    };
+                    return result;
+
+                }
+
             }
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(_configuration["telegram:log_try_catch:bot_token"], _configuration["telegram:log_try_catch:group_id"], error_msg);
-                return null;
+                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
             }
+            return null;
+
         }
 
         public async Task<List<ProductMongoDbModel>> Listing(string keyword = "", int group_id = -1, int page_index = 1, int page_size = 10)
@@ -134,46 +137,48 @@ namespace HuloToys_Service.MongoDb
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(_configuration["telegram:log_try_catch:bot_token"], _configuration["telegram:log_try_catch:group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
                 return null;
             }
         }
-        public async Task<ProductListResponseModel> ResponseListing(string keyword = "", int group_id = -1)
-        {
-            try
-            {
-                var filter = Builders<ProductMongoDbModel>.Filter;
-                var filterDefinition = filter.Empty;
-                if (keyword != null && keyword.Trim() != "")
-                {
-                    filterDefinition |= Builders<ProductMongoDbModel>.Filter.Regex(x => x.name, keyword);
-                }
-                if (group_id > 0)
-                {
-                    filterDefinition &= Builders<ProductMongoDbModel>.Filter.Regex(x => x.group_product_id, group_id.ToString());
-                }
-                filterDefinition &= Builders<ProductMongoDbModel>.Filter.Or(
-                                                   Builders<ProductMongoDbModel>.Filter.Eq(p => p.parent_product_id, null),
-                                                   Builders<ProductMongoDbModel>.Filter.Eq(p => p.parent_product_id, "")
-                                               );
-                filterDefinition &= Builders<ProductMongoDbModel>.Filter.Eq(x => x.status, (int)ProductStatus.ACTIVE);
-                var sort_filter = Builders<ProductMongoDbModel>.Sort;
-                var sort_filter_definition = sort_filter.Descending(x => x.updated_last);
-                var model = _productDetailCollection.Find(filterDefinition).Sort(sort_filter_definition);
-                long count = await model.CountDocumentsAsync();
-                var items = await model.ToListAsync();
-                return new ProductListResponseModel()
-                {
-                    items = items,
-                    count = count
-                };
-            }
-            catch (Exception ex)
-            {
-                return null;
-            }
-        }
-        public async Task<ProductListResponseModel> ResponseListing(string keyword = "", int group_id = -1,int page_index=1,int page_size=10)
+        //public async Task<ProductListResponseModel> ResponseListing(string keyword = "", int group_id = -1)
+        //{
+        //    try
+        //    {
+        //        var filter = Builders<ProductMongoDbModel>.Filter;
+        //        var filterDefinition = filter.Empty;
+        //        if (keyword != null && keyword.Trim() != "")
+        //        {
+        //            filterDefinition |= Builders<ProductMongoDbModel>.Filter.Regex(x => x.name, keyword);
+        //        }
+        //        if (group_id > 0)
+        //        {
+        //            filterDefinition &= Builders<ProductMongoDbModel>.Filter.Regex(x => x.group_product_id, group_id.ToString());
+        //        }
+        //        filterDefinition &= Builders<ProductMongoDbModel>.Filter.Or(
+        //                                           Builders<ProductMongoDbModel>.Filter.Eq(p => p.parent_product_id, null),
+        //                                           Builders<ProductMongoDbModel>.Filter.Eq(p => p.parent_product_id, "")
+        //                                       );
+        //        filterDefinition &= Builders<ProductMongoDbModel>.Filter.Eq(x => x.status, (int)ProductStatus.ACTIVE);
+        //        var sort_filter = Builders<ProductMongoDbModel>.Sort;
+        //        var sort_filter_definition = sort_filter.Descending(x => x.updated_last);
+        //        var model = _productDetailCollection.Find(filterDefinition).Sort(sort_filter_definition);
+        //        long count = await model.CountDocumentsAsync();
+        //        var items = await model.ToListAsync();
+        //        return new ProductListResponseModel()
+        //        {
+        //            items = items,
+        //            count = count
+        //        };
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return null;
+        //    }
+        //}
+        public async Task<ProductListResponseModel> ResponseListing(string keyword = "", int group_id = -1,
+            int page_index=1,int page_size=10, double? price_from = null, double? price_to = null , float? rating = null
+            , int? supplier=-1, int? label_id=-1)
         {
             try
             {
@@ -208,6 +213,7 @@ namespace HuloToys_Service.MongoDb
 
                 );
                 filterDefinition &= Builders<ProductMongoDbModel>.Filter.Eq(x => x.status, (int)ProductStatus.ACTIVE);
+                filterDefinition &= Builders<ProductMongoDbModel>.Filter.Eq(p => p.supplier_status, (int)SUPPLIER_STATUS.CONFIRMED);
 
                 filterDefinition &= Builders<ProductMongoDbModel>.Filter.Or(
                     Builders<ProductMongoDbModel>.Filter.Eq(p => p.parent_product_id, null),
@@ -217,23 +223,58 @@ namespace HuloToys_Service.MongoDb
                 {
                     filterDefinition &= Builders<ProductMongoDbModel>.Filter.Regex(x => x.group_product_id, group_id.ToString());
                 }
-                var sort_filter = Builders<ProductMongoDbModel>.Sort;
-                var sort_filter_definition = sort_filter.Descending(x => x.updated_last);
-                var model = _productDetailCollection.Find(filterDefinition).Sort(sort_filter_definition);
-                model.Options.Skip = page_index < 1 ? 0 : (page_index - 1) * page_size;
-                model.Options.Limit = page_size;
-                long count = await model.CountDocumentsAsync();
-                var items = await model.ToListAsync();
+                if (label_id!=null && label_id > 0)
+                {
+                    filterDefinition &= Builders<ProductMongoDbModel>.Filter.Eq(x => x.label_id, (int)label_id);
+                }
+                if (supplier != null && supplier > 0)
+                {
+                    filterDefinition &= Builders<ProductMongoDbModel>.Filter.Eq(x => x.supplier_id, (int)supplier);
+                }
+                // Lọc theo khoảng giá
+                if (price_from>0 && price_to>0 && price_to > price_from)
+                {
+                    // Tạo bộ lọc cho khoảng giá
+                    var condition1 = Builders<ProductMongoDbModel>.Filter.Eq(x => x.amount_min, null)
+                                        & Builders<ProductMongoDbModel>.Filter.Gt(x => x.amount, 0)
+                                        & Builders<ProductMongoDbModel>.Filter.Gte(x => x.amount, price_from) 
+                                        & Builders<ProductMongoDbModel>.Filter.Lte(x => x.amount, price_to);
+
+                    // Điều kiện 2: amount_min khác null VÀ amount_min > 0 VÀ nằm trong khoảng giá
+                    var condition2 = Builders<ProductMongoDbModel>.Filter.Lte(x => x.amount, 0) 
+                                    & Builders<ProductMongoDbModel>.Filter.Ne(x => x.amount_min , null)
+                                    & Builders<ProductMongoDbModel>.Filter.Gte(x => x.amount_min, price_from)
+                                    & Builders<ProductMongoDbModel>.Filter.Lte(x => x.amount_min, price_to);
+
+                    // Kết hợp hai điều kiện bằng toán tử OR
+                    filterDefinition &= Builders<ProductMongoDbModel>.Filter.Or( condition2,condition1);
+                }
+                if (rating > 0)
+                {
+                    filterDefinition &= Builders<ProductMongoDbModel>.Filter.Gte(x => x.star, rating);
+                }
+
+
+                // ✅ Tính tổng số sản phẩm phù hợp
+                long totalCount = await _productDetailCollection.CountDocumentsAsync(filterDefinition);
+
+                // ✅ Sau đó mới paging
+                var sort_filter = Builders<ProductMongoDbModel>.Sort.Descending(x => x.updated_last);
+                var items = await _productDetailCollection.Find(filterDefinition)
+                    .Sort(sort_filter)
+                    .Skip((page_index - 1) * page_size)
+                    .Limit(page_size)
+                    .ToListAsync();
                 return new ProductListResponseModel()
                 {
                     items = items,
-                    count = count
+                    count = totalCount
                 };
             }
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(_configuration["telegram:log_try_catch:bot_token"], _configuration["telegram:log_try_catch:group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
                 return null;
             }
         }
@@ -296,6 +337,8 @@ namespace HuloToys_Service.MongoDb
                                    Builders<ProductMongoDbModel>.Filter.Eq(p => p.parent_product_id, null),
                                    Builders<ProductMongoDbModel>.Filter.Eq(p => p.parent_product_id, "")
                                );
+                filter &= Builders<ProductMongoDbModel>.Filter.Eq(p => p.supplier_status, (int)SUPPLIER_STATUS.CONFIRMED);
+
                 var sort_filter = Builders<ProductMongoDbModel>.Sort;
                 var sort_filter_definition = sort_filter.Descending(x => x.updated_last);
                 var model = _productDetailCollection.Find(filter).Sort(sort_filter_definition); var items = await model.ToListAsync();
@@ -328,7 +371,7 @@ namespace HuloToys_Service.MongoDb
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(_configuration["telegram:log_try_catch:bot_token"], _configuration["telegram:log_try_catch:group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
                 return null;
             }
         }
@@ -348,7 +391,7 @@ namespace HuloToys_Service.MongoDb
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(_configuration["telegram:log_try_catch:bot_token"], _configuration["telegram:log_try_catch:group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
             }
             return null;
 
@@ -411,6 +454,8 @@ namespace HuloToys_Service.MongoDb
                                         attr => brands.Contains(attr.value)
                                     );
                 }
+                filter &= Builders<ProductMongoDbModel>.Filter.Eq(p => p.supplier_status, (int)SUPPLIER_STATUS.CONFIRMED);
+
                 var sort_filter = Builders<ProductMongoDbModel>.Sort;
                 var sort_filter_definition = sort_filter.Descending(x => x.updated_last);
                 var model = _productDetailCollection.Find(filter).Sort(sort_filter_definition); 
@@ -428,6 +473,25 @@ namespace HuloToys_Service.MongoDb
             catch (Exception ex)
             {
                 return null;
+            }
+        }
+        public async Task<List<ProductMongoDbModel>> ListByProducts(List<string> ids)
+        {
+            try
+            {
+                var filter = Builders<ProductMongoDbModel>.Filter;
+                var filterDefinition = filter.Empty;
+                filterDefinition &= Builders<ProductMongoDbModel>.Filter.In(x => x._id, ids);
+                filterDefinition &= Builders<ProductMongoDbModel>.Filter.Eq(x => x.status, (int)ProductStatus.ACTIVE);
+                filterDefinition &= Builders<ProductMongoDbModel>.Filter.Eq(p => p.supplier_status, (int)SUPPLIER_STATUS.CONFIRMED);
+
+                var model = _productDetailCollection.Find(filterDefinition);
+                var result = await model.ToListAsync();
+                return result;
+            }
+            catch (Exception ex)
+            {
+                return new List<ProductMongoDbModel>();
             }
         }
     }

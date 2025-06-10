@@ -14,6 +14,7 @@ using HuloToys_Service.Models.Cart;
 using HuloToys_Service.Models.APIRequest;
 using HuloToys_Service.Controllers.Cart.Business;
 using HuloToys_Service.Controllers.Client.Business;
+using HuloToys_Service.Controllers.Product.Bussiness;
 
 namespace HuloToys_Service.Controllers
 {
@@ -26,19 +27,22 @@ namespace HuloToys_Service.Controllers
         private readonly WorkQueueClient workQueueClient;
         private readonly CartMongodbService _cartMongodbService;
         private readonly CartService _cartService;
-        private readonly ProductDetailMongoAccess _productDetailMongoAccess;
+       // private readonly ProductDetailMongoAccess _productDetailMongoAccess;
         private readonly OrderMongodbService orderMongodbService;
         private readonly ClientServices clientServices;
+        private readonly ProductDetailService productDetailService;
 
-        public CartController(IConfiguration configuration)
+        public CartController(IConfiguration configuration,/* ProductDetailMongoAccess productDetailMongoAccess,*/ ProductDetailService _productDetailService
+            , CartMongodbService cartMongodbService, OrderMongodbService _orderMongodbService)
         {
             _configuration  = configuration;
-            orderMongodbService = new OrderMongodbService(configuration);
+            orderMongodbService = _orderMongodbService;
             workQueueClient = new WorkQueueClient(configuration);
-            _cartMongodbService = new CartMongodbService(configuration);
-            _productDetailMongoAccess = new ProductDetailMongoAccess(configuration);
-            _cartService = new CartService(configuration);
+            _cartMongodbService = cartMongodbService;
+           // _productDetailMongoAccess = productDetailMongoAccess;
             clientServices = new ClientServices(configuration);
+            productDetailService = _productDetailService;
+            _cartService = new CartService(configuration, _productDetailService, cartMongodbService);
 
         }
         [HttpPost("add")]
@@ -69,24 +73,51 @@ namespace HuloToys_Service.Controllers
                     }
                     var data = await _cartMongodbService.FindByProductId(request.product_id, account_client_id);
                     int id = 0;
+                    var product = await productDetailService.GetByID(request.product_id);
+                    if (product ==null || product._id==null)
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
                     if (data == null || data.product == null)
                     {
-                        var product = await _productDetailMongoAccess.GetByID(request.product_id);
-
-                        await _cartMongodbService.Insert(new CartItemMongoDbModel()
+                        data = new CartItemMongoDbModel()
                         {
                             account_client_id = account_client_id,
                             product = product,
                             quanity = request.quanity,
-                            total_amount=product.amount * request.quanity,
-                            created_date=DateTime.Now,
-                           
-                        });
+                            total_amount = product.amount * request.quanity,
+                            created_date = DateTime.Now,
+
+                        };
+                        double amount_product = data.product.amount_after_flashsale == null ? 0 : (double)data.product.amount_after_flashsale;
+                        if (data.product.amount_after_flashsale == null || data.product.amount_after_flashsale <= 0)
+                        {
+                            amount_product = data.product.amount;
+
+                        }
+                        data.total_amount = amount_product * data.quanity;
+                        data.total_price = data.product.price * data.quanity;
+                        data.total_profit = data.product.profit * data.quanity;
+                        await _cartMongodbService.Insert(data);
                         id =1;
                     }
                     else
                     {
+                        data.product = product;
                         data.quanity += request.quanity;
+                        double amount_product = data.product.amount_after_flashsale == null ? 0 : (double)data.product.amount_after_flashsale;
+                        if (data.product.amount_after_flashsale == null || data.product.amount_after_flashsale <= 0)
+                        {
+                            amount_product = data.product.amount;
+
+                        }
+                        data.total_amount = amount_product * data.quanity;
+                        data.total_price = data.product.price * data.quanity;
+                        data.total_profit = data.product.profit * data.quanity;
                         data.created_date = DateTime.Now;
                          await _cartMongodbService.UpdateCartQuanity(data);
                         id = 2;
@@ -191,7 +222,7 @@ namespace HuloToys_Service.Controllers
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(_configuration["telegram:log_try_catch:bot_token"], _configuration["telegram:log_try_catch:group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
                 return Ok(new
                 {
                     status = (int)ResponseType.FAILED,
@@ -346,7 +377,7 @@ namespace HuloToys_Service.Controllers
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(_configuration["telegram:log_try_catch:bot_token"], _configuration["telegram:log_try_catch:group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
                 return Ok(new
                 {
                     status = (int)ResponseType.FAILED,

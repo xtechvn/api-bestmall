@@ -7,7 +7,7 @@ using Newtonsoft.Json.Linq;
 using Utilities;
 using Utilities.Contants;
 
-namespace API_CORE.Controllers.CACHE
+namespace HuloToys_Service.Controllers.CACHE
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -50,6 +50,7 @@ namespace API_CORE.Controllers.CACHE
                     {
                         int category_id = Convert.ToInt32(category_list_id[i]);
                         redisService.clear(CacheType.ARTICLE_CATEGORY_ID + "22", Convert.ToInt32(configuration["Redis:Database:db_common"]));
+                        redisService.clear(CacheType.ARTICLE_CATEGORY_ID + category_id, Convert.ToInt32(configuration["Redis:Database:db_common"]));
                         redisService.clear(CacheType.CATEGORY_NEWS + "1", Convert.ToInt32(configuration["Redis:Database:db_common"]));
                         redisService.clear(CacheType.CATEGORY_NEWS + category_id, Convert.ToInt32(configuration["Redis:Database:db_common"]));
                         redisService.clear(CacheType.ARTICLE_MOST_VIEWED, Convert.ToInt32(configuration["Redis:Database:db_common"]));
@@ -64,7 +65,7 @@ namespace API_CORE.Controllers.CACHE
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "sync-article.json - clearCacheArticle " + ex.ToString() + " token=" + input.token.ToString());
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "sync-article.json - clearCacheArticle " + ex.ToString() + " token=" + input.token.ToString());
                 return Ok(new { status = (int)ResponseType.ERROR, _token = input.token, msg = "Sync error !!!" });
             }
         }

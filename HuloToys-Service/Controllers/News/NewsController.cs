@@ -16,6 +16,11 @@ using Utilities;
 using Utilities.Contants;
 using System.Diagnostics;
 using HuloToys_Service.Models.Models;
+using Azure.Core;
+using HuloToys_Service.Utilities.lib;
+using Caching.Elasticsearch;
+using HuloToys_Service.ElasticSearch;
+using HuloToys_Service.Models.Products;
 
 namespace HuloToys_Service.Controllers
 {
@@ -27,20 +32,24 @@ namespace HuloToys_Service.Controllers
 
         public IConfiguration configuration;
         private readonly RedisConn _redisService;
+        private readonly ArticleESService _articleESRepository;
         private readonly NewsBusiness _newsBusiness;
         private readonly WorkQueueClient work_queue;
         private readonly DataMSContext _dbContext;
+        private readonly NewsMongoService _news_services;
 
         public NewsController(IConfiguration config, RedisConn redisService , DataMSContext dbContext)
         {
+          
             configuration = config;
-
+            _articleESRepository = new ArticleESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
             _redisService = redisService;
             _redisService = new RedisConn(config);
             _redisService.Connect();
             work_queue = new WorkQueueClient(configuration);
             _newsBusiness = new NewsBusiness(configuration, dbContext);
             _dbContext = dbContext;
+            _news_services = new NewsMongoService(configuration);
         }
         [HttpPost("remote-upsert.json")]
         public async Task<IActionResult> RemoteUpsert([FromBody] ArticleModel model)
@@ -87,18 +96,27 @@ namespace HuloToys_Service.Controllers
         [HttpPost("get-list-news.json")]
         public async Task<ActionResult> getListNews([FromBody] APIRequestGenericModel input)
         {
-          
+            //var input_json = JsonConvert.SerializeObject(
+            //    new {
+            //        category_id=22,
+            //        skip=1,
+            //        top=10
+            //    }
+                    
+            //);
+            //input = new APIRequestGenericModel()
+            //{
+            //    token=CommonHelper.Encode(input_json, configuration["KEY:private_key"])
+            //};
+
             try
             {
-                Stopwatch sw = new Stopwatch(); // tạo stopwatch
-                sw.Start(); // bắt đầu đo thời gian
                 JArray objParr = null;
                 if (CommonHelper.GetParamWithKey(input.token, out objParr, configuration["KEY:private_key"]))
                 {
                     int node_redis = Convert.ToInt32(configuration["Redis:Database:db_common"]);
                     var _category_detail = new GroupProductESModel();
                     var list_article = new List<CategoryArticleModel>();
-                    int total_max_cache = 100; // số bản ghi tối đa để cache    
                     int category_id = Convert.ToInt32(objParr[0]["category_id"]);
 
                     int skip = Convert.ToInt32(objParr[0]["skip"]);
@@ -111,33 +129,30 @@ namespace HuloToys_Service.Controllers
                     if (!string.IsNullOrEmpty(j_data))
                     {
                         list_article = JsonConvert.DeserializeObject<List<CategoryArticleModel>>(j_data);
-                        // Nếu tổng số bản ghi muốn lấy vượt quá số bản ghi trong Redis thì vào ES lấy                        
-                        if (top > list_article.Count())
-                        {
-                            // Lấy ra trong es
-                            list_article = await _newsBusiness.getListNews(category_id, top);
-                        }
-                    }
-                    else // Không có trong cache
-                    {
-                        // Lấy ra số bản ghi tối đa để cache
-                        list_article = await _newsBusiness.getListNews(category_id, Math.Max(total_max_cache, top));
-
-                        if (list_article.Count() > 0)
-                        {
-                            _redisService.Set(cache_name, JsonConvert.SerializeObject(list_article), node_redis);
-                        }
-                    }
-
-                    if (list_article != null && list_article.Count() > 0)
-                    {
-                        sw.Stop(); // dừng đo
-                        Console.WriteLine($"Thời gian chạy: {sw.ElapsedMilliseconds} ms");
+                        int take = (skip + top > list_article.Count) ? ((list_article.Count - skip)<=0?0 : (list_article.Count - skip)) : top;
                         return Ok(new
                         {
-                             speed =  sw.ElapsedMilliseconds,
                             status = (int)ResponseType.SUCCESS,
-                            data = list_article.ToList().Skip(skip).Take(top)
+                            data = list_article.ToList().Skip(skip).Take(take),
+                            total = list_article.Count(),
+                        });
+                    }
+                    else
+                    {
+                        list_article = await _newsBusiness.getListNews(category_id);
+                        if (list_article != null && list_article.Count > 0)
+                        {
+                            _redisService.Set(cache_name,JsonConvert.SerializeObject(list_article), node_redis);
+                        }
+                    }
+                    if (list_article != null && list_article.Count > 0)
+                    {
+                        int take = (skip + top > list_article.Count) ? ((list_article.Count - skip) <= 0 ? 0 : (list_article.Count - skip)) : top;
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.SUCCESS,
+                            data = list_article.ToList().Skip(skip).Take(take),
+                            total=list_article.Count,
                         });
                     }
                     else
@@ -145,7 +160,8 @@ namespace HuloToys_Service.Controllers
                         return Ok(new
                         {
                             status = (int)ResponseType.EMPTY,
-                            msg = "data empty !!!"
+                            msg = "data empty !!!",
+                            total=0
                         });
                     }
                 }
@@ -161,7 +177,7 @@ namespace HuloToys_Service.Controllers
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.Message;
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
                 return Ok(new
                 {
                     status = (int)ResponseType.FAILED,
@@ -235,7 +251,7 @@ namespace HuloToys_Service.Controllers
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.Message;
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
                 return Ok(new
                 {
                     status = (int)ResponseType.FAILED,
@@ -252,7 +268,7 @@ namespace HuloToys_Service.Controllers
                 JArray objParr = null;
                 if (CommonHelper.GetParamWithKey(input.token, out objParr, configuration["KEY:private_key"]))
                 {
-                    int category_id = Convert.ToInt32(objParr[0]["category_id"]);
+                    int category_id = 22; //Convert.ToInt32(objParr[0]["category_id"]);
                     // Lấy ra trong es
                     var total = await _newsBusiness.getTotalItemNewsByCategoryId(category_id);
                     return Ok(new
@@ -273,7 +289,7 @@ namespace HuloToys_Service.Controllers
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.Message;
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
                 return Ok(new
                 {
                     status = (int)ResponseType.FAILED,
@@ -338,7 +354,7 @@ namespace HuloToys_Service.Controllers
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
                 return Ok(new
                 {
                     status = (int)ResponseType.FAILED,
@@ -365,7 +381,7 @@ namespace HuloToys_Service.Controllers
                     }
                     catch (Exception ex)
                     {
-                        LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "NewsController - GetMostViewedArticle: " + ex + "\n Token: " + input.token);
+                        LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "NewsController - GetMostViewedArticle: " + ex + "\n Token: " + input.token);
 
                     }
                     var detail = new ArticleFeModel();
@@ -378,8 +394,7 @@ namespace HuloToys_Service.Controllers
                     }
                     else
                     {
-                        NewsMongoService services = new NewsMongoService(configuration);
-                        var list = await services.GetMostViewedArticle();
+                        var list = await _news_services.GetMostViewedArticle();
                         if (list != null && list.Count > 0)
                         {
                             foreach (var item in list)
@@ -393,7 +408,7 @@ namespace HuloToys_Service.Controllers
                             }
                             catch (Exception ex)
                             {
-                                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "NewsController - GetMostViewedArticle: " + ex + "\n Token: " + input.token);
+                                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "NewsController - GetMostViewedArticle: " + ex + "\n Token: " + input.token);
 
                             }
                             status = (int)ResponseType.SUCCESS;
@@ -413,7 +428,7 @@ namespace HuloToys_Service.Controllers
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "NewsController - GetMostViewedArticle: " + ex + " token = " + input.token);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "NewsController - GetMostViewedArticle: " + ex + " token = " + input.token);
 
                 return Ok(new
                 {
@@ -427,10 +442,10 @@ namespace HuloToys_Service.Controllers
         {
             try
             {
-                // string j_param = "{'article_id':1}";
+                //string j_param = "{'article_id':74}";
 
 
-                // token = CommonHelper.Encode(j_param, configuration["KEY:private_key"]);
+                //input.token = CommonHelper.Encode(j_param, configuration["KEY:private_key"]);
 
                 JArray objParr = null;
                 if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, configuration["KEY:private_key"]))
@@ -462,8 +477,7 @@ namespace HuloToys_Service.Controllers
                         articleID = article_id,
                         pageview = 1
                     };
-                    NewsMongoService services = new NewsMongoService(configuration);
-                    services.AddNewOrReplace(view_count);
+                    await _news_services.AddNewOrReplace(view_count);
                     return Ok(new
                     {
                         status = (int)ResponseType.SUCCESS,
@@ -484,7 +498,7 @@ namespace HuloToys_Service.Controllers
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
                 return Ok(new
                 {
                     status = (int)ResponseType.FAILED,
@@ -509,17 +523,31 @@ namespace HuloToys_Service.Controllers
                     string title = (objParr[0]["title"]).ToString().Trim();
                     int parent_cate_faq_id = Convert.ToInt32(objParr[0]["parent_cate_faq_id"]);
 
-                    var detail = new List<ArticleRelationModel>();
+                    string rawKeyword = StringHelper.RemoveSpecialCharacterExceptVietnameseCharacter(title);
+                    string normalizedKeyword = StringHelper.NormalizeKeyword(rawKeyword);
 
-                    detail = await _newsBusiness.FindArticleByTitle(title, parent_cate_faq_id);
+                    
+
+                    var results = await _articleESRepository.SearchNewsByKeywordAsync(rawKeyword, normalizedKeyword);
+
+                    var mappedResults = results.Select(x => new ArticleRelationModel
+                    {
+                        Id = x.id,
+                        Title = x.title,
+                        Lead = x.lead,
+                        Image = x.image_169 ?? x.image_43 ?? x.image_11,
+                        publish_date = x.publish_date != default(DateTime) ? x.publish_date : DateTime.Now,
+                        category_name = x.list_category_name ?? "Tin tức"
+                    }).ToList();
 
                     return Ok(new
                     {
-                        status = detail.Count() > 0 ? (int)ResponseType.SUCCESS : (int)ResponseType.EMPTY,
-                        data_list = detail.Count() > 0 ? detail : null,
-                        msg = "Get " + db_type + " Successfully !!!",
+                        status = mappedResults.Count > 0 ? (int)ResponseType.SUCCESS : (int)ResponseType.EMPTY,
+                        data_list = mappedResults.Count > 0 ? mappedResults : null,
+                        msg = "Get database Successfully !!!",
                         _token = input.token
                     });
+
                 }
                 else
                 {
@@ -533,7 +561,7 @@ namespace HuloToys_Service.Controllers
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
                 return Ok(new
                 {
                     status = (int)ResponseType.FAILED,
@@ -561,30 +589,41 @@ namespace HuloToys_Service.Controllers
                     int category_id = Convert.ToInt32(objParr[0]["category_id"]);
                     int skip = Convert.ToInt32(objParr[0]["skip"]);
                     int take = Convert.ToInt32(objParr[0]["take"]);
-                    string cache_key = CacheType.CATEGORY_NEWS + category_id;
+                    if (skip <= 0) skip = 0;
+                    if (take <= 0) take = 10;
+                    string cache_key = CacheType.ARTICLE_CATEGORY_ID + category_id;
                     var j_data = await _redisService.GetAsync(cache_key, Convert.ToInt32(configuration["Redis:Database:db_common"]));
-                    List<ArticleFeModel> data_list;
-                    List<ArticleFeModel> pinned_article;
-                    List<ArticleFeModel> video_article;
+                    List<ArticleFeModel> data_list=new List<ArticleFeModel>();
+                    List<ArticleFeModel> pinned_article = new List<ArticleFeModel>();
+                    List<ArticleFeModel> video_article = new List<ArticleFeModel>();
                     int total_count = -1;
                     int total_page = 1;
+                    var group_product = await _newsBusiness.GetGroupProductNameAsync(category_id);
+                    if (skip + take > 100)
+                    {
+                        var data = await _newsBusiness.getArticleListByCategoryIdOrderByDate(category_id, skip, take, group_product);
+                        data_list = data.list_article_fe;
+                        total_count = data.total_item_count;
+                        pinned_article = data.list_article_pinned;
+                        total_page = Convert.ToInt32(total_count / take);
+                        if (total_page < ((float)total_count / take))
+                        {
+                            total_page++;
+                        }
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.SUCCESS,
+                            data_list = data_list,
+                            pinned = pinned_article,
+                            total_item = total_count,
+                            total_page = total_page
+
+                        });
+                    }
                     if (j_data == null || j_data == "")
                     {
-                        var group_product = await _newsBusiness.GetGroupProductNameAsync(category_id);
                         var data_100 = await _newsBusiness.getArticleListByCategoryIdOrderByDate(category_id, 0, 100, group_product);
-                        if (skip + take > 100)
-                        {
-                            var data = await _newsBusiness.getArticleListByCategoryIdOrderByDate(category_id, skip, take, group_product);
-                            data_list = data.list_article_fe;
-                            total_count = data.total_item_count;
-                            pinned_article = data.list_article_pinned;
-                            total_page = Convert.ToInt32(total_count / take);
-                            if (total_page < ((float)total_count / take))
-                            {
-                                total_page++;
-                            }
-                        }
-                        else
+                        if(data_100!=null && data_100.list_article_fe!=null&& data_100.list_article_fe.Count>0)
                         {
                             data_list = data_100.list_article_fe.Skip(skip == 1 ? 0 : skip).Take(take).ToList();
                             total_count = data_100.total_item_count;
@@ -594,119 +633,43 @@ namespace HuloToys_Service.Controllers
                             {
                                 total_page++;
                             }
+                            try
+                            {
+                                _redisService.Set(cache_key, JsonConvert.SerializeObject(data_100), DateTime.Now.AddMinutes(15), Convert.ToInt32(configuration["Redis:Database:db_common"]));
+                            }
+                            catch (Exception ex)
+                            {
+                                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "NewsController - getListArticleByCategoryIdOrderByDate: " + ex + "\n Token: " + input.token);
+
+                            }
                         }
 
-
-                        try
-                        {
-                            _redisService.Set(cache_key, JsonConvert.SerializeObject(data_100), DateTime.Now.AddMinutes(15), Convert.ToInt32(configuration["Redis:Database:db_common"]));
-                        }
-                        catch (Exception ex)
-                        {
-                            LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "NewsController - getListArticleByCategoryIdOrderByDate: " + ex + "\n Token: " + input.token);
-
-                        }
-                        return Ok(new
-                        {
-                            status = (int)ResponseType.SUCCESS,
-                            data_list = data_list,
-                            pinned = pinned_article,
-                            total_item = total_count,
-                            total_page = total_page
-
-                        });
-
-                        //return Content(JsonConvert.SerializeObject(data_list));
                     }
                     else
                     {
-                        var group_product = await _newsBusiness.GetGroupProductNameAsync(category_id);
-
-                        if (skip + take > 100)
+                        ArticleFEModelPagnition data_100 = JsonConvert.DeserializeObject<ArticleFEModelPagnition>(j_data);
+                        if (data_100 != null && data_100.list_article_fe != null && data_100.list_article_fe.Count > 0)
                         {
-                            var data = await _newsBusiness.getArticleListByCategoryIdOrderByDate(category_id, skip, take, group_product);
-                            data_list = data.list_article_fe;
-                            total_count = data.total_item_count;
-                            pinned_article = data.list_article_pinned;
-                            total_page = Convert.ToInt32(total_count / take);
-                            if (total_page < ((float)total_count / take))
-                            {
-                                total_page++;
-                            }
-                        }
-                        else
-                        {
-                            var data_pinned = new List<ArticleFeModel>();
-                            var i = 0;
-                            var data_100 = JsonConvert.DeserializeObject<ArticleFEModelPagnition>(j_data);
-                            var data_pinned_1 = data_100.list_article_pinned.Where(s => s.position == 1).Skip(skip == 1 ? 0 : (skip - 1) * take).Take(take).ToList();
-                            if (data_pinned_1 != null && data_pinned_1.Count > 0)
-                            {
-                                data_pinned.AddRange(data_pinned_1);
-                            }
-                            else
-                            {
-                                var data = data_100.list_article_fe.Skip(skip == 1 ? 0 : (skip - 1) * take).Take(take).ToList();
-                                if (data != null && data.Count > 0)
-                                {
-                                    data[0].position = 1;
-                                    data_pinned.Add(data[0]);
-                                    i++;
-                                }
-                            }
-                            var data_pinned_2 = data_100.list_article_pinned.Where(s => s.position == 2).Skip(skip == 1 ? 0 : (skip - 1) * take).Take(take).ToList();
-                            if (data_pinned_2 != null && data_pinned_2.Count > 0)
-                            {
-                                data_pinned.AddRange(data_pinned_2);
-
-                            }
-                            else
-                            {
-                                var data = data_100.list_article_fe.Skip(skip == 1 ? 0 : (skip - 1) * (take + 1)).Take(take).ToList();
-                                if (data != null && data.Count > 0)
-                                {
-                                    data[0].position = 2;
-                                    data_pinned.Add(data[0]);
-                                    i++;
-                                }
-                            }
-                            var data_pinned_3 = data_100.list_article_pinned.Where(s => s.position == 3).Skip(skip == 1 ? 0 : (skip - 1) * take).Take(take).ToList();
-                            if (data_pinned_3 != null && data_pinned_3.Count > 0)
-                            {
-                                data_pinned.AddRange(data_pinned_3);
-                            }
-                            else
-                            {
-                                var data = data_100.list_article_fe.Skip(skip == 1 ? 0 : (skip - 1) * (take + 2)).Take(take).ToList();
-                                if (data != null && data.Count > 0)
-                                {
-                                    data[0].position = 3;
-                                    data_pinned.Add(data[0]);
-                                    i++;
-                                }
-                            }
-
-                            data_list = data_100.list_article_fe.Skip(skip == 1 ? 0 : (skip - 1) * (take + i)).Take(take).ToList();
+                            data_list = data_100.list_article_fe.Skip(skip == 1 ? 0 : skip).Take(take).ToList();
                             total_count = data_100.total_item_count;
-                            pinned_article = data_pinned;
+                            pinned_article = data_100.list_article_pinned;
                             total_page = Convert.ToInt32(total_count / take);
                             if (total_page < ((float)total_count / take))
                             {
                                 total_page++;
                             }
+
                         }
-
-                        return Ok(new
-                        {
-                            status = (int)ResponseType.SUCCESS,
-                            data_list = data_list,
-                            pinned = pinned_article,
-                            total_item = total_count,
-                            total_page = total_page
-                        });
-                        // return Content(JsonConvert.SerializeObject(data_list));
                     }
+                    return Ok(new
+                    {
+                        status = (int)ResponseType.SUCCESS,
+                        data_list = data_list,
+                        pinned = pinned_article,
+                        total_item = total_count,
+                        total_page = total_page
 
+                    });
                 }
                 else
                 {
@@ -721,7 +684,7 @@ namespace HuloToys_Service.Controllers
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
                 return Ok(new
                 {
                     status = (int)ResponseType.ERROR,
@@ -755,7 +718,7 @@ namespace HuloToys_Service.Controllers
                     catch (Exception ex)
                     {
 
-                        LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "NewsController - GetMostViewedArticle: " + ex + "\n Token: " + input.token);
+                        LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "NewsController - GetMostViewedArticle: " + ex + "\n Token: " + input.token);
                     }
                     List<ArticleGroupViewModel> group_product = null;
 
@@ -774,7 +737,7 @@ namespace HuloToys_Service.Controllers
                             }
                             catch (Exception ex)
                             {
-                                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "NewsController - GetAllCategory: " + ex + "\n Token: " + input.token);
+                                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "NewsController - GetAllCategory: " + ex + "\n Token: " + input.token);
 
                             }
                         }
@@ -799,7 +762,7 @@ namespace HuloToys_Service.Controllers
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "NewsController - GetAllCategory: " + ex + "\n Token: " + input.token);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "NewsController - GetAllCategory: " + ex + "\n Token: " + input.token);
                 return Ok(new
                 {
                     status = (int)ResponseType.FAILED,
@@ -807,6 +770,63 @@ namespace HuloToys_Service.Controllers
                 });
             }
         }
+
+        [HttpPost("get-parent-category.json")]
+        public async Task<ActionResult> GetParentCategory([FromBody] APIRequestGenericModel input)
+        {
+            try
+            {
+                JArray objParr = null;
+                if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, configuration["KEY:private_key"]))
+                {
+                    int categoryId = Convert.ToInt32(objParr[0]["category_id"]);
+
+                    // Lấy category chi tiết từ DB hoặc cache
+                    var categoryList = await _newsBusiness.GetParentIdFromChild(categoryId); // lấy tất cả nhóm gốc (hoặc thay đổi nếu có API get detail)
+
+                    // Tìm category hiện tại
+                    
+
+                    if (categoryList == null)
+                    {
+                        // Nếu category không tìm thấy hoặc là nhóm gốc thì parent là 0
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.SUCCESS,
+                            msg = "Success",
+                            parent_id = 0
+                        });
+                    }
+                    else
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.SUCCESS,
+                            msg = "Success",
+                            parent_id = categoryList
+                        });
+                    }
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        status = (int)ResponseType.ERROR,
+                        msg = "Key không hợp lệ"
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "GetParentCategory: " + ex.ToString());
+                return Ok(new
+                {
+                    status = (int)ResponseType.FAILED,
+                    msg = "Error: " + ex.ToString(),
+                });
+            }
+        }
+
         [HttpPost("get-list-by-tag-order.json")]
         public async Task<ActionResult> getListArticleByTagsOrder([FromBody] APIRequestGenericModel input)
         {
@@ -834,7 +854,7 @@ namespace HuloToys_Service.Controllers
                     }
                     catch (Exception ex)
                     {
-                        LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "NewsController - getListArticleByTagsOrder: " + ex + "\n Token: " + input.token);
+                        LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "NewsController - getListArticleByTagsOrder: " + ex + "\n Token: " + input.token);
 
                     }
                     List<ArticleFeModel> data_list;
@@ -872,7 +892,7 @@ namespace HuloToys_Service.Controllers
                         }
                         catch (Exception ex)
                         {
-                            LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "NewsController - getListArticleByTagsOrder: " + ex + "\n Token: " + input.token);
+                            LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "NewsController - getListArticleByTagsOrder: " + ex + "\n Token: " + input.token);
 
                         }
                         return Ok(new
@@ -933,7 +953,7 @@ namespace HuloToys_Service.Controllers
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "NewsController - get-list-by-categoryid-order.json: " + ex);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "NewsController - get-list-by-categoryid-order.json: " + ex);
                 return Ok(new
                 {
                     status = (int)ResponseType.ERROR,
@@ -943,7 +963,7 @@ namespace HuloToys_Service.Controllers
             }
         }
         [HttpPost("find-all-article.json")]
-        public async Task<ActionResult> FindArticleByBody([FromBody] APIRequestGenericModel input)
+         public async Task<ActionResult> FindArticleByBody([FromBody] APIRequestGenericModel input)
         {
             try
             {
@@ -981,7 +1001,7 @@ namespace HuloToys_Service.Controllers
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
                 return Ok(new
                 {
                     status = (int)ResponseType.FAILED,

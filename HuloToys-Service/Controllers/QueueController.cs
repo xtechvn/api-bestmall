@@ -2,11 +2,12 @@
 using HuloToys_Service.RabitMQ;
 using Microsoft.AspNetCore.Mvc;
 using Nest;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Utilities;
 using Utilities.Contants;
 
-namespace API_CORE.Controllers.QUEUE
+namespace HuloToys_Service.Controllers.QUEUE
 {
     [Route("api")]
     [ApiController]
@@ -24,28 +25,28 @@ namespace API_CORE.Controllers.QUEUE
             try
             {
                 JArray objParr = null;
-                /*
-                // Tạo message để push vào queue
-                    var j_param = new Dictionary<string, object>
-                            {
-                                  { "store_name", "Sp_GetAllArticle" },
-                                { "index_es", "es_hulotoys_sp_get_article" },
-                                {"project_type", Convert.ToInt16(ProjectType.HULOTOYS) },
-                                  {"id" , Id }
 
-                            };
-                
-                var data_product = JsonConvert.SerializeObject(j_param);
-                var json_input = new Dictionary<string, object>
-                {
-                    {"j_param_queue",data_product},
-                    {"queue_name", "queue_checkout_order"}
-                    
-                };
-                token = CommonHelper.Encode(JsonConvert.SerializeObject(json_input), configuration["DataBaseConfig:key_api:b2c"]);
-                */
-                if (!CommonHelper.GetParamWithKey(token, out objParr, configuration["DataBaseConfig:key_api:b2c"]) 
-                    || j_param_queue==null || j_param_queue.Trim()==""
+                //// Tạo message để push vào queue
+                //var j_param = new Dictionary<string, object>
+                //            {
+                //                  { "store_name", "sp_getOrderDetail" },
+                //                { "index_es", "hulotoys_sp_getorderdetail" },
+                //                {"project_type", 1 },
+                //                  {"id" , -1 }
+
+                //            };
+
+                //var data_product = JsonConvert.SerializeObject(j_param);
+                //var json_input = new Dictionary<string, object>
+                //{
+                //    {"j_param_queue",data_product},
+                //    {"queue_name", "queue_checkout_order"}
+
+                //};
+                //token = CommonHelper.Encode(JsonConvert.SerializeObject(json_input), configuration["DataBaseConfig:key_api:b2c"]);
+
+                if (/*!CommonHelper.GetParamWithKey(token, out objParr, configuration["DataBaseConfig:key_api:b2c"]) 
+                    ||*/ j_param_queue ==null || j_param_queue.Trim()==""
                     || queue_name == null || queue_name.Trim() == "")
                 {
                     return Ok(new

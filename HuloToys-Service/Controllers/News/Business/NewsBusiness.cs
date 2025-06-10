@@ -231,19 +231,19 @@ namespace HuloToys_Service.Controllers.News.Business
 
 
 
-        public async Task<List<CategoryArticleModel>> getListNews(int category_id, int take)
+        public async Task<List<CategoryArticleModel>> getListNews(int category_id)
         {
             var list_article = new List<CategoryArticleModel>();
             try
             {
                 // Lấy ra danh sách id các bài viết mới nhất
-                var obj_top_story = articleESService.getListNews(category_id, take);
+                var obj_top_story = articleESService.getListNews(category_id);
 
                 return obj_top_story;
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "getArticleListByCategoryId - ArticleDAL: " + ex);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "getArticleListByCategoryId - ArticleDAL: " + ex);
                 return list_article;
             }
         }
@@ -256,7 +256,7 @@ namespace HuloToys_Service.Controllers.News.Business
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "GetArticleCategoryByParentID -GroupProductRepository : " + ex);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "GetArticleCategoryByParentID -GroupProductRepository : " + ex);
             }
             return null;
         }
@@ -272,7 +272,7 @@ namespace HuloToys_Service.Controllers.News.Business
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "getArticleListByCategoryId - ArticleDAL: " + ex);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "getArticleListByCategoryId - ArticleDAL: " + ex);
                 return 0;
             }
         }
@@ -415,7 +415,7 @@ namespace HuloToys_Service.Controllers.News.Business
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "getArticleListByCategoryId - ArticleDAL: " + ex);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "getArticleListByCategoryId - ArticleDAL: " + ex);
                 return null;
             }
         }
@@ -458,10 +458,10 @@ namespace HuloToys_Service.Controllers.News.Business
 
 
                 model.Categories = List_articleCategory.Select(s => (int)s.categoryid).ToList();
-                model.category_id = model.Categories != null || model.Categories.Count > 0 ? model.Categories[0] : -1;
-                model.MainCategory = model.Categories != null || model.Categories.Count > 0 ? model.Categories[0] : -1;
+                model.category_id = model.Categories != null&& model.Categories.Count > 0 ? model.Categories[0] : -1;
+                model.MainCategory = model.Categories != null && model.Categories.Count > 0 ? model.Categories[0] : -1;
                 var group_product = groupProductESService.GetDetailGroupProductById(model.MainCategory);
-                if (group_product == null || group_product.Id < 0) return null;
+                //if (group_product == null || group_product.Id < 0) return null;
 
                 if (model.MainCategory > 0)
                 {
@@ -471,7 +471,7 @@ namespace HuloToys_Service.Controllers.News.Business
                 {
                     model.category_name = "Tin tức";
                 }
-                model.RelatedArticleIds = List_relatedArticleIds != null ? List_relatedArticleIds.Select(s => (long)s.ArticleRelatedId).ToList() : null;
+                model.RelatedArticleIds = List_relatedArticleIds != null && List_relatedArticleIds.Count > 0 ? List_relatedArticleIds.Where(s=>s.ArticleRelatedId!=null).Select(s => (long)s.ArticleRelatedId).ToList() : null;
 
                 if (model.RelatedArticleIds != null && model.RelatedArticleIds.Count > 0)
                 {
@@ -508,7 +508,7 @@ namespace HuloToys_Service.Controllers.News.Business
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "[article_id = " + article_id + "]GetArticleDetailLite - ArticleDAL: " + ex);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "[article_id = " + article_id + "]GetArticleDetailLite - ArticleDAL: " + ex);
                 return null;
             }
         }
@@ -585,7 +585,7 @@ namespace HuloToys_Service.Controllers.News.Business
                 catch (Exception ex)
                 {
 
-                    LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "[title = " + title + "]FindArticleByTitle - ArticleDAL: transaction.Commit " + ex);
+                    LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "[title = " + title + "]FindArticleByTitle - ArticleDAL: transaction.Commit " + ex);
                     return null;
                 }
 
@@ -593,7 +593,7 @@ namespace HuloToys_Service.Controllers.News.Business
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "[title = " + title + "]FindArticleByTitle - ArticleDAL:" + ex);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "[title = " + title + "]FindArticleByTitle - ArticleDAL:" + ex);
 
                 return null;
             }
@@ -655,7 +655,7 @@ namespace HuloToys_Service.Controllers.News.Business
                                     image_11 = _article.Image11,
                                     publish_date = (DateTime)_article.PublishDate,
                                     article_type = _article.ArticleType,
-                                    update_last = (DateTime)_article.ModifiedOn,
+                                    update_last = _article.ModifiedOn==null? DateTime.Now: (DateTime)_article.ModifiedOn,
                                     position = _article.Position,
                                     category_id = groupProductId,
                                 };
@@ -688,7 +688,7 @@ namespace HuloToys_Service.Controllers.News.Business
                                     }
                                     else
                                     {
-                                        groupProductId += groupProduct.Id + ",";
+                                       // groupProductId += groupProduct.Id + ",";
                                     }
 
                                 }
@@ -705,7 +705,7 @@ namespace HuloToys_Service.Controllers.News.Business
                                 publish_date = (DateTime)_article.PublishDate,
                                 position = _article.Position,
                                 article_type = _article.ArticleType,
-                                update_last = (DateTime)_article.ModifiedOn,
+                                update_last = _article.ModifiedOn == null ? DateTime.Now : (DateTime)_article.ModifiedOn,
                                 category_id = groupProductId,
                             };
 
@@ -771,7 +771,7 @@ namespace HuloToys_Service.Controllers.News.Business
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "[getArticleListByCategoryId - ArticleDAL:" + ex);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "[getArticleListByCategoryId - ArticleDAL:" + ex);
                 return null;
             }
         }
@@ -829,7 +829,7 @@ namespace HuloToys_Service.Controllers.News.Business
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "[getArticleListByCategoryId - ArticleDAL:" + ex);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "[getArticleListByCategoryId - ArticleDAL:" + ex);
                 return null;
             }
         }
@@ -850,7 +850,7 @@ namespace HuloToys_Service.Controllers.News.Business
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
             }
             return null;
         }
@@ -858,12 +858,48 @@ namespace HuloToys_Service.Controllers.News.Business
         {
             try
             {
-                var data = groupProductESService.GetListGroupProductByParentId(parent_id);
-                return data;
+                var obj_cate = new List<GroupProductESModel>();
+                // List chuyên mục cha
+                var obj_cate_parent = groupProductESService.GetListGroupProductByParentId(parent_id);
+                foreach (var item in obj_cate_parent)
+                {
+                    var obj_cate_child = new List<GroupProductESModel>();
+                    var cate_child_detail = groupProductESService.GetListGroupProductByParentId(item.Id);
+                    if (cate_child_detail.Count > 0)
+                    {
+                        foreach (var item_child in cate_child_detail)
+                        {
+                            var cate_child = new GroupProductESModel
+                            {
+                                ParentId = item.Id,
+                                Id = item_child.Id,
+                                Name = item_child.Name,
+                                ImagePath = item_child.ImagePath,
+                                Path = item_child.Path,
+                                IsShowHeader = item_child.IsShowHeader,
+                                IsShowFooter = item_child.IsShowFooter,
+                            };
+                            obj_cate_child.Add(cate_child);
+                        }
+                    }
+                    var cate_parent = new GroupProductESModel
+                    {
+                        Id = item.Id,
+                        Name = item.Name,
+                        ImagePath = item.ImagePath,
+                        Path = item.Path,
+                        IsShowHeader = item.IsShowHeader,
+                        IsShowFooter = item.IsShowFooter,
+                        group_product_child = obj_cate_child
+                    };
+                    obj_cate.Add(cate_parent);
+                }
+
+                return obj_cate;
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "GetByParentId-GroupProductDAL" + ex);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "GetByParentId-GroupProductDAL" + ex);
             }
             return null;
         }
@@ -877,7 +913,7 @@ namespace HuloToys_Service.Controllers.News.Business
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "GetById-GroupProductDAL" + ex);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "GetById-GroupProductDAL" + ex);
 
             }
             return null;
@@ -901,7 +937,7 @@ namespace HuloToys_Service.Controllers.News.Business
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
                 return null;
             }
         }
@@ -916,7 +952,7 @@ namespace HuloToys_Service.Controllers.News.Business
                 if (detail != null)
                 {
                     var group = GetById(detail.category_id);
-                    if (!group.IsShowHeader) return null;
+                    if (group!=null && !group.IsShowHeader) return null;
                     var fe_detail = new ArticleFeModel()
                     {
                         id = detail.id,
@@ -932,10 +968,11 @@ namespace HuloToys_Service.Controllers.News.Business
                     };
                     return fe_detail;
                 }
+               
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "[API]ArticleRepository - GetMostViewedArticle: " + ex);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "[API]ArticleRepository - GetMostViewedArticle: " + ex);
             }
             return null;
         }
@@ -950,7 +987,7 @@ namespace HuloToys_Service.Controllers.News.Business
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "[API]getArticleListByTags - GetArticleDetail: " + ex);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "[API]getArticleListByTags - GetArticleDetail: " + ex);
                 return null;
             }
         }
@@ -965,7 +1002,7 @@ namespace HuloToys_Service.Controllers.News.Business
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "GetGroupProductNameAsync -GroupProductRepository : " + ex);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "GetGroupProductNameAsync -GroupProductRepository : " + ex);
             }
             return group_name;
         }
@@ -974,40 +1011,102 @@ namespace HuloToys_Service.Controllers.News.Business
         {
             try
             {
-                var group = GetByParentId(parent_id);
-                group = group.Where(x => x.IsShowHeader == true).ToList();
-                var list = new List<ArticleGroupViewModel>();
-                //list.Add(new ArticleGroupViewModel()
-                //{
-                //    id = parent_id,
-                //    name = "Mới nhất",
-                //    order_no = -1,
-                //    image_path = "",
-                //    url_path = "tin-tuc-" + parent_id
-                //});
-                list.AddRange(group.Select(x => new ArticleGroupViewModel() { id = x.Id, image_path = x.ImagePath, name = x.Name, order_no = (int)x.OrderNo, url_path = x.Path }).OrderBy(x => x.order_no).ToList());
+                var groupList = GetByParentId(parent_id);
+                if (groupList == null || !groupList.Any())
+                    return new List<ArticleGroupViewModel>();
+
+                // Chỉ lấy nhóm có IsShowHeader = true
+                groupList = groupList.Where(x => x.IsShowHeader == true).ToList();
+
+                var list = groupList
+                    .OrderBy(x => x.OrderNo)
+                    .Select(parent => new ArticleGroupViewModel
+                    {
+                        id = parent.Id,
+                        parentid = parent.ParentId,
+                        positionid = parent.PositionId,
+                        name = parent.Name,
+                        image_path = parent.ImagePath,
+                        url_path = parent.Path,
+                        order_no = (int)(parent.OrderNo ?? 0),
+                        group_product_child = parent.group_product_child?.OrderBy(c => c.OrderNo).Select(child => new ArticleGroupViewModel
+                        {
+                            id = child.Id,
+                            name = child.Name,
+                            image_path = child.ImagePath,
+                            url_path = child.Path,
+                            order_no = (int)(child.OrderNo ?? 0),
+                            group_product_child = new List<ArticleGroupViewModel>() // Nếu cần đệ quy sâu hơn
+                        }).ToList() ?? new List<ArticleGroupViewModel>()
+                    }).ToList();
+
                 return list;
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "GetArticleCategoryByParentID -GroupProductRepository : " + ex);
+                LogHelper.InsertLogTelegramByUrl(
+                    configuration["BotSetting:bot_token"],
+                    configuration["BotSetting:bot_group_id"],
+                    "GetArticleCategoryByParentID - GroupProductRepository: " + ex.ToString()
+                );
+                return new List<ArticleGroupViewModel>();
             }
-            return null;
         }
+
+        public async Task<int> GetParentIdFromChild(int categoryId)
+        {
+            try
+            {
+                // Sử dụng ElasticSearch để lấy thông tin của category con
+                var groupList = await groupProductESService.GetByCategoryId(categoryId); // Lấy thông tin từ ElasticSearch hoặc DB
+
+                var category = groupList.FirstOrDefault(x => x.Id == categoryId);
+                // Kiểm tra xem có nhóm con không
+                if (category?.group_product_child?.Any() == true)
+                {
+                    return 0; // Nếu có nhóm con, trả về 0 để không có menu con
+                }
+
+                // Nếu không có nhóm con, trả về parentId
+                return category?.ParentId ?? 0;
+
+                
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "GetParentIdFromChild: " + ex.Message);
+                return 0;
+            }
+        }
+
+
         public async Task<List<ArticleGroupViewModel>> GetFooterCategoryByParentID(long parent_id)
         {
             try
             {
                 var group = GetByParentId(parent_id);
-                group = group.Where(x => x.IsShowFooter == true).ToList();
+               // group = group.Where(x => x.IsShowFooter == true).ToList();
                 var list = new List<ArticleGroupViewModel>();
 
-                list.AddRange(group.Select(x => new ArticleGroupViewModel() { id = x.Id, image_path = x.ImagePath, name = x.Name, order_no = (int)x.OrderNo, url_path = x.Path }).OrderBy(x => x.order_no).ToList());
-                return list;
+                // Lấy chỉ mấy thằng con có IsShowFooter == true
+                var childFooterGroups = group
+                    .SelectMany(x => x.group_product_child)
+                    .Where(child => child.IsShowFooter == true);
+
+                list.AddRange(childFooterGroups.Select(child => new ArticleGroupViewModel()
+                {
+                    id = child.Id,
+                    image_path = child.ImagePath,
+                    name = child.Name,
+                    order_no = child.OrderNo ?? 0, // fix lỗi nullable ở đây
+                    url_path = child.Path
+                }));
+
+                return list.OrderBy(x => x.order_no).ToList();
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "GetFooterCategoryByParentID -GroupProductRepository : " + ex);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "GetFooterCategoryByParentID -GroupProductRepository : " + ex);
             }
             return null;
         }
@@ -1022,7 +1121,7 @@ namespace HuloToys_Service.Controllers.News.Business
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "GetProductGroupByParentID -GroupProductRepository : " + ex);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "GetProductGroupByParentID -GroupProductRepository : " + ex);
             }
             return null;
         }
@@ -1068,7 +1167,7 @@ namespace HuloToys_Service.Controllers.News.Business
                 catch (Exception ex)
                 {
 
-                    LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "[title = " + title + "]FindArticleByBody - ArticleDAL: transaction.Commit " + ex);
+                    LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "[title = " + title + "]FindArticleByBody - ArticleDAL: transaction.Commit " + ex);
                     return null;
                 }
 
@@ -1076,7 +1175,7 @@ namespace HuloToys_Service.Controllers.News.Business
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], "[title = " + title + "]FindArticleByBody - ArticleDAL:" + ex);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "[title = " + title + "]FindArticleByBody - ArticleDAL:" + ex);
 
                 return null;
             }

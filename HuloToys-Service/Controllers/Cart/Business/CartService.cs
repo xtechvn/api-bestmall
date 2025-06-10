@@ -1,4 +1,5 @@
 ﻿using Entities.ViewModels.Products;
+using HuloToys_Service.Controllers.Product.Bussiness;
 using HuloToys_Service.MongoDb;
 using HuloToys_Service.RedisWorker;
 using HuloToys_Service.Utilities.Lib;
@@ -13,13 +14,13 @@ namespace HuloToys_Service.Controllers.Cart.Business
     {
         private readonly IConfiguration _configuration;
         private readonly CartMongodbService _cartMongodbService;
-        private readonly ProductDetailMongoAccess _productDetailMongoAccess;
-        public CartService(IConfiguration configuration)
+        private readonly ProductDetailService productDetailService;
+        public CartService(IConfiguration configuration,ProductDetailService _productDetailService, CartMongodbService cartMongodbService)
         {
             _configuration = configuration;
 
-            _cartMongodbService = new CartMongodbService(configuration);
-            _productDetailMongoAccess = new ProductDetailMongoAccess(configuration);
+            _cartMongodbService = cartMongodbService;
+            productDetailService = _productDetailService;
         }
         public async Task<List<CartItemMongoDbModel>> GetList(long account_client_id)
         {
@@ -32,7 +33,7 @@ namespace HuloToys_Service.Controllers.Cart.Business
                     {
                         foreach(var item in model)
                         {
-                            item.product= await _productDetailMongoAccess.GetByID(item.product._id);
+                            item.product= await productDetailService.GetByID(item.product._id);
                         }
                     }
                     return model;
@@ -55,7 +56,7 @@ namespace HuloToys_Service.Controllers.Cart.Business
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(_configuration["telegram:log_try_catch:bot_token"], _configuration["telegram:log_try_catch:group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
             }
             return null;
         }

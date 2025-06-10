@@ -26,12 +26,12 @@ namespace HuloToys_Service.Controllers
         private readonly VietQRServices _vietQRServices;
         private readonly OrderMongodbService _orderMongodbService;
 
-        public PaymentController(IConfiguration _configuration)
+        public PaymentController(IConfiguration _configuration, OrderMongodbService orderMongodbService)
         {
             configuration = _configuration;
             workQueueClient = new WorkQueueClient(configuration);
             _vietQRServices = new VietQRServices(configuration);
-            _orderMongodbService = new OrderMongodbService(configuration);
+            _orderMongodbService = orderMongodbService;
 
         }
         [HttpPost("qr-code")]
@@ -78,7 +78,7 @@ namespace HuloToys_Service.Controllers
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
             }
             return Ok(new
             {
@@ -153,7 +153,7 @@ namespace HuloToys_Service.Controllers
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
             }
             return Ok(new
             {

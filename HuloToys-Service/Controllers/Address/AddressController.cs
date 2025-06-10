@@ -21,15 +21,18 @@ using System.Collections.Generic;
 using System.Reflection;
 using Utilities;
 using Utilities.Contants;
+using HuloToys_Service.Controllers.IRepositories;
+using HuloToys_Service.Models.Models;
 
 namespace HuloToys_Service.Controllers.Address
 {
     [Route("api/[controller]")]
     [ApiController]
-    
+
     public class AddressController : ControllerBase
     {
         private readonly IConfiguration configuration;
+        private readonly IAddressClientRepository _addressClientRepository;
         private readonly AccountClientESService accountClientESService;
         private readonly AddressClientESService addressClientESService;
         private readonly AddressClientService addressClientService;
@@ -37,7 +40,7 @@ namespace HuloToys_Service.Controllers.Address
         private readonly WorkQueueClient work_queue;
         private readonly ClientServices clientServices;
 
-        public AddressController(IConfiguration _configuration, RedisConn _redisService)
+        public AddressController(IConfiguration _configuration, RedisConn _redisService, IAddressClientRepository addressClientRepository)
         {
             configuration = _configuration;
             redisService = _redisService;
@@ -48,11 +51,24 @@ namespace HuloToys_Service.Controllers.Address
             addressClientService = new AddressClientService(_configuration, redisService);
             clientServices = new ClientServices(configuration);
 
+            _addressClientRepository = addressClientRepository;
         }
         [HttpPost("insert-address")]
 
         public async Task<IActionResult> InsertOrUpdateAddress([FromBody] APIRequestGenericModel input)
         {
+            //AddressViewModel model = new AddressViewModel()
+            //{
+            //    Address = "SNTEst001 - P001",
+            //    DistrictId = "01",
+            //    WardId = "001",
+            //    ProvinceId = "01",
+            //    Id=0,
+            //    Phone="0123333221",
+            //    ReceiverName="Người nhận Test",
+            //    token= "F08nOlAVBi8vLwxaDGMgagViZHx9aVhlfVx4AmJnTlpFXyNQYmNiVQJpXX5zQ1BMUlZzUVxPfmtQHykzJzAMWgxjZ2gDZnl+eHVZYx1YfwhjYlZHXhhiRmB2ZlULHU0w"
+            //};
+            //input.token = CommonHelper.Encode(JsonConvert.SerializeObject(model), configuration["KEY:private_key"]);
             try
             {
                 JArray objParr = null;
@@ -60,85 +76,77 @@ namespace HuloToys_Service.Controllers.Address
                 {
                     var request = JsonConvert.DeserializeObject<AddressViewModel>(objParr[0].ToString());
                     bool response_queue = false;
-                    
-                    if (request != null )
-                    {
-                        //-- check account client
-                        if (request.AccountClientId <= 0)
-                        {
-                            request.AccountClientId = await clientServices.GetAccountClientIdFromToken(request.token);
-                            if (request.AccountClientId <= 0)
-                            {
-                                return Ok(new
-                                {
-                                    status = (int)ResponseType.FAILED,
-                                    msg = ResponseMessages.DataInvalid
-                                });
-                            }
 
-                        }
-                        //-- check if account client exists
-                        var account_client = accountClientESService.GetById(request.AccountClientId);
-                        if(account_client==null || account_client.Id <= 0)
+                    if (request == null || request.token == null 
+                        || request.Phone == null || request.ProvinceId == null
+                        || request.DistrictId == null || request.WardId == null
+                        || request.Address == null || request.ReceiverName == null)
+                    {
+                        return Ok(new
                         {
-                            return Ok(new
-                            {
-                                status = (int)ResponseType.FAILED,
-                                msg = ResponseMessages.DataInvalid
-                            });
-                        }
-                        request.ClientId = (long)account_client.ClientId;
-                        bool is_add_new = true;
-                        int address_count = 1;
-                        if (request.Id > 0 )
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+
+                    }
+                    request.AccountClientId = await clientServices.GetAccountClientIdFromToken(request.token);
+                    //-- check if account client exists
+                    if (request.AccountClientId <= 0)
+                    {
+                        return Ok(new
                         {
-                            var address_update = addressClientESService.GetById(request.Id, (long)account_client.ClientId);
-                            if (address_update == null || address_update.id <= 0)
-                            {
-                                return Ok(new
-                                {
-                                    status = (int)ResponseType.FAILED,
-                                    msg = ResponseMessages.DataInvalid
-                                });
-                            }
-                           is_add_new = false;
-                        }
-                        else
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+                    var account_client = accountClientESService.GetById(request.AccountClientId);
+                    if (account_client==null|| account_client.ClientId==null)
+                    {
+                        return Ok(new
                         {
-                            var address_by_client = addressClientESService.GetByClientID((long)account_client.ClientId);
-                            if (address_by_client != null) address_count = address_by_client.Count;
-                        }
-                        var j_param = new Dictionary<string, object>
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+                    request.ClientId = (long)account_client.ClientId;
+                    if (request.Id <= 0)
+                    {
+                        request.Id = _addressClientRepository.InsertAddressClient(new AddressClient()
+                        {
+                            Phone= request.Phone,
+                            ClientId= request.ClientId,
+                            IsActive= true,
+                        });
+                    }
+                    var j_param = new Dictionary<string, object>
                         {
                             {"data_push", JsonConvert.SerializeObject(request)}, // có thể là json
-                            {"type",is_add_new?QueueType.ADD_ADDRESS:QueueType.UPDATE_ADDRESS}
+                            {"type",QueueType.UPDATE_ADDRESS}
                         };
-                        var _data_push = JsonConvert.SerializeObject(j_param);
+                    var _data_push = JsonConvert.SerializeObject(j_param);
 
-                        // Execute Push Queue
+                    // Execute Push Queue
 
-                        response_queue = work_queue.InsertQueueSimple(_data_push, QueueName.queue_app_push);
-                        //-- Clear Cache:
-                        var cache_name = CacheType.ADDRESS_CLIENT + request.AccountClientId;
-                        redisService.clear(cache_name, Convert.ToInt32(configuration["Redis:Database:db_search_result"]));
-                        if (response_queue)
+                    response_queue = work_queue.InsertQueueSimple(_data_push, QueueName.queue_app_push);
+                    //-- Clear Cache:
+                    var cache_name = CacheType.ADDRESS_CLIENT + request.AccountClientId;
+                    redisService.clear(cache_name, Convert.ToInt32(configuration["Redis:Database:db_search_result"]));
+                    if (response_queue)
+                    {
+                        return Ok(new
                         {
-                            return Ok(new
-                            {
-                                status = (int)ResponseType.SUCCESS,
-                                msg = "Success",
-                                data= is_add_new ? (address_count * -1): request.Id
-                            });
-                        }
-                        else
+                            status = (int)ResponseType.SUCCESS,
+                            msg = "Success",
+                            data = request.Id
+                        });
+                    }
+                    else
+                    {
+                        return Ok(new
                         {
-                            return Ok(new
-                            {
-                                status = (int)ResponseType.FAILED,
-                                msg = "FAILED"
-                            });
-                        }
-
+                            status = (int)ResponseType.FAILED,
+                            msg = "FAILED"
+                        });
                     }
 
                 }
@@ -148,7 +156,7 @@ namespace HuloToys_Service.Controllers.Address
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
 
             }
             return Ok(new
@@ -168,7 +176,7 @@ namespace HuloToys_Service.Controllers.Address
         //            var request = JsonConvert.DeserializeObject<AddressViewModel>(objParr[0].ToString());
         //            bool response_queue = false;
         //            var work_queue = new WorkQueueClient(configuration);
-                  
+
         //            if (request != null)
         //            {
         //                if (request.AccountClientId <= 0)
@@ -229,7 +237,7 @@ namespace HuloToys_Service.Controllers.Address
         //    catch (Exception ex)
         //    {
         //        string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-        //        LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], error_msg);
+        //        LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
 
         //    }
         //    return Ok(new
@@ -256,7 +264,7 @@ namespace HuloToys_Service.Controllers.Address
                         });
                     }
                     long account_client_id = await clientServices.GetAccountClientIdFromToken(request.token);
-                    if (account_client_id <=0)
+                    if (account_client_id <= 0)
                     {
                         return Ok(new
                         {
@@ -364,7 +372,7 @@ namespace HuloToys_Service.Controllers.Address
                 if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, configuration["KEY:private_key"]))
                 {
                     var request = JsonConvert.DeserializeObject<ClientAddressDetailRequestModel>(objParr[0].ToString());
-                    if (request == null )
+                    if (request == null)
                     {
                         return Ok(new
                         {
@@ -420,6 +428,122 @@ namespace HuloToys_Service.Controllers.Address
             {
                 status = (int)ResponseType.FAILED,
                 msg = ResponseMessages.DataInvalid,
+            });
+        }
+        [HttpPost("delete-address")]
+
+        public async Task<IActionResult> HideAddress([FromBody] APIRequestGenericModel input)
+        {
+            //AddressViewModel model = new AddressViewModel()
+            //{
+
+            //    Id = 10117,
+            //    token = "F08nOlAVBi8vLwxaDGMgagRjYX97aVlkfFt7AmJnTlpFXyNQYmNiUgBpXnt3Q1BJUlZ1U05BcCxNFysoPCdLQhRzZWoEfmR4Y2lQBHlccANhbF1BSQJnRGxya1ZpZRI="
+            //};
+            //input.token = CommonHelper.Encode(JsonConvert.SerializeObject(model), configuration["KEY:private_key"]);
+            try
+            {
+                JArray objParr = null;
+                if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, configuration["KEY:private_key"]))
+                {
+                    var request = JsonConvert.DeserializeObject<AddressViewModel>(objParr[0].ToString());
+                    bool response_queue = false;
+
+                    if (request == null || request.token == null
+                        || request.Id <=0)
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+
+                    }
+                    request.AccountClientId = await clientServices.GetAccountClientIdFromToken(request.token);
+                    //-- check if account client exists
+                    if (request.AccountClientId <= 0)
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+                    var account_client = accountClientESService.GetById(request.AccountClientId);
+                    if (account_client == null || account_client.ClientId == null)
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+                    request.ClientId = (long)account_client.ClientId;
+                    var exists = addressClientESService.GetById(request.Id, request.ClientId);
+                    if(exists!=null && exists.id > 0)
+                    {
+                        var address = new AddressClient()
+                        {
+                            Id = request.Id,
+                            Status = 1,
+                            Address=exists.Address,
+                            ClientId=exists.ClientId,
+                            CreatedOn=exists.CreatedOn,
+                            DistrictId=exists.DistrictId,
+                            IsActive=exists.IsActive,
+                            Phone=exists.Phone,
+                            ProvinceId=exists.ProvinceId,
+                            ReceiverName=exists.ReceiverName,
+                            UpdateTime=exists.UpdateTime,
+                            WardId=exists.WardId
+                        };
+                        var j_param = new Dictionary<string, object>
+                        {
+                            {"data_push", JsonConvert.SerializeObject(address)}, // có thể là json
+                            {"type",QueueType.UPDATE_ADDRESS}
+                        };
+                        var _data_push = JsonConvert.SerializeObject(j_param);
+
+                        // Execute Push Queue
+
+                        response_queue = work_queue.InsertQueueSimple(_data_push, QueueName.queue_app_push);
+                        //-- Clear Cache:
+                        var cache_name = CacheType.ADDRESS_CLIENT + request.AccountClientId;
+                        redisService.clear(cache_name, Convert.ToInt32(configuration["Redis:Database:db_search_result"]));
+                    }
+                    
+                    if (response_queue)
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.SUCCESS,
+                            msg = "Success",
+                            data = request.Id
+                        });
+                    }
+                    else
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = "FAILED"
+                        });
+                    }
+
+                }
+
+
+            }
+            catch (Exception ex)
+            {
+                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
+
+            }
+            return Ok(new
+            {
+                status = (int)ResponseType.FAILED,
+                msg = ResponseMessages.DataInvalid
             });
         }
     }

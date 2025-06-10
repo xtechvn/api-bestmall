@@ -51,7 +51,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                             {
                                 foreach (var variation in product.variation_detail)
                                 {
-                                    var type = product.attributes.FirstOrDefault(x => x._id == variation.id);
+                                    var type = product.attributes.FirstOrDefault(x => x._id == variation._id);
                                     if (type != null && type._id != null)
                                     {
                                         if (r.variation_detail.Trim() != "") r.variation_detail += ", ";
@@ -68,7 +68,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(_configuration["telegram:log_try_catch:bot_token"], _configuration["telegram:log_try_catch:group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
             }
             return null;
         }

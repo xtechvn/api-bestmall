@@ -47,6 +47,9 @@ namespace HuloToys_Service.Controllers.Address.Business
                 var list = addressClientESService.GetByClientID(client_id);
                 if (list!=null && list.Count > 0)
                 {
+                    //Get only non-delete address:
+                    list = list.Where(x => x.Status == 0).ToList();
+                    //--continues processing:
                     List<Province> provinces = new List<Province>();
                     List<District> districts = new List<District>();
                     List<Ward> wards = new List<Ward>();

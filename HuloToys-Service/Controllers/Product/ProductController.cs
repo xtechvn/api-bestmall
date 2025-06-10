@@ -1115,6 +1115,8 @@ namespace WEB.CMS.Controllers
                         });
                     }
                     var id = await _productFavouritesMongoAccess.DeleteAsync(account_client_id, request.product_id);
+                    var cache_name = CacheType.PRODUCT_DETAIL + request.product_id;
+                    _redisService.clear(cache_name, Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
                     return Ok(new
                     {
                         status = (int)ResponseType.SUCCESS,

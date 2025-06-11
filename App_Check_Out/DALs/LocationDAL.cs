@@ -23,6 +23,8 @@ namespace DAL
                 };
 
                 DataTable tb = _DbWorker.GetDataTable("SP_GetListProvinces", objParam);
+                Console.WriteLine("SP_GetListProvinces "+(tb == null ? "NULL" : tb.Rows.Count));
+
                 if (tb != null && tb.Rows.Count > 0)
                 {
                     var data = tb.ToList<Province>();
@@ -31,7 +33,8 @@ namespace DAL
             }
             catch (Exception ex)
             {
-
+                string err = "LocationDAL-GetListProvinces: " + ex.Message + "\nat" + ex.StackTrace;
+                Console.WriteLine(err);
             }
             return null;
         }
@@ -45,6 +48,8 @@ namespace DAL
                 };
 
                 DataTable tb = _DbWorker.GetDataTable("SP_GetListDistrict", objParam);
+                Console.WriteLine("SP_GetListDistrict " + (tb == null ? "NULL" : tb.Rows.Count));
+
                 if (tb != null && tb.Rows.Count > 0)
                 {
                     var data = tb.ToList<District>();
@@ -53,7 +58,8 @@ namespace DAL
             }
             catch (Exception ex)
             {
-
+                string err = "LocationDAL-GetListDistrict: " + ex.Message + "\nat" + ex.StackTrace;
+                Console.WriteLine(err);
             }
             return null;
         }
@@ -67,6 +73,8 @@ namespace DAL
                 };
 
                 DataTable tb = _DbWorker.GetDataTable("SP_GetListWard", objParam);
+                Console.WriteLine("SP_GetListWard " + (tb == null ? "NULL" : tb.Rows.Count));
+
                 if (tb != null && tb.Rows.Count > 0)
                 {
                     var data = tb.ToList<Ward>();
@@ -75,7 +83,8 @@ namespace DAL
             }
             catch (Exception ex)
             {
-
+                string err = "LocationDAL-GetListWard: " + ex.Message + "\nat" + ex.StackTrace;
+                Console.WriteLine(err);
             }
             return null;
         }

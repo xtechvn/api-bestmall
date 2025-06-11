@@ -50,6 +50,7 @@ namespace APP_CHECKOUT.DAL
                      new SqlParameter("@ShippingStatus", request.ShippingStatus),
 
                 };
+
                 request.OrderId = _DbWorker.ExecuteNonQuery(SPName.CREATE_ORDER, objParam);
                 return request.OrderId;
 

@@ -23,7 +23,7 @@ using System.Net.Http;
 
 namespace APP_CHECKOUT.Repositories
 {
-    public class MainServices: IMainServices
+    public class MainServices : IMainServices
     {
         private readonly ILoggingService logging_service;
         private readonly OrderMongodbService orderDetailMongoDbModel;
@@ -38,38 +38,43 @@ namespace APP_CHECKOUT.Repositories
         private readonly WorkQueueClient workQueueClient;
         private readonly EmailService emailService;
 
-        public MainServices( ILoggingService loggingService) {
+        public MainServices(ILoggingService loggingService)
+        {
 
-            logging_service=loggingService;
+            logging_service = loggingService;
             orderDetailMongoDbModel = new OrderMongodbService();
             productDetailMongoAccess = new ProductDetailMongoAccess();
             orderDAL = new OrderDAL(ConfigurationManager.AppSettings["ConnectionString"]);
             locationDAL = new LocationDAL(ConfigurationManager.AppSettings["ConnectionString"]);
             orderDetailDAL = new OrderDetailDAL(ConfigurationManager.AppSettings["ConnectionString"]);
+            Console.WriteLine("locationDAL - "+ ConfigurationManager.AppSettings["ConnectionString"]);
+
             accountClientESService = new AccountClientESService(ConfigurationManager.AppSettings["Elastic_Host"]);
             clientESService = new ClientESService(ConfigurationManager.AppSettings["Elastic_Host"]);
             addressClientESService = new AddressClientESService(ConfigurationManager.AppSettings["Elastic_Host"]);
             nhanhVnService = new NhanhVnService(logging_service);
-            workQueueClient = new WorkQueueClient( loggingService);
-            emailService = new EmailService(clientESService,accountClientESService,locationDAL);
+            workQueueClient = new WorkQueueClient(loggingService);
+            emailService = new EmailService(clientESService, accountClientESService, locationDAL);
         }
         public async Task Excute(CheckoutQueueModel request)
         {
             try
             {
-                if (request == null || request.event_id<0) {
+                if (request == null || request.event_id < 0)
+                {
                     return;
                 }
                 switch (request.event_id)
                 {
                     case (int)CheckoutEventID.CREATE_ORDER:
                         {
-                           var data=  await CreateOrder(request.order_mongo_id);
+                            var data = await CreateOrder(request.order_mongo_id);
                             if (data != null && data._id != null && data._id.Trim() != "")
                             {
                                 emailService.SendOrderConfirmationEmail(data.email, data);
                             }
-                        }break;
+                        }
+                        break;
                     case (int)CheckoutEventID.UPDATE_ORDER:
                         {
 
@@ -80,14 +85,15 @@ namespace APP_CHECKOUT.Repositories
 
                         }
                         break;
-                   default:
+                    default:
                         {
 
                         }
                         break;
                 }
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 string err = "MainServices: " + ex.ToString();
                 Console.WriteLine(err);
                 logging_service.InsertLogTelegramDirect(err);
@@ -98,11 +104,18 @@ namespace APP_CHECKOUT.Repositories
             try
             {
                 var time = DateTime.Now;
+                //Console.WriteLine("Get Order Mongodb:" +order_detail_id);
+
                 var order = await orderDetailMongoDbModel.FindById(order_detail_id);
+
                 if (order == null || order.carts == null || order.carts.Count <= 0)
                 {
+                    //Console.WriteLine("Found:false");
+
                     return null;
                 }
+                // Console.WriteLine("Found:true");
+
                 Order order_summit = new Order();
                 List<OrderDetail> details = new List<OrderDetail>();
                 double total_price = 0;
@@ -112,13 +125,15 @@ namespace APP_CHECKOUT.Repositories
                 foreach (var cart in order.carts)
                 {
                     string name_url = CommonHelpers.RemoveUnicode(cart.product.name);
+                    // Console.WriteLine("Order-Carts: " + cart.product.name);
+
                     name_url = CommonHelpers.RemoveSpecialCharacters(name_url);
                     name_url = name_url.Replace(" ", "-").Trim();
                     string parent_product_id = cart.product._id;
                     try
                     {
                         var product = await productDetailMongoAccess.GetByID(cart.product._id);
-                        if(product!=null && product.parent_product_id!=null && product.parent_product_id.Trim() != "")
+                        if (product != null && product.parent_product_id != null && product.parent_product_id.Trim() != "")
                         {
                             parent_product_id = product.parent_product_id;
                         }
@@ -150,8 +165,10 @@ namespace APP_CHECKOUT.Repositories
                         UpdatedDate = time,
                         UserCreate = Convert.ToInt32(ConfigurationManager.AppSettings["BOT_UserID"]),
                         UserUpdated = Convert.ToInt32(ConfigurationManager.AppSettings["BOT_UserID"]),
-                        ParentProductId=parent_product_id
+                        ParentProductId = parent_product_id
                     });
+                    // Console.WriteLine("Order-OrderDetail: " + cart._id);
+
                     total_price += (cart.product.price * cart.quanity);
                     total_profit += (cart.product.profit * cart.quanity);
                     total_amount += (amount_product * cart.quanity);
@@ -164,12 +181,15 @@ namespace APP_CHECKOUT.Repositories
                 }
                 var account_client = accountClientESService.GetById(order.account_client_id);
                 //logging_service.InsertLogTelegramDirect(" accountClientESService.GetById("+ order.account_client_id + ") : "+ (account_client == null ? "NULL" : JsonConvert.SerializeObject(account_client)));
+                // Console.WriteLine("Order-account_client: " + (account_client==null?"NULL": account_client.Id));
 
                 var client = clientESService.GetById((long)account_client.ClientId);
-               // logging_service.InsertLogTelegramDirect(" clientESService.GetById(" + (long)account_client.ClientId + ") : " + (client == null ? "NULL" : JsonConvert.SerializeObject(client)));
+                // logging_service.InsertLogTelegramDirect(" clientESService.GetById(" + (long)account_client.ClientId + ") : " + (client == null ? "NULL" : JsonConvert.SerializeObject(client)));
+                // Console.WriteLine("Order-client: " + (client == null ? "NULL" : client.Id));
 
                 AddressClientESModel address_client = addressClientESService.GetById(order.address_id, client.Id);
-               // logging_service.InsertLogTelegramDirect(" addressClientESService.GetById(" + order.address_id + "," + client.Id + ") : " + (address_client == null ? "NULL" : JsonConvert.SerializeObject(address_client)));
+                // logging_service.InsertLogTelegramDirect(" addressClientESService.GetById(" + order.address_id + "," + client.Id + ") : " + (address_client == null ? "NULL" : JsonConvert.SerializeObject(address_client)));
+                // Console.WriteLine("Order-address_client: " + (address_client == null ? "NULL" : address_client.Id));
 
                 order_summit = new Order()
                 {
@@ -205,11 +225,19 @@ namespace APP_CHECKOUT.Repositories
                     PackageWeight = total_weight
 
                 };
+                // Console.WriteLine("Order-order_summit: " + (order_summit == null ? "NULL" : order_summit.Amount));
+
                 List<Province> provinces = GetProvince();
                 List<District> districts = GetDistrict();
                 List<Ward> wards = GetWards();
+                Console.WriteLine("Order-provinces:  " + (provinces == null ? "NULL" : provinces.Count));
+                Console.WriteLine("Order-districts:  " + (districts == null ? "NULL" : districts.Count));
+                Console.WriteLine("Order-wards:  " + (wards == null ? "NULL" : wards.Count));
+
                 if (address_client != null && address_client.ProvinceId != null && address_client.DistrictId != null && address_client.WardId != null)
                 {
+                    // Console.WriteLine("Order-address_client!=null:   order_summit.ProvinceId " + (order_summit == null ? "NULL" : order_summit.ProvinceId));
+
                     if (address_client.ProvinceId.Trim() != "" && provinces != null && provinces.Count > 0)
                     {
                         var province = provinces.FirstOrDefault(x => x.ProvinceId == address_client.ProvinceId);
@@ -225,26 +253,44 @@ namespace APP_CHECKOUT.Repositories
                         var ward = wards.FirstOrDefault(x => x.WardId == address_client.WardId);
                         order_summit.WardId = ward != null ? ward.Id : null;
                     }
-                    order_summit.ReceiverName = address_client.ReceiverName;
-                    order_summit.Phone = address_client.Phone;
-                    order_summit.Address = address_client.Address;
                 }
                 else
                 {
-                    var province = provinces.FirstOrDefault(x => x.ProvinceId == order.provinceid);
-                    order_summit.ProvinceId = province != null ? province.Id : null;
-                    var district = districts.FirstOrDefault(x => x.DistrictId == order.districtid);
-                    order_summit.DistrictId = district != null ? district.Id : null;
-                    var ward = wards.FirstOrDefault(x => x.WardId == order.wardid);
-                    order_summit.WardId = ward != null ? ward.Id : null;
-                    order_summit.ReceiverName = order.receivername;
-                    order_summit.Phone = order.phone;
-                    order_summit.Address = order.address;
+                    if (provinces != null && provinces.Count > 0)
+                    {
+                        var province = provinces.FirstOrDefault(x => x.ProvinceId == order.provinceid);
+                        if (province != null) {
+                            order_summit.ProvinceId = province.Id;
+
+                        }
+                    }
+                    if (districts != null && districts.Count > 0)
+                    {
+                        var district = districts.FirstOrDefault(x => x.DistrictId == order.districtid);
+                        if (district != null)
+                        {
+                            order_summit.ProvinceId = district.Id;
+                        }
+                    }
+                    if (wards != null && wards.Count > 0)
+                    {
+                        var ward = wards.FirstOrDefault(x => x.WardId == order.wardid);
+                        if (ward != null)
+                        {
+                            order_summit.ProvinceId = ward.Id;
+                        }
+                    }
+
                 }
+                order_summit.ReceiverName = order.receivername;
+                order_summit.Phone = order.phone;
+                order_summit.Address = order.address;
                 //--apply voucher:
                 double total_discount = 0;
                 if (order.voucher_code != null && order.voucher_code.Trim() != "")
                 {
+                    Console.WriteLine("Order-voucher_code:  " + (order_summit == null ? "NULL" : order.voucher_code));
+
                     var input = new TrackingVoucherRequest
                     {
                         total_order_amount_before = (double)order_summit.Amount,
@@ -319,37 +365,43 @@ namespace APP_CHECKOUT.Repositories
                 // Console.WriteLine("Created Order - " + order.order_no+": "+ order_id);
                 logging_service.InsertLogTelegramDirect("Order Created - " + order.order_no + " - " + total_amount);
                 workQueueClient.SyncES(order_id, "SP_GetOrder", "hulotoys_sp_getorder", Convert.ToInt16(ProjectType.HULOTOYS));
+                Console.WriteLine("Order-order_id:  " + order_id);
 
                 if (order_id > 0)
                 {
+
                     order.order_id = order_id;
                     order.order_no = order_summit.OrderNo;
                     foreach (var detail in details)
-                    {   
+                    {
                         detail.OrderId = order_id;
                         await orderDetailDAL.CreateOrderDetail(detail);
                         Console.WriteLine("Created OrderDetail - " + detail.OrderId + ": " + detail.OrderDetailId);
                         logging_service.InsertLogTelegramDirect("OrderDetail Created - " + detail.OrderId + ": " + detail.OrderDetailId);
                         order.total_price = total_price;
-                        order.total_profit=total_profit;
-                        order.total_amount= total_amount;
-                        order.total_discount= total_discount;
+                        order.total_profit = total_profit;
+                        order.total_amount = total_amount;
+                        order.total_discount = total_discount;
                     }
                     //await nhanhVnService.PostToNhanhVN(order_summit,order, client, address_client);
                     await orderDetailMongoDbModel.Update(order);
 
                 }
                 var extend_order = JsonConvert.DeserializeObject<OrderDetailMongoDbModelExtend>(JsonConvert.SerializeObject(order));
-                if(extend_order!=null)
+                Console.WriteLine("Order-extend_order:  " + (extend_order == null ? "NULL" : extend_order.total_amount));
+
+                if (extend_order != null)
                 {
                     extend_order.email = client.Email;
+                    extend_order.created_date = time;
+
                 }
-                extend_order.created_date = time;
+
                 return extend_order;
             }
             catch (Exception ex)
             {
-                string err = "CreateOrder with ["+ order_detail_id+"] error: " + ex.ToString();
+                string err = "CreateOrder with [" + order_detail_id + "] error: " + ex.Message + "\nat" + ex.StackTrace;
                 Console.WriteLine(err);
                 logging_service.InsertLogTelegramDirect(err);
 
@@ -366,8 +418,10 @@ namespace APP_CHECKOUT.Repositories
                 provinces = locationDAL.GetListProvinces();
 
             }
-            catch
+            catch (Exception ex)
             {
+                string err = "CreateOrder-GetProvince: " + ex.Message + "\nat" + ex.StackTrace;
+                Console.WriteLine(err);
 
             }
             return provinces;
@@ -382,8 +436,10 @@ namespace APP_CHECKOUT.Repositories
                 districts = locationDAL.GetListDistrict();
 
             }
-            catch
+            catch (Exception ex)
             {
+                string err = "CreateOrder-GetProvince: " + ex.Message + "\nat" + ex.StackTrace;
+                Console.WriteLine(err);
 
             }
             return districts;
@@ -398,8 +454,10 @@ namespace APP_CHECKOUT.Repositories
                 wards = locationDAL.GetListWard();
 
             }
-            catch
+            catch (Exception ex)
             {
+                string err = "CreateOrder-GetProvince: " + ex.Message + "\nat" + ex.StackTrace;
+                Console.WriteLine(err);
 
             }
             return wards;
@@ -424,7 +482,7 @@ namespace APP_CHECKOUT.Repositories
                 //{
                 //       new KeyValuePair<string, string>("token", token),
                 //});
-               // var content = new StringContent(JsonConvert.SerializeObject(input), Encoding.UTF8, "application/json");
+                // var content = new StringContent(JsonConvert.SerializeObject(input), Encoding.UTF8, "application/json");
                 string token = CommonHelpers.Encode(JsonConvert.SerializeObject(input), ConfigurationManager.AppSettings["key_private"]);
                 var request_message = new HttpRequestMessage(HttpMethod.Post, url);
                 //request_message.Headers.Add("Authorization", "Bearer " + TOKEN);

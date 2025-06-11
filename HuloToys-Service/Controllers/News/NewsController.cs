@@ -462,8 +462,8 @@ namespace HuloToys_Service.Controllers
                         articleID = article_id,
                         pageview = 1
                     };
-                    NewsMongoService services = new NewsMongoService(configuration);
-                    services.AddNewOrReplace(view_count);
+                    //NewsMongoService services = new NewsMongoService(configuration);
+                    //services.AddNewOrReplace(view_count);
                     return Ok(new
                     {
                         status = (int)ResponseType.SUCCESS,

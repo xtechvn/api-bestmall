@@ -223,11 +223,31 @@ namespace WEB.CMS.Controllers
                         });
                     }
                     ProductDetailResponseModel result = new ProductDetailResponseModel();
+                    Label label = new Label();
+                    var cache_name_label = CacheType.LABEL + result.product_main.label_id;
                     var cache_name = CacheType.PRODUCT_DETAIL + request.id;
                     var j_data = await _redisService.GetAsync(cache_name, Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
                     if (j_data != null && j_data.Trim() != "")
                     {
                         result = JsonConvert.DeserializeObject<ProductDetailResponseModel>(j_data);
+                        //--Get Label:
+                        if (result != null && result.product_main != null && result.product_main.label_id > 0)
+                        {
+                            var j_data_label = await _redisService.GetAsync(cache_name_label, Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
+                            if (j_data_label != null && j_data_label.Trim() != "")
+                            {
+                                label = JsonConvert.DeserializeObject<Label>(j_data_label);
+                            }
+                            else
+                            {
+                                label = await _labelRepository.GetById(result.product_main.label_id);
+                                if (label != null && label.Id > 0)
+                                {
+                                    _redisService.Set(cache_name_label, JsonConvert.SerializeObject(label), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
+
+                                }
+                            }
+                        }
                         if (result != null)
                         {
                             return Ok(new
@@ -242,11 +262,19 @@ namespace WEB.CMS.Controllers
                                 cert = result.cert,
                                 favourite = result.favourite,
                                 buywith = result.product_buy_with_output,
-
+                                label_detail = label == null ? null : new
+                                {
+                                    label.Id,
+                                    label.LabelName,
+                                    label.LabelCode,
+                                    label.Icon,
+                                    label.Banner,
+                                    label.Description,
+                                }
                             });
                         }
                     }
-                    result  = await _productDetailService.GetFullProductById(request.id);
+                    result = await _productDetailService.GetFullProductById(request.id);
                     if (result == null || result.product_main == null || (result.product_main != null && result.product_main.status != (int)ProductStatus.ACTIVE))
                     {
                         return Ok(new
@@ -315,12 +343,31 @@ namespace WEB.CMS.Controllers
                                 code = x.code,
                                 avatar = (!x.avatar.Contains(static_url) && !x.avatar.Contains("data:image") && !x.avatar.Contains("http")) ? (static_url + x.avatar) : x.avatar,
                                 variation_detail = ProductVariationHelper.RenderVariationDetail(x.attributes, x.attributes_detail, x.variation_detail),
-                                exists_flashsale_id=x.exists_flashsale_id,
-                                exists_flashsale_name=x.exists_flashsale_name,
-                                amount_after_flashsale= x.amount_after_flashsale,
-                                flash_sale_fromdate= x.flash_sale_fromdate,
-                                flash_sale_todate=x.flash_sale_todate
+                                exists_flashsale_id = x.exists_flashsale_id,
+                                exists_flashsale_name = x.exists_flashsale_name,
+                                amount_after_flashsale = x.amount_after_flashsale,
+                                flash_sale_fromdate = x.flash_sale_fromdate,
+                                flash_sale_todate = x.flash_sale_todate
                             }).ToList();
+                        }
+                    }
+
+                    //--Get Label:
+                    if (result.product_main != null && result.product_main.label_id > 0)
+                    {
+                        var j_data_label = await _redisService.GetAsync(cache_name_label, Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
+                        if (j_data_label != null && j_data_label.Trim() != "")
+                        {
+                            label = JsonConvert.DeserializeObject<Label>(j_data_label);
+                        }
+                        else
+                        {
+                            label = await _labelRepository.GetById(result.product_main.label_id);
+                            if (label != null && label.Id > 0)
+                            {
+                                _redisService.Set(cache_name_label, JsonConvert.SerializeObject(label), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
+
+                            }
                         }
                     }
 
@@ -331,13 +378,21 @@ namespace WEB.CMS.Controllers
                         msg = "Success",
                         data = new
                         {
-                            product_main=result.product_main,
-                            product_sub= result.product_sub
+                            product_main = result.product_main,
+                            product_sub = result.product_sub
                         },
                         cert = result.cert,
                         favourite = result.favourite,
                         buywith = result.product_buy_with_output,
-
+                        label_detail = label == null ? null : new
+                        {
+                            label.Id,
+                            label.LabelName,
+                            label.LabelCode,
+                            label.Icon,
+                            label.Banner,
+                            label.Description,
+                        }
                     });
 
                 }

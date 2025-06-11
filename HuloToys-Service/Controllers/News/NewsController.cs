@@ -449,7 +449,7 @@ namespace HuloToys_Service.Controllers
                     else
                     {
                         detail = await _newsBusiness.GetArticleDetailLite(article_id);
-                        detail.Tags = await _newsBusiness.GetAllTagByArticleID(article_id);
+                        //detail.Tags = await _newsBusiness.GetAllTagByArticleID(article_id);
                         if (detail != null)
                         {
                             _redisService.Set(cache_name, JsonConvert.SerializeObject(detail), Convert.ToInt32(configuration["Redis:Database:db_common"]));

@@ -608,9 +608,9 @@ namespace HuloToys_Service.Controllers
                     List<ArticleFeModel> video_article = new List<ArticleFeModel>();
                     int total_count = -1;
                     int total_page = 1;
-                    var group_product = await _newsBusiness.GetGroupProductNameAsync(category_id);
                     if (skip + take > 100)
                     {
+                        var group_product = await _newsBusiness.GetGroupProductNameAsync(category_id);
                         var data = await _newsBusiness.getArticleListByCategoryIdOrderByDate(category_id, skip, take, group_product);
                         data_list = data.list_article_fe;
                         total_count = data.total_item_count;
@@ -632,8 +632,10 @@ namespace HuloToys_Service.Controllers
                     }
                     if (j_data == null || j_data == "")
                     {
+                        var group_product = await _newsBusiness.GetGroupProductNameAsync(category_id);
                         var data_100 = await _newsBusiness.getArticleListByCategoryIdOrderByDate(category_id, 0, 100, group_product);
-                        if(data_100!=null && data_100.list_article_fe!=null&& data_100.list_article_fe.Count>0)
+                       
+                        if (data_100!=null && data_100.list_article_fe!=null&& data_100.list_article_fe.Count>0)
                         {
                             data_list = data_100.list_article_fe.Skip(skip == 1 ? 0 : skip).Take(take).ToList();
                             total_count = data_100.total_item_count;
@@ -645,7 +647,12 @@ namespace HuloToys_Service.Controllers
                             }
                             try
                             {
-                                _redisService.Set(cache_key, JsonConvert.SerializeObject(data_100), DateTime.Now.AddMinutes(15), Convert.ToInt32(configuration["Redis:Database:db_common"]));
+                                ArticleByCategoryOrderCacheModel cached = new ArticleByCategoryOrderCacheModel()
+                                {
+                                    data_100 = data_100,
+                                    group_product = group_product
+                                };
+                                _redisService.Set(cache_key, JsonConvert.SerializeObject(cached), DateTime.Now.AddMinutes(15), Convert.ToInt32(configuration["Redis:Database:db_common"]));
                             }
                             catch (Exception ex)
                             {
@@ -657,12 +664,12 @@ namespace HuloToys_Service.Controllers
                     }
                     else
                     {
-                        ArticleFEModelPagnition data_100 = JsonConvert.DeserializeObject<ArticleFEModelPagnition>(j_data);
-                        if (data_100 != null && data_100.list_article_fe != null && data_100.list_article_fe.Count > 0)
+                        ArticleByCategoryOrderCacheModel cached = JsonConvert.DeserializeObject<ArticleByCategoryOrderCacheModel>(j_data);
+                        if (cached!=null && cached.data_100 != null && cached.data_100.list_article_fe != null && cached.data_100.list_article_fe.Count > 0)
                         {
-                            data_list = data_100.list_article_fe.Skip(skip == 1 ? 0 : skip).Take(take).ToList();
-                            total_count = data_100.total_item_count;
-                            pinned_article = data_100.list_article_pinned;
+                            data_list = cached.data_100.list_article_fe.Skip(skip == 1 ? 0 : skip).Take(take).ToList();
+                            total_count = cached.data_100.total_item_count;
+                            pinned_article = cached.data_100.list_article_pinned;
                             total_page = Convert.ToInt32(total_count / take);
                             if (total_page < ((float)total_count / take))
                             {

@@ -437,15 +437,16 @@ namespace HuloToys_Service.Controllers
                 });
             }
         }
-        [HttpPost("get-detail.json")]
+     
+         [HttpPost("get-detail.json")]
         public async Task<ActionResult> GetArticleDetailLite([FromBody] APIRequestGenericModel input)
         {
             try
             {
-                //string j_param = "{'article_id':74}";
+                // string j_param = "{'article_id':1}";
 
 
-                //input.token = CommonHelper.Encode(j_param, configuration["KEY:private_key"]);
+                // token = CommonHelper.Encode(j_param, configuration["KEY:private_key"]);
 
                 JArray objParr = null;
                 if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, configuration["KEY:private_key"]))
@@ -464,7 +465,7 @@ namespace HuloToys_Service.Controllers
                     else
                     {
                         detail = await _newsBusiness.GetArticleDetailLite(article_id);
-                        detail.Tags = await _newsBusiness.GetAllTagByArticleID(article_id);
+                        //detail.Tags = await _newsBusiness.GetAllTagByArticleID(article_id);
                         if (detail != null)
                         {
                             _redisService.Set(cache_name, JsonConvert.SerializeObject(detail), Convert.ToInt32(configuration["Redis:Database:db_common"]));
@@ -477,7 +478,8 @@ namespace HuloToys_Service.Controllers
                         articleID = article_id,
                         pageview = 1
                     };
-                    await _news_services.AddNewOrReplace(view_count);
+                    //NewsMongoService services = new NewsMongoService(configuration);
+                    //services.AddNewOrReplace(view_count);
                     return Ok(new
                     {
                         status = (int)ResponseType.SUCCESS,
@@ -498,7 +500,7 @@ namespace HuloToys_Service.Controllers
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], error_msg);
                 return Ok(new
                 {
                     status = (int)ResponseType.FAILED,

@@ -224,7 +224,6 @@ namespace WEB.CMS.Controllers
                     }
                     ProductDetailResponseModel result = new ProductDetailResponseModel();
                     Label label = new Label();
-                    var cache_name_label = CacheType.LABEL + result.product_main.label_id;
                     var cache_name = CacheType.PRODUCT_DETAIL + request.id;
                     var j_data = await _redisService.GetAsync(cache_name, Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
                     if (j_data != null && j_data.Trim() != "")
@@ -233,6 +232,8 @@ namespace WEB.CMS.Controllers
                         //--Get Label:
                         if (result != null && result.product_main != null && result.product_main.label_id > 0)
                         {
+                            var cache_name_label = CacheType.LABEL + result.product_main.label_id;
+
                             var j_data_label = await _redisService.GetAsync(cache_name_label, Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
                             if (j_data_label != null && j_data_label.Trim() != "")
                             {
@@ -355,6 +356,7 @@ namespace WEB.CMS.Controllers
                     //--Get Label:
                     if (result.product_main != null && result.product_main.label_id > 0)
                     {
+                        var cache_name_label = CacheType.LABEL + result.product_main.label_id;
                         var j_data_label = await _redisService.GetAsync(cache_name_label, Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
                         if (j_data_label != null && j_data_label.Trim() != "")
                         {

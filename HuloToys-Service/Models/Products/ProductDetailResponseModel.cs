@@ -1,5 +1,6 @@
 ﻿using Entities.ViewModels;
 using Entities.ViewModels.Products;
+using HuloToys_Service.Models.ElasticSearch;
 
 namespace HuloToys_Front_End.Models.Products
 {
@@ -18,6 +19,7 @@ namespace HuloToys_Front_End.Models.Products
         public ProductDetailResponseModelFavourite favourite { get; set; }
         public List<ProductMongoDbModelFEResponse> product_buy_with { get; set; }
         public List<ProductDetailResponseModelProductBuyWith> product_buy_with_output { get; set; }
+        public List<GroupProductESModel> groups { get; set; }
 
     }
     public class ProductDetailResponseModelCertificate {

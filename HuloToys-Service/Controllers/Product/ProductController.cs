@@ -271,7 +271,13 @@ namespace WEB.CMS.Controllers
                                     label.Icon,
                                     label.Banner,
                                     label.Description,
-                                }
+                                },
+                                groups = (result.groups == null || result.groups.Count<=0) ? null : result.groups.Select(x=> new {
+                                    x.Id,
+                                    x.ParentId,
+                                    x.ImagePath,
+                                    x.Name
+                                })
                             });
                         }
                     }
@@ -353,8 +359,9 @@ namespace WEB.CMS.Controllers
                         }
                     }
 
+                   
                     //--Get Label:
-                    if (result.product_main!=null && result.product_main.label_id > 0)
+                    if (result.product_main != null && result.product_main.label_id > 0)
                     {
                         var cache_name_label = CacheType.LABEL + result.product_main.label_id;
 
@@ -373,7 +380,31 @@ namespace WEB.CMS.Controllers
                             }
                         }
                     }
-                   
+                    //--Get group:
+                    if (result.product_main != null && result.product_main.group_product_id !=null && result.product_main.group_product_id.Trim()!="")
+                    {
+                        result.groups = new List<GroupProductESModel>();
+                        try
+                        {
+                            var split = result.product_main.group_product_id.Split(",");
+                            if(split!=null && split.Count() > 0)
+                            {
+                                foreach (var item in split)
+                                {
+                                    try
+                                    {
+                                        var g = groupProductESService.GetById(Convert.ToInt32(item));
+                                        if(g!=null && g.Id > 0)
+                                        {
+                                            result.groups.Add(g);
+                                        }
+                                    }
+                                    catch { }
+                                }
+                            }
+                        }
+                        catch { }
+                    }
                     _redisService.Set(cache_name, JsonConvert.SerializeObject(result), DateTime.Now.AddDays(1), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
                     return Ok(new
                     {
@@ -395,7 +426,13 @@ namespace WEB.CMS.Controllers
                             label.Icon,
                             label.Banner,
                             label.Description,
-                        }
+                        },
+                        groups = (result.groups == null || result.groups.Count <= 0) ? null : result.groups.Select(x => new {
+                            x.Id,
+                            x.ParentId,
+                            x.ImagePath,
+                            x.Name
+                        })
                     });
 
                 }

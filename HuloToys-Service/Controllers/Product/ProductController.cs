@@ -230,7 +230,7 @@ namespace WEB.CMS.Controllers
                     {
                         result = JsonConvert.DeserializeObject<ProductDetailResponseModel>(j_data);
                         //--Get Label:
-                        if (result != null && result.product_main != null && result.product_main.label_id > 0)
+                        if (result!=null && result.product_main != null && result.product_main.label_id > 0)
                         {
                             var cache_name_label = CacheType.LABEL + result.product_main.label_id;
 
@@ -263,7 +263,7 @@ namespace WEB.CMS.Controllers
                                 cert = result.cert,
                                 favourite = result.favourite,
                                 buywith = result.product_buy_with_output,
-                                label_detail = label == null ? null : new
+                                label_detail = label==null? null: new
                                 {
                                     label.Id,
                                     label.LabelName,
@@ -271,11 +271,17 @@ namespace WEB.CMS.Controllers
                                     label.Icon,
                                     label.Banner,
                                     label.Description,
-                                }
+                                },
+                                groups = (result.groups == null || result.groups.Count<=0) ? null : result.groups.Select(x=> new {
+                                    x.Id,
+                                    x.ParentId,
+                                    x.ImagePath,
+                                    x.Name
+                                })
                             });
                         }
                     }
-                    result = await _productDetailService.GetFullProductById(request.id);
+                    result  = await _productDetailService.GetFullProductById(request.id);
                     if (result == null || result.product_main == null || (result.product_main != null && result.product_main.status != (int)ProductStatus.ACTIVE))
                     {
                         return Ok(new
@@ -344,19 +350,21 @@ namespace WEB.CMS.Controllers
                                 code = x.code,
                                 avatar = (!x.avatar.Contains(static_url) && !x.avatar.Contains("data:image") && !x.avatar.Contains("http")) ? (static_url + x.avatar) : x.avatar,
                                 variation_detail = ProductVariationHelper.RenderVariationDetail(x.attributes, x.attributes_detail, x.variation_detail),
-                                exists_flashsale_id = x.exists_flashsale_id,
-                                exists_flashsale_name = x.exists_flashsale_name,
-                                amount_after_flashsale = x.amount_after_flashsale,
-                                flash_sale_fromdate = x.flash_sale_fromdate,
-                                flash_sale_todate = x.flash_sale_todate
+                                exists_flashsale_id=x.exists_flashsale_id,
+                                exists_flashsale_name=x.exists_flashsale_name,
+                                amount_after_flashsale= x.amount_after_flashsale,
+                                flash_sale_fromdate= x.flash_sale_fromdate,
+                                flash_sale_todate=x.flash_sale_todate
                             }).ToList();
                         }
                     }
 
+                   
                     //--Get Label:
                     if (result.product_main != null && result.product_main.label_id > 0)
                     {
                         var cache_name_label = CacheType.LABEL + result.product_main.label_id;
+
                         var j_data_label = await _redisService.GetAsync(cache_name_label, Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
                         if (j_data_label != null && j_data_label.Trim() != "")
                         {
@@ -372,7 +380,31 @@ namespace WEB.CMS.Controllers
                             }
                         }
                     }
-
+                    //--Get group:
+                    if (result.product_main != null && result.product_main.group_product_id !=null && result.product_main.group_product_id.Trim()!="")
+                    {
+                        result.groups = new List<GroupProductESModel>();
+                        try
+                        {
+                            var split = result.product_main.group_product_id.Split(",");
+                            if(split!=null && split.Count() > 0)
+                            {
+                                foreach (var item in split)
+                                {
+                                    try
+                                    {
+                                        var g = groupProductESService.GetById(Convert.ToInt32(item));
+                                        if(g!=null && g.Id > 0)
+                                        {
+                                            result.groups.Add(g);
+                                        }
+                                    }
+                                    catch { }
+                                }
+                            }
+                        }
+                        catch { }
+                    }
                     _redisService.Set(cache_name, JsonConvert.SerializeObject(result), DateTime.Now.AddDays(1), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
                     return Ok(new
                     {
@@ -380,8 +412,8 @@ namespace WEB.CMS.Controllers
                         msg = "Success",
                         data = new
                         {
-                            product_main = result.product_main,
-                            product_sub = result.product_sub
+                            product_main=result.product_main,
+                            product_sub= result.product_sub
                         },
                         cert = result.cert,
                         favourite = result.favourite,
@@ -394,7 +426,13 @@ namespace WEB.CMS.Controllers
                             label.Icon,
                             label.Banner,
                             label.Description,
-                        }
+                        },
+                        groups = (result.groups == null || result.groups.Count <= 0) ? null : result.groups.Select(x => new {
+                            x.Id,
+                            x.ParentId,
+                            x.ImagePath,
+                            x.Name
+                        })
                     });
 
                 }

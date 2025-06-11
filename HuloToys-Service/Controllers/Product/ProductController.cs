@@ -223,11 +223,31 @@ namespace WEB.CMS.Controllers
                         });
                     }
                     ProductDetailResponseModel result = new ProductDetailResponseModel();
+                    Label label = new Label();
+                    var cache_name_label = CacheType.LABEL + result.product_main.label_id;
                     var cache_name = CacheType.PRODUCT_DETAIL + request.id;
                     var j_data = await _redisService.GetAsync(cache_name, Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
                     if (j_data != null && j_data.Trim() != "")
                     {
                         result = JsonConvert.DeserializeObject<ProductDetailResponseModel>(j_data);
+                        //--Get Label:
+                        if (result!=null && result.product_main != null && result.product_main.label_id > 0)
+                        {
+                            var j_data_label = await _redisService.GetAsync(cache_name_label, Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
+                            if (j_data_label != null && j_data_label.Trim() != "")
+                            {
+                                label = JsonConvert.DeserializeObject<Label>(j_data_label);
+                            }
+                            else
+                            {
+                                label = await _labelRepository.GetById(result.product_main.label_id);
+                                if (label != null && label.Id > 0)
+                                {
+                                    _redisService.Set(cache_name_label, JsonConvert.SerializeObject(label), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
+
+                                }
+                            }
+                        }
                         if (result != null)
                         {
                             return Ok(new
@@ -242,7 +262,15 @@ namespace WEB.CMS.Controllers
                                 cert = result.cert,
                                 favourite = result.favourite,
                                 buywith = result.product_buy_with_output,
-
+                                label_detail = label==null? null: new
+                                {
+                                    label.Id,
+                                    label.LabelName,
+                                    label.LabelCode,
+                                    label.Icon,
+                                    label.Banner,
+                                    label.Description,
+                                }
                             });
                         }
                     }
@@ -324,6 +352,25 @@ namespace WEB.CMS.Controllers
                         }
                     }
 
+                    //--Get Label:
+                    if (result.product_main!=null && result.product_main.label_id > 0)
+                    {
+                        var j_data_label = await _redisService.GetAsync(cache_name_label, Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
+                        if (j_data_label != null && j_data_label.Trim() != "")
+                        {
+                            label = JsonConvert.DeserializeObject<Label>(j_data_label);
+                        }
+                        else
+                        {
+                            label = await _labelRepository.GetById(result.product_main.label_id);
+                            if (label != null && label.Id > 0)
+                            {
+                                _redisService.Set(cache_name_label, JsonConvert.SerializeObject(label), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
+
+                            }
+                        }
+                    }
+                   
                     _redisService.Set(cache_name, JsonConvert.SerializeObject(result), DateTime.Now.AddDays(1), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
                     return Ok(new
                     {
@@ -337,7 +384,15 @@ namespace WEB.CMS.Controllers
                         cert = result.cert,
                         favourite = result.favourite,
                         buywith = result.product_buy_with_output,
-
+                        label_detail = label == null ? null : new
+                        {
+                            label.Id,
+                            label.LabelName,
+                            label.LabelCode,
+                            label.Icon,
+                            label.Banner,
+                            label.Description,
+                        }
                     });
 
                 }

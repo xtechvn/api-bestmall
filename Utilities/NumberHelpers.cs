@@ -11,7 +11,7 @@ namespace Utilities
         public static double RoundUpToHundredsDouble(double amount)
         {
             // Chia số tiền cho 100, làm tròn lên bằng Math.Ceiling, sau đó nhân lại với 100.
-            return Math.Ceiling(amount / 100) * 100;
+            return Math.Floor(amount / 500) * 500;
         }
     }
 }

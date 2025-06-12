@@ -203,11 +203,11 @@ namespace WEB.CMS.Controllers
         [HttpPost("detail")]
         public async Task<IActionResult> ProductDetail([FromBody] APIRequestGenericModel input)
         {
-            //var model_con = new
-            //{
-            //    id = "682551b6711071e30c18bae5"
-            //};
-            //input.token = CommonHelper.Encode(JsonConvert.SerializeObject(model_con), _configuration["KEY:private_key"]);
+            var model_con = new
+            {
+                id = "68254bc8711071e30c18bacd"
+            };
+            input.token = CommonHelper.Encode(JsonConvert.SerializeObject(model_con), _configuration["KEY:private_key"]);
             try
             {
                 JArray objParr = null;
@@ -228,7 +228,7 @@ namespace WEB.CMS.Controllers
                     var j_data = await _redisService.GetAsync(cache_name, Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
                     if (j_data != null && j_data.Trim() != "")
                     {
-                        result = JsonConvert.DeserializeObject<ProductDetailResponseModel>(j_data);
+                        //result = JsonConvert.DeserializeObject<ProductDetailResponseModel>(j_data);
                         //--Get Label:
                         if (result!=null && result.product_main != null && result.product_main.label_id > 0)
                         {
@@ -249,7 +249,7 @@ namespace WEB.CMS.Controllers
                                 }
                             }
                         }
-                        if (result != null)
+                        if (result != null && result.product_main!=null)
                         {
                             return Ok(new
                             {

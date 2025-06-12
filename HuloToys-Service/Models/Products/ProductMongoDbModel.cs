@@ -78,4 +78,22 @@ namespace Entities.ViewModels.Products
         public DateTime? flash_sale_fromdate { get; set; }
         public DateTime? flash_sale_todate { get; set; }
     }
+    public class ProductMongoDbModelFEResponseCollection : ProductMongoDbModelFEResponse
+    {
+        public string _id { get; set; }
+        public string code { get; set; }
+        public string name { get; set; }
+        public string avatar { get; set; }
+        public double price { get; set; }
+        public double amount { get; set; }
+        public double? amount_max { get; set; }
+        public double? amount_min { get; set; }
+        public float? rating { get; set; }
+        public float star { get; set; }
+        public long? total_sold { get; set; }
+        public double? review_count { get; set; }
+        public double? old_price { get; set; }
+        public double discount { get; set; }
+
+    }
 }

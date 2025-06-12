@@ -148,7 +148,7 @@ namespace HuloToys_Service.Controllers.Flashsale
                             list_output.Add(new FlashSaleProductResposeModel()
                             {
                                 amount = ((selected.old_price != null && selected.old_price > 0) ? (double)selected.old_price : (selected.amount_min!=null && selected.amount_min>0? (double)selected.amount_min:selected.amount )),
-                                amount_after_flashsale = amount_product - total_discount,
+                                amount_after_flashsale = NumberHelpers.RoundUpToHundredsDouble(amount_product - total_discount),
                                 discountvalue = discount_percent,
                                 position = product.position,
                                 total_discount = total_discount,

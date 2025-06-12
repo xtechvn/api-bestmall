@@ -3,6 +3,7 @@ using HuloToys_Service.Controllers.IRepositories;
 using HuloToys_Service.Controllers.Product.Bussiness;
 using HuloToys_Service.Controllers.Repositories;
 using HuloToys_Service.IRepositories;
+using HuloToys_Service.Models.Article;
 using HuloToys_Service.Models.Models;
 using HuloToys_Service.MongoDb;
 using HuloToys_Service.RedisWorker;
@@ -68,6 +69,7 @@ internal class Program
         builder.Services.AddSingleton<ProductDetailMongoAccess>();
         builder.Services.AddSingleton<ProductFavouritesMongoAccess>();
         builder.Services.AddSingleton<ProductSpecificationMongoAccess>();
+        builder.Services.AddSingleton<NewsMongoService>();
 
 
         builder.Services.AddSingleton<RedisConn>();

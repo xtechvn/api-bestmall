@@ -38,7 +38,7 @@ namespace HuloToys_Service.Controllers
         private readonly DataMSContext _dbContext;
         private readonly NewsMongoService _news_services;
 
-        public NewsController(IConfiguration config, RedisConn redisService , DataMSContext dbContext)
+        public NewsController(IConfiguration config, RedisConn redisService , DataMSContext dbContext, NewsMongoService news_services)
         {
           
             configuration = config;
@@ -49,7 +49,7 @@ namespace HuloToys_Service.Controllers
             work_queue = new WorkQueueClient(configuration);
             _newsBusiness = new NewsBusiness(configuration, dbContext);
             _dbContext = dbContext;
-            _news_services = new NewsMongoService(configuration);
+            _news_services = news_services;
         }
         [HttpPost("remote-upsert.json")]
         public async Task<IActionResult> RemoteUpsert([FromBody] ArticleModel model)
@@ -437,16 +437,19 @@ namespace HuloToys_Service.Controllers
                 });
             }
         }
-     
-         [HttpPost("get-detail.json")]
+
+        [HttpPost("get-detail.json")]
         public async Task<ActionResult> GetArticleDetailLite([FromBody] APIRequestGenericModel input)
         {
             try
             {
-                // string j_param = "{'article_id':1}";
+                //string j_param = "{'article_id':74}";
 
 
-                // token = CommonHelper.Encode(j_param, configuration["KEY:private_key"]);
+                //            input = new APIRequestGenericModel()
+                //            {
+                //                token = CommonHelper.Encode(j_param, configuration["KEY:private_key"])
+                //            };
 
                 JArray objParr = null;
                 if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, configuration["KEY:private_key"]))
@@ -457,29 +460,27 @@ namespace HuloToys_Service.Controllers
                     var j_data = await _redisService.GetAsync(cache_name, Convert.ToInt32(configuration["Redis:Database:db_common"]));
                     var detail = new ArticleFeDetailModel();
 
-                    if (j_data != null)
-                    {
-                        detail = JsonConvert.DeserializeObject<ArticleFeDetailModel>(j_data);
-                        db_type = "cache";
-                    }
-                    else
-                    {
-                        detail = await _newsBusiness.GetArticleDetailLite(article_id);
-                        //detail.Tags = await _newsBusiness.GetAllTagByArticleID(article_id);
-                        if (detail != null)
-                        {
-                            _redisService.Set(cache_name, JsonConvert.SerializeObject(detail), Convert.ToInt32(configuration["Redis:Database:db_common"]));
-                            db_type = "database";
-                        }
+                    //if (j_data != null)
+                    //{
+                    //    detail = JsonConvert.DeserializeObject<ArticleFeDetailModel>(j_data);
+                    //    db_type = "cache";
+                    //}
+                    //else
+                    //{
+                    detail = await _newsBusiness.GetArticleDetailLite(article_id);
 
+                    if (detail != null)
+                    {
+                        _redisService.Set(cache_name, JsonConvert.SerializeObject(detail), Convert.ToInt32(configuration["Redis:Database:db_common"]));
+                        db_type = "database";
                     }
-                    var view_count = new NewsViewCount()
+
+                    //}
+                    _news_services.AddNewOrReplace(new NewsViewCount()
                     {
                         articleID = article_id,
                         pageview = 1
-                    };
-                    //NewsMongoService services = new NewsMongoService(configuration);
-                    //services.AddNewOrReplace(view_count);
+                    });
                     return Ok(new
                     {
                         status = (int)ResponseType.SUCCESS,
@@ -500,11 +501,69 @@ namespace HuloToys_Service.Controllers
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
+                return Ok(new
+                {
+                    status = (int)ResponseType.FAILED,
+                    msg = "[api/article/get-detail.json] = " + ex.ToString(),
+                    _token = input.token
+                });
+            }
+        }
+        [HttpPost("get-detail-tags.json")]
+        public async Task<ActionResult> GetArticleAllTags([FromBody] APIRequestGenericModel input)
+        {
+            try
+            {
+                // string j_param = "{'article_id':1}";
+
+
+                // token = CommonHelper.Encode(j_param, configuration["KEY:private_key"]);
+
+                JArray objParr = null;
+                if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, configuration["KEY:private_key"]))
+                {
+                    long article_id = Convert.ToInt64(objParr[0]["article_id"]);
+                    string cache_name = CacheType.ARTICLE_ID_TAGS + article_id;
+                    var j_data = await _redisService.GetAsync(cache_name, Convert.ToInt32(configuration["Redis:Database:db_common"]));
+                    var detail = new List<string>();
+
+                    if (j_data != null)
+                    {
+                        detail = JsonConvert.DeserializeObject<List<string>>(j_data);
+                    }
+                    else
+                    {
+                        detail = await _newsBusiness.GetAllTagByArticleID(article_id);
+                        if (detail != null)
+                        {
+                            _redisService.Set(cache_name, JsonConvert.SerializeObject(detail), Convert.ToInt32(configuration["Redis:Database:db_common"]));
+                        }
+
+                    }
+                    return Ok(new
+                    {
+                        status = (int)ResponseType.SUCCESS,
+                        data = detail,
+                    });
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        status = (int)ResponseType.ERROR,
+                        msg = "Key ko hop le"
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
                 LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], error_msg);
                 return Ok(new
                 {
                     status = (int)ResponseType.FAILED,
-                    msg = "[api/article/detail] = " + ex.ToString(),
+                    msg = "[api/article/get-detail-tags.json] = " + ex.ToString(),
                     _token = input.token
                 });
             }

@@ -460,22 +460,22 @@ namespace HuloToys_Service.Controllers
                     var j_data = await _redisService.GetAsync(cache_name, Convert.ToInt32(configuration["Redis:Database:db_common"]));
                     var detail = new ArticleFeDetailModel();
 
-                    //if (j_data != null)
-                    //{
-                    //    detail = JsonConvert.DeserializeObject<ArticleFeDetailModel>(j_data);
-                    //    db_type = "cache";
-                    //}
-                    //else
-                    //{
-                    detail = await _newsBusiness.GetArticleDetailLite(article_id);
-
-                    if (detail != null)
+                    if (j_data != null)
                     {
-                        _redisService.Set(cache_name, JsonConvert.SerializeObject(detail), Convert.ToInt32(configuration["Redis:Database:db_common"]));
-                        db_type = "database";
+                        detail = JsonConvert.DeserializeObject<ArticleFeDetailModel>(j_data);
+                        db_type = "cache";
                     }
+                    else
+                    {
+                        detail = await _newsBusiness.GetArticleDetailLite(article_id);
 
-                    //}
+                        if (detail != null)
+                        {
+                            _redisService.Set(cache_name, JsonConvert.SerializeObject(detail), Convert.ToInt32(configuration["Redis:Database:db_common"]));
+                            db_type = "database";
+                        }
+
+                    }
                     _news_services.AddNewOrReplace(new NewsViewCount()
                     {
                         articleID = article_id,

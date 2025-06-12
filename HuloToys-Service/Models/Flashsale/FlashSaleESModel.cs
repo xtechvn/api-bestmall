@@ -13,5 +13,6 @@ public class FlashSaleESModel
     public string name { get; set; }
     public string supplier_name { get; set; }
     public string banner { get; set; }
+    public DateTime? created_date { get; set; }
 
 }

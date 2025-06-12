@@ -77,6 +77,9 @@ namespace Caching.Elasticsearch.FlashSale
                         )
                     )
                 )
+                .Sort(ss => ss // Add this block for sorting
+                    .Field(f => f.created_date, SortOrder.Descending) // Sort by created_date in descending order
+                )
             );
 
             if (response.IsValid)

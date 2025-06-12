@@ -460,13 +460,13 @@ namespace HuloToys_Service.Controllers
                     var j_data = await _redisService.GetAsync(cache_name, Convert.ToInt32(configuration["Redis:Database:db_common"]));
                     var detail = new ArticleFeDetailModel();
 
-                    //if (j_data != null)
-                    //{
-                    //    detail = JsonConvert.DeserializeObject<ArticleFeDetailModel>(j_data);
-                    //    db_type = "cache";
-                    //}
-                    //else
-                    //{
+                    if (j_data != null)
+                    {
+                        detail = JsonConvert.DeserializeObject<ArticleFeDetailModel>(j_data);
+                        db_type = "cache";
+                    }
+                    else
+                    {
                         detail = await _newsBusiness.GetArticleDetailLite(article_id);
 
                         if (detail != null)
@@ -475,7 +475,7 @@ namespace HuloToys_Service.Controllers
                             db_type = "database";
                         }
 
-                    //}
+                    }
                     _news_services.AddNewOrReplace(new NewsViewCount()
                     {
                         articleID = article_id,

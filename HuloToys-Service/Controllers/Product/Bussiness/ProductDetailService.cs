@@ -6,6 +6,7 @@ using HuloToys_Front_End.Models.Products;
 using HuloToys_Service.Controllers.Flashsale.Bussiness;
 using HuloToys_Service.ElasticSearch;
 using HuloToys_Service.Models.APIRequest;
+using HuloToys_Service.Models.Flashsale;
 using HuloToys_Service.Models.Models;
 using HuloToys_Service.Models.Raiting;
 using HuloToys_Service.MongoDb;
@@ -253,30 +254,36 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             }
             return products;
         }
-        private bool UpdateProductItem(ProductMongoDbModelFEResponse item, List<FlashSaleESModel> active_flashsale, List<FlashSaleProductESModel> list_item)
+        private bool UpdateProductItem(ProductMongoDbModelFEResponse item, List<FlashSaleESModel> active_flashsale, List<FlashSaleProductESModel> list_item,bool ignore_raiting = false, bool ignore_total_sold=false)
         {
             try
             {
-                if (item == null || item._id == null) return false;
-                var raiting = _raitingESService.GetListByFilter(new Models.Raiting.ProductRaitingRequestModel()
+                if (!ignore_raiting)
                 {
-                    id = item._id,
-                    has_comment = false,
-                    has_media = false,
-                    page_index = 1,
-                    page_size = 500,
-                    stars = 0
-                });
-                if (raiting != null && raiting.Count > 0)
-                {
-                    var sum_raiting = raiting.Average(x => x.Star);
-                    item.star = sum_raiting == null ? 5 : (float)sum_raiting;
-                    item.review_count = raiting.Count;
-                    item.rating = (sum_raiting == null ? 5 : (float)sum_raiting);
+                    if (item == null || item._id == null) return false;
+                    var raiting = _raitingESService.GetListByFilter(new Models.Raiting.ProductRaitingRequestModel()
+                    {
+                        id = item._id,
+                        has_comment = false,
+                        has_media = false,
+                        page_index = 1,
+                        page_size = 500,
+                        stars = 0
+                    });
+                    if (raiting != null && raiting.Count > 0)
+                    {
+                        var sum_raiting = raiting.Average(x => x.Star);
+                        item.star = sum_raiting == null ? 5 : (float)sum_raiting;
+                        item.review_count = raiting.Count;
+                        item.rating = (sum_raiting == null ? 5 : (float)sum_raiting);
+                    }
                 }
-                item.total_sold = (item.total_sold == null) ? 0 : (long)item.total_sold;
-                var total_sold = orderDetailESService.SumQuantityByProductId(new List<string>() { item._id });
-                item.total_sold += total_sold;
+                if (!ignore_total_sold)
+                {
+                    item.total_sold = (item.total_sold == null) ? 0 : (long)item.total_sold;
+                    var total_sold = orderDetailESService.SumQuantityByProductId(new List<string>() { item._id });
+                    item.total_sold += total_sold;
+                }
                 if (active_flashsale != null && active_flashsale.Count > 0 && list_item != null && list_item.Count > 0)
                 {
                     var exists_flash_sale_product = list_item.FirstOrDefault(x => x.productid == (item.parent_product_id != null && item.parent_product_id.Trim() != "" ? item.parent_product_id : item._id));
@@ -356,6 +363,69 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
         public async Task<List<ProductMongoDbModel>> ListByProductNoExtend(List<string> ids)
         {
             return await _productDetailMongoAccess.ListByProducts(ids);
+        }
+        public async Task<List<FlashSaleProductResposeModel>> GetFlashSaleProductByProductIds(List<FlashSaleProductESModel> list_item)
+        {
+            List<FlashSaleProductResposeModel> result = new List<FlashSaleProductResposeModel>();
+            try
+            {
+                if (list_item != null && list_item.Count > 0)
+                {
+                    var list_product_mongo = await _productDetailMongoAccess.ListByProducts(list_item.Select(x => x.productid).ToList());
+                    foreach (var item in list_item)
+                    {
+                        var selected = list_product_mongo.FirstOrDefault(x => x._id == item.productid);
+                        if (selected == null || selected._id == null) continue;
+                        var amount_product = selected.amount;
+                        if (selected.amount <= 0 && selected.amount_min != null && selected.amount_min > 0)
+                        {
+                            amount_product = (double)selected.amount_min;
+
+                        }
+                        double old_price = selected.old_price == null || selected.old_price <= 0 ? amount_product : (double)selected.old_price;
+                        if (old_price <= 0)
+                        {
+                            old_price = amount_product;
+                        }
+                        double total_discount = 0;
+                        double percent = Convert.ToDouble(item.discountvalue);
+                        switch (item.valuetype)
+                        {
+                            case 1:
+                                total_discount += (amount_product * Convert.ToDouble(percent / 100));
+                                break;
+                            case 0:
+                                total_discount += percent;
+                                break;
+
+                            default: break;
+                        }
+                        var discount_percent = Math.Round(total_discount / old_price * 100, 0);
+                        discount_percent = discount_percent <= 0 ? 0 : discount_percent;
+                        result.Add(new FlashSaleProductResposeModel()
+                        {
+                            amount = old_price,
+                            amount_after_flashsale = NumberHelpers.RoundUpToHundredsDouble(amount_product - total_discount),
+                            discountvalue = discount_percent,
+                            position = item.position??0,
+                            total_discount = total_discount,
+                            _id = selected._id,
+                            avatar = selected.avatar,
+                            name = selected.name,
+                            code = selected.code,
+                            rating = selected.rating,
+                            review_count = selected.review_count,
+                            total_sold = selected.total_sold
+                        });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
+                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
+            }
+            return result;
         }
     }
 }

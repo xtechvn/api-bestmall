@@ -16,5 +16,6 @@ public class FlashSaleProductESModel
     public int? status { get; set; }
 
     public int? position { get; set; }
+    public bool? supersale { get; set; }
 
 }

@@ -116,7 +116,7 @@ namespace WEB.CMS.Controllers
                     var cache_name = CacheType.PRODUCT_LISTING + (request.keyword ?? "") + request.group_id + request.page_index + request.page_size;
                     // Kiểm tra các tham số giá
                     if (request.group_id <= 0) request.group_id = -1; // Mặc định là 0 nếu không có giá trị
-                    if (request.price_from <= 0 || request.price_from == null) request.price_from = 0; // Mặc định là 0 nếu không có giá trị
+                    if (request.price_from <= 0 || request.price_from == null) request.price_from = 1; // Mặc định là 0 nếu không có giá trị
                     if (request.price_to <= 0 || request.price_to == null) request.price_to = 0; // Mặc định là giá trị tối đa
                     if (request.keyword == null) request.keyword = "";
                     if (request.page_size <= 0) request.page_size = 10;

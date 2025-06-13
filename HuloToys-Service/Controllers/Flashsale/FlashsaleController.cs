@@ -19,7 +19,7 @@ using Utilities;
 using Utilities.Contants;
 using static Nest.JoinField;
 
-namespace HuloToys_Service.Controllers.Flashsale
+namespace HuloToys_Service.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]

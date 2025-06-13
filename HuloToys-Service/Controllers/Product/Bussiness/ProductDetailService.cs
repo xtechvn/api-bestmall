@@ -141,6 +141,26 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             }
             return result;
         }
+        public async Task<ProductDetailResponseModel> UpdateFullProductById(ProductDetailResponseModel result)
+        {
+            try
+            {
+                result.product_main = await UpdateProductDetail(result.product_main);
+                if (result.product_sub != null && result.product_sub.Count > 0)
+                {
+                    result.product_sub = await UpdateProductDetail(result.product_sub);
+                }
+                result.product_main.amount_min = result.product_sub.Min(x => (x.amount_after_flashsale != null && x.amount_after_flashsale > 0 ? x.amount_after_flashsale : x.amount));
+                result.product_main.amount_max = result.product_sub.Max(x => (x.amount_after_flashsale != null && x.amount_after_flashsale > 0 ? x.amount_after_flashsale : x.amount));
+
+            }
+            catch (Exception ex)
+            {
+                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
+                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
+            }
+            return result;
+        }
         public async Task<List<ProductMongoDbModelFEResponse>> ListByProducts(List<string> ids)
         {
             List<ProductMongoDbModelFEResponse> result = new List<ProductMongoDbModelFEResponse>();
@@ -197,6 +217,30 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                     list_item = await flashSaleProductESRepository.GetByListFlashsaleId(active_flashsale.Select(x => x.flashsale_id).ToList());
                 }
                 List<ProductMongoDbModelFEResponse> output=new List<ProductMongoDbModelFEResponse>();
+                foreach (var item in products)
+                {
+                    UpdateProductItem(item, active_flashsale, list_item);
+                }
+            }
+            catch (Exception ex)
+            {
+                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
+                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
+            }
+            return products;
+        }
+        public async Task<List<ProductMongoDbModelFEResponse>> UpdateProductDetail(List<ProductMongoDbModelFEResponse> products)
+        {
+            try
+            {
+                if (products == null || products.Count <= 0) return products;
+                var active_flashsale = await flashSaleESRepository.SearchActiveFlashSales();
+                List<FlashSaleProductESModel> list_item = new List<FlashSaleProductESModel>();
+                if (active_flashsale != null && active_flashsale.Count > 0)
+                {
+                    list_item = await flashSaleProductESRepository.GetByListFlashsaleId(active_flashsale.Select(x => x.flashsale_id).ToList());
+                }
+                List<ProductMongoDbModelFEResponse> output = new List<ProductMongoDbModelFEResponse>();
                 foreach (var item in products)
                 {
                     UpdateProductItem(item, active_flashsale, list_item);

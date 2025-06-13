@@ -252,7 +252,7 @@ namespace WEB.CMS.Controllers
                         }
                         if (result != null && result.product_main!=null)
                         {
-                            result = await _productDetailService.UpdateFullProductById(result);
+							result = await _productDetailService.UpdateFullProductById(result);
                             return Ok(new
                             {
                                 status = (int)ResponseType.SUCCESS,

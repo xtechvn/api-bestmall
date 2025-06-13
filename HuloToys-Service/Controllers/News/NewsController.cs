@@ -640,6 +640,16 @@ namespace HuloToys_Service.Controllers
         [HttpPost("get-list-by-categoryid-order.json")]
         public async Task<ActionResult> getListArticleByCategoryIdOrderByDate([FromBody] APIRequestGenericModel input)
         {
+            //var model_input = new
+            //{
+            //    category_id = 22,
+            //    skip = 0,
+            //    take = 10
+            //};
+            //input = new APIRequestGenericModel()
+            //{
+            //    token = CommonHelper.Encode(JsonConvert.SerializeObject(model_input), configuration["KEY:private_key"])
+            //};
             try
             {
                 JArray objParr = null;

@@ -7,6 +7,7 @@ using HuloToys_Service.Controllers.Product.Bussiness;
 using HuloToys_Service.ElasticSearch;
 using HuloToys_Service.Models.APIRequest;
 using HuloToys_Service.Models.Flashsale;
+using HuloToys_Service.Models.Models;
 using HuloToys_Service.MongoDb;
 using HuloToys_Service.RedisWorker;
 using HuloToys_Service.Utilities.Lib;
@@ -112,63 +113,14 @@ namespace HuloToys_Service.Controllers.Flashsale
                         });
                     }
                     list = list.OrderBy(x => x.position).ToList();
-                    var product_mongo = await productDetailService.ListByProductNoExtend(list.Select(x => x.productid).ToList());
-                    var list_output = new List<FlashSaleProductResposeModel>();
-                    if(product_mongo != null && product_mongo.Count>0)
-                    {
-                        foreach (var product in list)
-                        {
-                            var selected = product_mongo.FirstOrDefault(x => x._id == product.productid);
-                            if (selected == null) continue;
-                            var amount_product = selected.amount;
-                            if (selected.amount <= 0 && selected.amount_min != null && selected.amount_min > 0)
-                            {
-                                amount_product = (double)selected.amount_min;
-
-                            }
-                            double total_discount = 0;
-                            double percent = Convert.ToDouble(product.discountvalue);
-                            switch (product.valuetype)
-                            {
-                                case 1:
-                                    total_discount += (amount_product * Convert.ToDouble(percent / 100));
-                                    break;
-                                case 0:
-                                    total_discount += percent;
-                                    break;
-
-                                default: break;
-                            }
-                            double old_price = selected.old_price == null || selected.old_price <= 0 ? amount_product : (double)selected.old_price;
-                            if (old_price <= 0)
-                            {
-                                old_price = amount_product;
-                            }
-                            var discount_percent = Math.Round(total_discount / old_price * 100, 0);
-                            discount_percent = discount_percent <= 0 ? 0 : discount_percent;
-                            list_output.Add(new FlashSaleProductResposeModel()
-                            {
-                                amount = ((selected.old_price != null && selected.old_price > 0) ? (double)selected.old_price : (selected.amount_min!=null && selected.amount_min>0? (double)selected.amount_min:selected.amount )),
-                                amount_after_flashsale = NumberHelpers.RoundUpToHundredsDouble(amount_product - total_discount),
-                                discountvalue = discount_percent,
-                                position = product.position,
-                                total_discount = total_discount,
-                                _id = selected._id,
-                                avatar = selected.avatar,
-                                name = selected.name,
-                                code = selected.code,
-                                rating=selected.rating,
-                                review_count=selected.review_count,
-                                total_sold=selected.total_sold
-                            });
-                        }
-                    }
+                    var list_products = await productDetailService.GetFlashSaleProductByProductIds(list);
                     return Ok(new
                     {
                         status = (int)ResponseType.SUCCESS,
                         msg = ResponseMessages.Success,
-                        data = list_output
+                        data = list_products
                     });
+
                 }
                 return Ok(new
                 {
@@ -247,63 +199,12 @@ namespace HuloToys_Service.Controllers.Flashsale
                             msg = "No Items"
                         });
                     }
-                    list = list.OrderBy(x => x.position).ToList();
-                    var product_mongo = await productDetailService.ListByProductNoExtend(list.Select(x => x.productid).ToList());
-                    var list_output = new List<FlashSaleProductResposeModel>();
-                    if (product_mongo != null && product_mongo.Count > 0)
-                    {
-                        foreach (var product in list)
-                        {
-                            var selected = product_mongo.FirstOrDefault(x => x._id == product.productid);
-                            if (selected == null) continue;
-                            var amount_product = selected.amount;
-                            if (selected.amount <= 0 && selected.amount_min != null && selected.amount_min > 0)
-                            {
-                                amount_product = (double)selected.amount_min;
-
-                            }
-                            double total_discount = 0;
-                            double percent = Convert.ToDouble(product.discountvalue);
-                            switch (product.valuetype)
-                            {
-                                case 1:
-                                    total_discount += (amount_product * Convert.ToDouble(percent / 100));
-                                    break;
-                                case 0:
-                                    total_discount += percent;
-                                    break;
-
-                                default: break;
-                            }
-                            double old_price = selected.old_price == null || selected.old_price <= 0 ? amount_product : (double)selected.old_price;
-                            if (old_price <= 0)
-                            {
-                                old_price = amount_product;
-                            }
-                            var discount_percent = Math.Round(total_discount / old_price * 100, 0);
-                            discount_percent = discount_percent <= 0 ? 0 : discount_percent;
-                            list_output.Add(new FlashSaleProductResposeModel()
-                            {
-                                amount = ((selected.old_price != null && selected.old_price > 0) ? (double)selected.old_price : (selected.amount_min != null && selected.amount_min > 0 ? (double)selected.amount_min : selected.amount)),
-                                amount_after_flashsale = NumberHelpers.RoundUpToHundredsDouble(amount_product - total_discount),
-                                discountvalue = discount_percent,
-                                position = product.position,
-                                total_discount = total_discount,
-                                _id = selected._id,
-                                avatar = selected.avatar,
-                                name = selected.name,
-                                code = selected.code,
-                                rating = selected.rating,
-                                review_count = selected.review_count,
-                                total_sold = selected.total_sold
-                            });
-                        }
-                    }
+                    var list_products = await productDetailService.GetFlashSaleProductByProductIds(list);
                     return Ok(new
                     {
                         status = (int)ResponseType.SUCCESS,
                         msg = ResponseMessages.Success,
-                        data = list_output
+                        data = list_products
                     });
                 }
                 return Ok(new

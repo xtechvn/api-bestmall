@@ -334,11 +334,11 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                         item.amount_after_flashsale = NumberHelpers.RoundUpToHundredsDouble((double)item.amount_after_flashsale);
                         item.profit = NumberHelpers.RoundUpToHundredsDouble((double)item.profit);
                     }
-                    else
-                    {
-                        LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], "Cannot find Flashsale for ID" + (item.parent_product_id != null && item.parent_product_id.Trim() != "" ? item.parent_product_id : item._id) + "\n List: " + JsonConvert.SerializeObject(active_flashsale));
+                    //else
+                    //{
+                    //    LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], "Cannot find Flashsale for ID" + (item.parent_product_id != null && item.parent_product_id.Trim() != "" ? item.parent_product_id : item._id) + "\n List: " + JsonConvert.SerializeObject(active_flashsale));
 
-                    }
+                    //}
                 }
             }
             catch (Exception ex)

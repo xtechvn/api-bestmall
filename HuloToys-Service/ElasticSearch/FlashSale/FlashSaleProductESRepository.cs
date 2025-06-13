@@ -76,7 +76,8 @@ namespace Caching.Elasticsearch.FlashSale
                              )
                          )
                      )
-                 )
+                 ).Take(4000)
+                .Size(4000)
              );
 
             if (response.IsValid)
@@ -93,12 +94,16 @@ namespace Caching.Elasticsearch.FlashSale
             var now = DateTime.Now;
 
             var response = await _client.SearchAsync<FlashSaleProductESModel>(s => s
+
                 .Query(q => q
                     .Terms(t => t
                         .Field(f => f.flashsale_id)
                         .Terms(flashsale_ids) 
                     )
                 )
+                .Take(4000)
+                .Size(4000)
+                
             );
 
             if (response.IsValid)

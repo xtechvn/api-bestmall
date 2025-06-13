@@ -369,6 +369,11 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                     item.review_count = raiting.Count;
                     item.rating = (sum_raiting == null ? 5 : (float)sum_raiting);
                 }
+                else
+                {
+                    item.review_count = 0;
+                    item.rating = 0;
+                }
             }
             catch (Exception ex)
             {
@@ -385,7 +390,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                 if (item == null || item._id == null) return false;
                 item.total_sold = (item.total_sold == null) ? 0 : (long)item.total_sold;
                 var total_sold = orderDetailESService.SumQuantityByProductId(new List<string>() { item._id });
-                item.total_sold += total_sold;
+                item.total_sold = total_sold;
             }
             catch (Exception ex)
             {

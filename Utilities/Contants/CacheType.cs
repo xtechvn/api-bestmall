@@ -10,6 +10,7 @@
         public const string CATEGORY_SEARCH = "CATEGORY_SEARCH_";
         public const string CATEGORY_TAG = "CATEGORY_TAG_";
         public const string ARTICLE_ID = "ARTICLE_";
+        public const string ARTICLE_ID_TAGS = "ARTICLE_TAGS_";
         public const string ARTICLE_MOST_VIEWED = "ARTICLE_MOST_VIEWED";
         public const string ARTICLE_CATEGORY_MENU = "ARTICLE_CATEGORY_MENU";
         public const string ARTICLE_FOOTER_MENU = "ARTICLE_FOOTER_MENU";
@@ -25,7 +26,8 @@
         public const string PROVINCE = "PROVINCE";
         public const string DISTRICT = "DISTRICT";
         public const string WARD = "WARD";
-        public const string LABEL = "LABEL";
+        public const string LABEL = "LABEL_";
+        public const string VOUCHER = "VOUCHER";
 
 
         public const string PRODUCT_FAVOURITES = "PRODUCT_FAVOURITES_";

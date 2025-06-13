@@ -4,7 +4,7 @@ namespace entities.models;
 
 public partial class OrderDetailESModel
 {
-    [PropertyName("OrderDetailId")]
+    [PropertyName("Id")]
 
     public long OrderDetailId { get; set; }
     [PropertyName("OrderId")]
@@ -58,4 +58,7 @@ public partial class OrderDetailESModel
     [PropertyName("UpdatedDate")]
 
     public DateTime? UpdatedDate { get; set; }
+    [PropertyName("ParentProductId")]
+
+    public string ParentProductId { get; set; }
 }

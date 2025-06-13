@@ -119,5 +119,21 @@ namespace DAL
                 return 0;
             }
         }
+        public async Task<Label> GetById(int id)
+        {
+            try
+            {
+                using (var _DbContext = new EntityDataContext(_connection))
+                {
+
+                    return await _DbContext.Labels.AsNoTracking().FirstOrDefaultAsync(s => s.Id == id);
+                }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram("GetById - LabelDAL: " + ex);
+                return null;
+            }
+        }
     }
 }

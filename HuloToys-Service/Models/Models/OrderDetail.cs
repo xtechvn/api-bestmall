@@ -40,4 +40,6 @@ public partial class OrderDetail
     public int? UserUpdated { get; set; }
 
     public DateTime? UpdatedDate { get; set; }
+
+    public string? ParentProductId { get; set; }
 }

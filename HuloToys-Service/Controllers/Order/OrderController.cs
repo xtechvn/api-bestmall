@@ -24,6 +24,10 @@ using HuloToys_Service.Controllers.Shipping.Business;
 using Entities.Models;
 using HuloToys_Service.Models.Models;
 using System.Data;
+using Nest;
+using System.Drawing.Printing;
+using REPOSITORIES.IRepositories;
+using HuloToys_Service.Controllers.Product.Bussiness;
 
 namespace HuloToys_Service.Controllers
 {
@@ -36,7 +40,7 @@ namespace HuloToys_Service.Controllers
         private readonly WorkQueueClient workQueueClient;
         private readonly OrderESService orderESRepository;
         private readonly OrderMongodbService orderMongodbService;
-        private readonly ProductDetailMongoAccess _productDetailMongoAccess;
+       // private readonly ProductDetailMongoAccess _productDetailMongoAccess;
         private readonly AccountClientESService accountClientESService;
         private readonly CartMongodbService _cartMongodbService;
         private readonly WorkQueueClient work_queue;
@@ -46,8 +50,11 @@ namespace HuloToys_Service.Controllers
         private readonly ClientESService clientESService;
         private readonly RaitingESService raitingESService;
         private readonly ShippingBussinessSerice shippingBussinessSerice;
+        private readonly ProductDetailService productDetailService;
+        private readonly IVoucherRepository _voucherRepository;
 
-        public OrderController(IConfiguration _configuration, RedisConn redisService)
+        public OrderController(IConfiguration _configuration, RedisConn redisService, IVoucherRepository voucherRepository, /*ProductDetailMongoAccess productDetailMongoAccess,*/
+            ProductDetailService _productDetailService, CartMongodbService cartMongodbService, OrderMongodbService _orderMongodbService)
         {
             configuration = _configuration;
 
@@ -55,9 +62,8 @@ namespace HuloToys_Service.Controllers
             orderESRepository = new OrderESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
             raitingESService = new RaitingESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
             accountClientESService = new AccountClientESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
-            orderMongodbService = new OrderMongodbService( configuration);
-            _productDetailMongoAccess = new ProductDetailMongoAccess( configuration);
-            _cartMongodbService = new CartMongodbService(configuration);
+            orderMongodbService = _orderMongodbService;
+            //_productDetailMongoAccess = productDetailMongoAccess;
             work_queue = new WorkQueueClient(configuration);
             identiferService = new IdentiferService(_configuration);
             _redisService = new RedisConn(configuration);
@@ -65,7 +71,9 @@ namespace HuloToys_Service.Controllers
             clientServices = new ClientServices(_configuration);
             clientESService = new ClientESService(_configuration["DataBaseConfig:Elastic:Host"], _configuration);
             shippingBussinessSerice = new ShippingBussinessSerice(_configuration);
-
+            _voucherRepository = voucherRepository;
+            productDetailService = _productDetailService;
+            _cartMongodbService = cartMongodbService;
         }
 
         [HttpPost("history")]
@@ -156,7 +164,6 @@ namespace HuloToys_Service.Controllers
                     }
                     var account_client = accountClientESService.GetById(account_client_id);
                     var client = clientESService.GetById((long)account_client.ClientId);
-
                     if (request.status == "-1") request.status = "";
 
                     var cache_name = CacheType.ORDER_DETAIL_FE + client.Id+request.status+request.page_index+request.page_size;
@@ -522,6 +529,8 @@ namespace HuloToys_Service.Controllers
                         address_id=request.address_id,
                         receivername=request.address.ReceiverName,
                         phone=request.address.Phone,
+                        voucher_id=request.voucher_id,
+                        voucher_code=request.voucher_code
                     };
                     
                     foreach (var item in request.carts)
@@ -539,11 +548,17 @@ namespace HuloToys_Service.Controllers
                         }
                         else
                         {
-                            cart.product= await _productDetailMongoAccess.GetByID(cart.product._id);
+                            cart.product= await productDetailService.GetByID(cart.product._id);
+                            var amount_product = cart.product.amount;
+                            if(cart.product.flash_sale_todate!=null &&cart.product.flash_sale_todate>=DateTime.Now && cart.product.amount_after_flashsale!=null&& cart.product.amount_after_flashsale > 0)
+                            {
+                                amount_product = (double)cart.product.amount_after_flashsale;
+
+                            }
                             cart.quanity = item.quanity;
                             cart.total_price = cart.product.price * item.quanity;
                             cart.total_profit = cart.product.profit * item.quanity;
-                            cart.total_amount = cart.product.amount * item.quanity;
+                            cart.total_amount = amount_product * item.quanity;
                             cart.total_discount = cart.product.discount * item.quanity;
                             model.total_price += cart.total_price;
                             model.total_profit += cart.total_profit;
@@ -554,6 +569,31 @@ namespace HuloToys_Service.Controllers
                             await _cartMongodbService.Delete(item.id);
                         }
 
+                    }
+                    if (model.voucher_code != null && model.voucher_code.Trim() != "")
+                    {
+                        var voucher_apply = await _voucherRepository.getDetailVoucher(model.voucher_code);
+                        if (voucher_apply != null && voucher_apply.Id > 0)
+                        {
+                            double total_discount = 0;
+                            double percent = Convert.ToDouble(voucher_apply.PriceSales);
+                            switch (voucher_apply.Unit)
+                            {
+                                case "percent":
+                                    total_discount += ((double)model.total_amount * Convert.ToDouble(percent / 100));
+                                    break;
+                                case "vnd":
+                                    total_discount += percent;
+                                    break;
+
+                                default: break;
+                            }
+                            model.voucher_code = voucher_apply.Code;
+                            model.voucher_id = voucher_apply.Id;
+                            model.total_discount += total_discount;
+                            model.total_amount -= total_discount;
+                            model.total_profit -= total_discount;
+                        }
                     }
                     //-- Shipping fee
                     //var shipping_fee = await shippingBussinessSerice.GetShippingFeeResponse(request.delivery_detail);
@@ -632,7 +672,7 @@ namespace HuloToys_Service.Controllers
                     }
                     var account_client = accountClientESService.GetById(account_client_id);
                     string main_product_id = request.product_id;
-                    var product = await _productDetailMongoAccess.GetByID(request.product_id);
+                    var product = await productDetailService.GetByID(request.product_id);
                     if(product!=null && product.parent_product_id!=null && product.parent_product_id.Trim() != "")
                     {
                         main_product_id=product.parent_product_id;

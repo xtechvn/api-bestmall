@@ -8,7 +8,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace HuloToys_Service.Elasticsearch
 {
-    //https://www.steps2code.com/post/how-to-use-elasticsearch-in-csharp
+    
     public class ESRepository<TEntity> : IESRepository<TEntity> where TEntity : class
     {
         private readonly IConfiguration configuration;

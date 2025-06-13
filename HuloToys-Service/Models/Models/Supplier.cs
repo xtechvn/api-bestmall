@@ -48,4 +48,6 @@ public partial class Supplier
     public int? UpdatedBy { get; set; }
 
     public DateTime? UpdatedDate { get; set; }
+
+    public int? Status { get; set; }
 }

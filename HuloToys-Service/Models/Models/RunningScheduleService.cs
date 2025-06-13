@@ -11,5 +11,5 @@ public partial class RunningScheduleService
 
     public DateTime? LogDate { get; set; }
 
-    public virtual Campaign? Price { get; set; }
+    public virtual FlashSale? Price { get; set; }
 }

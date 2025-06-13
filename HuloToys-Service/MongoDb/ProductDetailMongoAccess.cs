@@ -3,14 +3,9 @@ using HuloToys_Front_End.Models.Products;
 using HuloToys_Service.Utilities.constants.Product;
 using HuloToys_Service.Utilities.lib;
 using HuloToys_Service.Utilities.Lib;
-using Microsoft.Extensions.FileSystemGlobbing.Internal;
 using MongoDB.Bson;
 using MongoDB.Driver;
-using Newtonsoft.Json;
 using System.Reflection;
-using System.Text.RegularExpressions;
-using Telegram.Bot.Types;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace HuloToys_Service.MongoDb
 {
@@ -85,27 +80,35 @@ namespace HuloToys_Service.MongoDb
                 return null;
             }
         }
-        public async Task<ProductDetailResponseModel> GetFullProductById(string id)
+        public async Task<ProductDetailResponseDbModel> GetFullProductById(string id)
         {
             try
             {
                 var filter = Builders<ProductMongoDbModel>.Filter;
                 var filterDefinition = filter.Empty;
-                filterDefinition &= Builders<ProductMongoDbModel>.Filter.Eq(x => x._id, id); ;
+                filterDefinition &= Builders<ProductMongoDbModel>.Filter.Eq(x => x._id, id);
+                filterDefinition &= Builders<ProductMongoDbModel>.Filter.Eq(x => x.status, (int)ProductStatus.ACTIVE);
+                filterDefinition &= Builders<ProductMongoDbModel>.Filter.Eq(x => x.supplier_status, (int)SUPPLIER_STATUS.CONFIRMED);
                 var model = await _productDetailCollection.Find(filterDefinition).FirstOrDefaultAsync();
-                var result = new ProductDetailResponseModel()
+                if (model != null && model._id!=null)
                 {
-                    product_main=model,
-                    product_sub=await SubListing(id)
-                };
-                return result;
+                    var result = new ProductDetailResponseDbModel()
+                    {
+                        product_main = model,
+                        product_sub = await SubListing(id)
+                    };
+                    return result;
+
+                }
+
             }
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
                 LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
-                return null;
             }
+            return null;
+
         }
 
         public async Task<List<ProductMongoDbModel>> Listing(string keyword = "", int group_id = -1, int page_index = 1, int page_size = 10)
@@ -210,6 +213,7 @@ namespace HuloToys_Service.MongoDb
 
                 );
                 filterDefinition &= Builders<ProductMongoDbModel>.Filter.Eq(x => x.status, (int)ProductStatus.ACTIVE);
+                filterDefinition &= Builders<ProductMongoDbModel>.Filter.Eq(p => p.supplier_status, (int)SUPPLIER_STATUS.CONFIRMED);
 
                 filterDefinition &= Builders<ProductMongoDbModel>.Filter.Or(
                     Builders<ProductMongoDbModel>.Filter.Eq(p => p.parent_product_id, null),
@@ -227,46 +231,44 @@ namespace HuloToys_Service.MongoDb
                 {
                     filterDefinition &= Builders<ProductMongoDbModel>.Filter.Eq(x => x.supplier_id, (int)supplier);
                 }
-                //// Lọc theo khoảng giá
-                //if (price_from.HasValue)
-                //{
-                //    filterDefinition &= Builders<ProductMongoDbModel>.Filter.Gte(x => x.price, price_from.Value);
-                //}
-                //if (price_to.HasValue)
-                //{
-                //    filterDefinition &= Builders<ProductMongoDbModel>.Filter.Lte(x => x.price, price_to.Value);
-                //}
-                // Lọc theo khoảng giá dựa trên amount_min và amount_max
-                // ✅ Lọc theo khoảng giá giao nhau
-                //if (price_from > 0 || price_to > 0)
-                //{
-                //    var fromVal = price_from ?? 0;
-                //    var toVal = price_to ?? double.MaxValue;
+                // Lọc theo khoảng giá
+                if (price_from>0 && price_to>0 && price_to > price_from)
+                {
+                    // Tạo bộ lọc cho khoảng giá
+                    var condition1 = Builders<ProductMongoDbModel>.Filter.Eq(x => x.amount_min, null)
+                                        & Builders<ProductMongoDbModel>.Filter.Gt(x => x.amount, 0)
+                                        & Builders<ProductMongoDbModel>.Filter.Gte(x => x.amount, price_from) 
+                                        & Builders<ProductMongoDbModel>.Filter.Lte(x => x.amount, price_to);
 
-                //    var priceFilter = filter.And(
-                //        filter.Gte(x => x.amount_max, fromVal),
-                //        filter.Lte(x => x.amount_min, toVal)
-                //    );
-                //    filterDefinition &= priceFilter;
-                //}
-                // Lọc theo rating nếu có
-                //if (rating != null)
-                //{
-                //    filterDefinition &= Builders<ProductMongoDbModel>.Filter.Gte(x => x.star, rating.Value);
-                //}
+                    // Điều kiện 2: amount_min khác null VÀ amount_min > 0 VÀ nằm trong khoảng giá
+                    var condition2 = Builders<ProductMongoDbModel>.Filter.Lte(x => x.amount, 0) 
+                                    & Builders<ProductMongoDbModel>.Filter.Ne(x => x.amount_min , null)
+                                    & Builders<ProductMongoDbModel>.Filter.Gte(x => x.amount_min, price_from)
+                                    & Builders<ProductMongoDbModel>.Filter.Lte(x => x.amount_min, price_to);
+
+                    // Kết hợp hai điều kiện bằng toán tử OR
+                    filterDefinition &= Builders<ProductMongoDbModel>.Filter.Or( condition2,condition1);
+                }
+                if (rating > 0)
+                {
+                    filterDefinition &= Builders<ProductMongoDbModel>.Filter.Gte(x => x.star, rating);
+                }
 
 
-                var sort_filter = Builders<ProductMongoDbModel>.Sort;
-                var sort_filter_definition = sort_filter.Descending(x => x.updated_last);
-                var model = _productDetailCollection.Find(filterDefinition).Sort(sort_filter_definition);
-                model.Options.Skip = page_index < 1 ? 0 : (page_index - 1) * page_size;
-                model.Options.Limit = page_size;
-                long count = await model.CountDocumentsAsync();
-                var items = await model.ToListAsync();
+                // ✅ Tính tổng số sản phẩm phù hợp
+                long totalCount = await _productDetailCollection.CountDocumentsAsync(filterDefinition);
+
+                // ✅ Sau đó mới paging
+                var sort_filter = Builders<ProductMongoDbModel>.Sort.Descending(x => x.updated_last);
+                var items = await _productDetailCollection.Find(filterDefinition)
+                    .Sort(sort_filter)
+                    .Skip((page_index - 1) * page_size)
+                    .Limit(page_size)
+                    .ToListAsync();
                 return new ProductListResponseModel()
                 {
                     items = items,
-                    count = count
+                    count = totalCount
                 };
             }
             catch (Exception ex)
@@ -335,6 +337,8 @@ namespace HuloToys_Service.MongoDb
                                    Builders<ProductMongoDbModel>.Filter.Eq(p => p.parent_product_id, null),
                                    Builders<ProductMongoDbModel>.Filter.Eq(p => p.parent_product_id, "")
                                );
+                filter &= Builders<ProductMongoDbModel>.Filter.Eq(p => p.supplier_status, (int)SUPPLIER_STATUS.CONFIRMED);
+
                 var sort_filter = Builders<ProductMongoDbModel>.Sort;
                 var sort_filter_definition = sort_filter.Descending(x => x.updated_last);
                 var model = _productDetailCollection.Find(filter).Sort(sort_filter_definition); var items = await model.ToListAsync();
@@ -450,6 +454,8 @@ namespace HuloToys_Service.MongoDb
                                         attr => brands.Contains(attr.value)
                                     );
                 }
+                filter &= Builders<ProductMongoDbModel>.Filter.Eq(p => p.supplier_status, (int)SUPPLIER_STATUS.CONFIRMED);
+
                 var sort_filter = Builders<ProductMongoDbModel>.Sort;
                 var sort_filter_definition = sort_filter.Descending(x => x.updated_last);
                 var model = _productDetailCollection.Find(filter).Sort(sort_filter_definition); 
@@ -467,6 +473,25 @@ namespace HuloToys_Service.MongoDb
             catch (Exception ex)
             {
                 return null;
+            }
+        }
+        public async Task<List<ProductMongoDbModel>> ListByProducts(List<string> ids)
+        {
+            try
+            {
+                var filter = Builders<ProductMongoDbModel>.Filter;
+                var filterDefinition = filter.Empty;
+                filterDefinition &= Builders<ProductMongoDbModel>.Filter.In(x => x._id, ids);
+                filterDefinition &= Builders<ProductMongoDbModel>.Filter.Eq(x => x.status, (int)ProductStatus.ACTIVE);
+                filterDefinition &= Builders<ProductMongoDbModel>.Filter.Eq(p => p.supplier_status, (int)SUPPLIER_STATUS.CONFIRMED);
+
+                var model = _productDetailCollection.Find(filterDefinition);
+                var result = await model.ToListAsync();
+                return result;
+            }
+            catch (Exception ex)
+            {
+                return new List<ProductMongoDbModel>();
             }
         }
     }

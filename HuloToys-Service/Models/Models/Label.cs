@@ -8,6 +8,7 @@ public partial class Label
     public int Id { get; set; }
 
     public string? LabelName { get; set; }
+    public string? Banner { get; set; }
 
     public string? LabelCode { get; set; }
 
@@ -20,6 +21,8 @@ public partial class Label
     public int? Level { get; set; }
 
     public string? Description { get; set; }
+
+    public int? UserSupplierId { get; set; }
 
     public short? Status { get; set; }
 

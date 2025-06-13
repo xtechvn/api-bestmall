@@ -1,10 +1,11 @@
 ﻿using HuloToys_Service.Elasticsearch;
+using HuloToys_Service.Utilities.constants.Product;
 using Nest;
 using Utilities;
 
 namespace Caching.Elasticsearch
 {
-    //https://www.steps2code.com/post/how-to-use-elasticsearch-in-csharp
+    
     public class ProductESRepository : ESRepository<ProductESModel>
     {
         public string index = "hulotoys_mongodb_product";
@@ -113,11 +114,17 @@ namespace Caching.Elasticsearch
             // Thực thi truy vấn
             var response = await _client.SearchAsync<ProductESModel>(s => s
                 .Query(q => q
-                    .Bool(b => b
-                        .Should(shouldQueries)
-                        .MinimumShouldMatch(1)
+                   .Bool(b => b
+                    .Should(shouldQueries)
+                    .MinimumShouldMatch(1)
+                    // Thêm các điều kiện filter tại đây
+                    .Filter(f => f
+                        .Term(t => t.status, (int)ProductStatus.ACTIVE) // Lọc theo status = 1
+                        && f.Term(t => t.supplier_status, (int)SUPPLIER_STATUS.CONFIRMED) // Lọc theo supplier_status = 1
                     )
                 )
+                )
+               
                 .Sort(so => so
                     .Descending(SortSpecialField.Score)
                 )

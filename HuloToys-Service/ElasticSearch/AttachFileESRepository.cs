@@ -17,7 +17,7 @@ using Utilities.Contants;
 
 namespace Caching.Elasticsearch
 {
-    //https://www.steps2code.com/post/how-to-use-elasticsearch-in-csharp
+    
     public class AttachFileESModelESRepository : ESRepository<AttachFileESModel>
     {
         public string index = "hulotoys_sp_getattachfile";

@@ -18,3 +18,8 @@ HuloToys-Service/HuloToys-Service.csproj.user
 /HuloToys-Service/.config
 /.vs
 /Utilities/Properties
+App_Check_Out/appsettings.json
+App_Check_Out/APP_CHECKOUT.dll.config
+App_Check_Out/APP_CHECKOUT.csproj.user
+App_Check_Out/App.config
+HuloToys-Service/WEB.API.csproj.user

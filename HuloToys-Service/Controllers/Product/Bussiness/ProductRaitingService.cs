@@ -51,7 +51,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                             {
                                 foreach (var variation in product.variation_detail)
                                 {
-                                    var type = product.attributes.FirstOrDefault(x => x._id == variation.id);
+                                    var type = product.attributes.FirstOrDefault(x => x._id == variation._id);
                                     if (type != null && type._id != null)
                                     {
                                         if (r.variation_detail.Trim() != "") r.variation_detail += ", ";

@@ -151,7 +151,33 @@ namespace Caching.Elasticsearch.FlashSale
             return true;
 
         }
+        public async Task<List<FlashSaleProductESModel>> GetListSuperSale()
+        {
+            var now = DateTime.Now;
 
+            var response = await _client.SearchAsync<FlashSaleProductESModel>(s => s
+                 .Query(q => q
+                     .Bool(b => b // Sử dụng Bool query để kết hợp nhiều điều kiện
+                         .Must(
+                             m => m.Term(t => t
+                                 .Field(f => f.supersale)
+                                 .Value(true)
+                             )
+                         )
+                     )
+                 ).Take(4000)
+                .Size(4000)
+             );
+
+            if (response.IsValid)
+            {
+                return response.Documents.ToList();
+            }
+            else
+            {
+                return new List<FlashSaleProductESModel>();
+            }
+        }
     }
 
 

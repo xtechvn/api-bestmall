@@ -336,7 +336,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                     }
                     else
                     {
-                        LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], "Cannot find Flashsale for ID" + item._id + "\n List: " + JsonConvert.SerializeObject(list_item));
+                        LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], "Cannot find Flashsale for ID" + (item.parent_product_id != null && item.parent_product_id.Trim() != "" ? item.parent_product_id : item._id) + "\n List: " + JsonConvert.SerializeObject(active_flashsale));
 
                     }
                 }

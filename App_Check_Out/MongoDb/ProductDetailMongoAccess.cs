@@ -76,7 +76,7 @@ namespace APP_CHECKOUT.MongoDb
                 return null;
             }
         }
-        public async Task<ProductDetailResponseModel> GetFullProductById(string id)
+        public async Task<ProductDetailResponseDbModel> GetFullProductById(string id)
         {
             try
             {
@@ -84,7 +84,7 @@ namespace APP_CHECKOUT.MongoDb
                 var filterDefinition = filter.Empty;
                 filterDefinition &= Builders<ProductMongoDbModel>.Filter.Eq(x => x._id, id); ;
                 var model = await _productDetailCollection.Find(filterDefinition).FirstOrDefaultAsync();
-                var result = new ProductDetailResponseModel()
+                var result = new ProductDetailResponseDbModel()
                 {
                     product_main=model,
                     product_sub=await SubListing(id)

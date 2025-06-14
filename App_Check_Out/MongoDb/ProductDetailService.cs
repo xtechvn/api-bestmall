@@ -1,57 +1,30 @@
-﻿using Azure.Core;
+﻿using APP_CHECKOUT.Models.Models;
+using APP_CHECKOUT.MongoDb;
 using Caching.Elasticsearch;
 using Caching.Elasticsearch.FlashSale;
 using Entities.ViewModels.Products;
-using HuloToys_Front_End.Models.Products;
-using HuloToys_Service.Controllers.Flashsale.Bussiness;
-using HuloToys_Service.ElasticSearch;
-using HuloToys_Service.Models.APIRequest;
-using HuloToys_Service.Models.ElasticSearch;
 using HuloToys_Service.Models.Flashsale;
-using HuloToys_Service.Models.Models;
-using HuloToys_Service.Models.Raiting;
-using HuloToys_Service.MongoDb;
 using HuloToys_Service.Utilities.lib;
-using HuloToys_Service.Utilities.Lib;
-using Microsoft.AspNetCore.Mvc;
-using Nest;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System.Collections.Generic;
+using System.Configuration;
 using System.Reflection;
 using Utilities;
-using Utilities.Contants;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace HuloToys_Service.Controllers.Product.Bussiness
 {
     public class ProductDetailService
     {
-        private readonly ProductDetailMongoAccess _productDetailMongoAccess;
-        private readonly CartMongodbService _cartMongodbService;
-        private readonly RaitingESService _raitingESService;
+
         private readonly ClientESService _clientESService;
-        private readonly IConfiguration _configuration;
-        private readonly GroupProductESService groupProductESService;
-        private readonly OrderDetailESService orderDetailESService;
-        private readonly ProductFavouritesMongoAccess _productFavouritesMongoAccess;
         private readonly FlashSaleESRepository flashSaleESRepository;
         private readonly FlashSaleProductESRepository flashSaleProductESRepository;
-        private readonly FlashsaleService flashsaleService;
-        public ProductDetailService(IConfiguration configuration)
+        private readonly ProductDetailMongoAccess _productDetailMongoAccess;
+        public ProductDetailService(ClientESService clientESService, FlashSaleESRepository _flashSaleESRepository, FlashSaleProductESRepository _flashSaleProductESRepository, ProductDetailMongoAccess productDetailMongoAccess)
         {
-             _productDetailMongoAccess = new ProductDetailMongoAccess(configuration);
-            _cartMongodbService = new CartMongodbService(configuration);
-            groupProductESService = new GroupProductESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
-            _raitingESService = new RaitingESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
-            _clientESService = new ClientESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
-            _configuration = configuration;
-            orderDetailESService = new OrderDetailESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
-            _productFavouritesMongoAccess = new ProductFavouritesMongoAccess(configuration);
-            flashSaleESRepository = new FlashSaleESRepository(configuration["DataBaseConfig:Elastic:Host"], configuration);
-            flashSaleProductESRepository = new FlashSaleProductESRepository(configuration["DataBaseConfig:Elastic:Host"], configuration);
-            flashsaleService = new FlashsaleService(configuration);
-
+            _clientESService = clientESService;
+            flashSaleESRepository = _flashSaleESRepository;
+            flashSaleProductESRepository = _flashSaleProductESRepository;
+            _productDetailMongoAccess = productDetailMongoAccess;
         }
         public async Task<ProductListResponseFEModel> ProductListing(ProductListRequestModel request)
         {
@@ -72,7 +45,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
+                
             }
             return result;
         }
@@ -95,7 +68,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
+                
             }
             return result;
         }
@@ -113,7 +86,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
+                
             }
             return result;
         }
@@ -139,7 +112,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
+                
             }
             return result;
         }
@@ -154,36 +127,12 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                 }
                 result.product_main.amount_min = result.product_sub.Min(x => (x.amount_after_flashsale != null && x.amount_after_flashsale > 0 ? x.amount_after_flashsale : x.amount));
                 result.product_main.amount_max = result.product_sub.Max(x => (x.amount_after_flashsale != null && x.amount_after_flashsale > 0 ? x.amount_after_flashsale : x.amount));
-                //--Get group:
-                if (result.product_main != null && result.product_main.group_product_id != null && result.product_main.group_product_id.Trim() != "")
-                {
-                    result.groups = new List<GroupProductESModel>();
-                    try
-                    {
-                        var split = result.product_main.group_product_id.Split(",");
-                        if (split != null && split.Count() > 0)
-                        {
-                            foreach (var item in split)
-                            {
-                                try
-                                {
-                                    var g = groupProductESService.GetById(Convert.ToInt32(item));
-                                    if (g != null && g.Id > 0)
-                                    {
-                                        result.groups.Add(g);
-                                    }
-                                }
-                                catch { }
-                            }
-                        }
-                    }
-                    catch { }
-                }
+              
             }
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
+                
             }
             return result;
         }
@@ -201,7 +150,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
+                
             }
             return result;
         }
@@ -224,7 +173,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
+                
             }
             return item;
         }
@@ -241,7 +190,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
+                
             }
             return products;
         }
@@ -265,7 +214,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
+                
             }
             return products;
         }
@@ -341,24 +290,16 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
+                
             }
             return result;
         }
-        private bool UpdateProductItem(ProductMongoDbModelFEResponse item, List<FlashSaleESModel> active_flashsale, List<FlashSaleProductESModel> list_item, bool ignore_raiting = false, bool ignore_total_sold = false)
+        private bool UpdateProductItem(ProductMongoDbModelFEResponse item, List<FlashSaleESModel> active_flashsale, List<FlashSaleProductESModel> list_item)
         {
             try
             {
                 if (item == null || item._id == null) return false;
-                if (!ignore_raiting)
-                {
-                    UpdateProductRaiting(item);
-                }
-                if (!ignore_total_sold)
-                {
-                    UpdateProductTotalSold(item);
-
-                }
+               
                 if (active_flashsale != null && active_flashsale.Count > 0 && list_item != null && list_item.Count > 0)
                 {
                     UpdateProductFlashsale(item, active_flashsale, list_item);
@@ -367,64 +308,14 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
+                
                 return false;
             }
             return true;
         }
 
-        private bool UpdateProductRaiting(ProductMongoDbModelFEResponse item)
-        {
-            try
-            {
-                if (item == null || item._id == null) return false;
-                var raiting = _raitingESService.GetListByFilter(new Models.Raiting.ProductRaitingRequestModel()
-                {
-                    id = item._id,
-                    has_comment = false,
-                    has_media = false,
-                    page_index = 1,
-                    page_size = 500,
-                    stars = 0
-                });
-                if (raiting != null && raiting.Count > 0)
-                {
-                    var sum_raiting = raiting.Average(x => x.Star);
-                    item.star = sum_raiting == null ? 5 : (float)sum_raiting;
-                    item.review_count = raiting.Count;
-                    item.rating = (sum_raiting == null ? 5 : (float)sum_raiting);
-                }
-                else
-                {
-                    item.review_count = 0;
-                    item.rating = 0;
-                }
-            }
-            catch (Exception ex)
-            {
-                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
-                return false;
-            }
-            return true;
-        }
-        private bool UpdateProductTotalSold(ProductMongoDbModelFEResponse item)
-        {
-            try
-            {
-                if (item == null || item._id == null) return false;
-                item.total_sold = (item.total_sold == null) ? 0 : (long)item.total_sold;
-                var total_sold = orderDetailESService.SumQuantityByProductId(new List<string>() { item._id });
-                item.total_sold = total_sold;
-            }
-            catch (Exception ex)
-            {
-                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
-                return false;
-            }
-            return true;
-        }
+       
+     
         private bool UpdateProductFlashsale(ProductMongoDbModelFEResponse item, List<FlashSaleESModel> active_flashsale, List<FlashSaleProductESModel> list_item)
         {
             try
@@ -492,64 +383,11 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
+                
                 return false;
             }
             return true;
         }
-        public List<ProductMongoDbModelFEResponse> FilterProducts(List<ProductMongoDbModelFEResponse> products, double? price_from,
-      double? price_to,
-      int page_index,
-      int page_size)
-        {
-            List<ProductMongoDbModelFEResponse> filteredProducts = products;
-          
-            try
-            {
-                // Bước 2: Áp dụng filter giá phức tạp trong bộ nhớ
-                filteredProducts = products.Where(p =>
-                {
-                    // Logic ưu tiên giá phức tạp của bạn
-                    double? priceToCheck = p.amount_after_flashsale;
-
-                    if (!priceToCheck.HasValue)
-                    {
-                        priceToCheck = p.amount_min;
-                    }
-
-                    if (!priceToCheck.HasValue)
-                    {
-                        priceToCheck = p.amount;
-                    }
-
-                    if (priceToCheck.HasValue)
-                    {
-                        bool meetsMin = !price_from.HasValue || priceToCheck.Value >= price_from.Value;
-                        bool meetsMax = !price_to.HasValue || priceToCheck.Value <= price_to.Value;
-                        return meetsMin && meetsMax;
-                    }
-                    return false;
-                }).ToList();
-
-                // Áp dụng Skip và Take cho phân trang
-                filteredProducts = filteredProducts
-                    .Skip((page_index - 1) * page_size)
-                    .Take(page_size)
-                    .ToList();
-
-                return filteredProducts;
-            }
-            catch (Exception ex)
-            {
-                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
-                return null;
-
-            }
-
-
-        }
-
 
 
     }

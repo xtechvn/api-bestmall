@@ -145,15 +145,23 @@ namespace APP_CHECKOUT.Repositories
                 string product_html = "";
                 foreach (var cart in order.carts)
                 {
+
+                    var amount_product = cart.product.amount;
+                    if (cart.product.flash_sale_todate >= DateTime.Now && cart.product.amount_after_flashsale != null && cart.product.amount_after_flashsale > 0)
+                    {
+                        amount_product = (double)cart.product.amount_after_flashsale;
+
+                    }
                     product_html += template.Replace("{image}", cart.product.avatar)
                         .Replace("{image}", cart.product.avatar)
                         .Replace("{name}", cart.product.name)
                         .Replace("{quanity}", cart.quanity.ToString("N0"))
-                        .Replace("{amount}", cart.total_amount.ToString("N0"))
+                        .Replace("{amount}", (amount_product * cart.quanity).ToString("N0"))
                         .Replace("{code}", cart.product.code)
                         ;
                 }
                 htmlContent = htmlContent.Replace("{products}", product_html);
+                htmlContent = htmlContent.Replace("{total_discount}", (order.total_discount==null?"0 đ":"- "+((double)order.total_discount).ToString("N0")+" đ"));
 
                 return htmlContent;
             }

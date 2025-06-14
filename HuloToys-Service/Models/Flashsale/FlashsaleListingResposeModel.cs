@@ -18,6 +18,7 @@ namespace HuloToys_Service.Models.Flashsale
         public float? rating { get; set; }
         public double? review_count { get; set; }
         public long? total_sold { get; set; }
+        public bool? super_sale { get; set; }
 
     }
     public class FlashsaleListingResposeModel

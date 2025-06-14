@@ -4,7 +4,7 @@ using Utilities;
 
 namespace Caching.Elasticsearch.FlashSale
 {
-    
+
     public class FlashSaleProductESRepository : ESRepository<FlashSaleProductESModel>
     {
         public string index = "hulotoys_sp_getflashsaleproduct";
@@ -98,12 +98,12 @@ namespace Caching.Elasticsearch.FlashSale
                 .Query(q => q
                     .Terms(t => t
                         .Field(f => f.flashsale_id)
-                        .Terms(flashsale_ids) 
+                        .Terms(flashsale_ids)
                     )
                 )
                 .Take(4000)
                 .Size(4000)
-                
+
             );
 
             if (response.IsValid)
@@ -151,7 +151,7 @@ namespace Caching.Elasticsearch.FlashSale
             return true;
 
         }
-        public async Task<List<FlashSaleProductESModel>> GetListSuperSale()
+        public async Task<List<FlashSaleProductESModel>> GetListSuperSale(List<int> flashsale_ids)
         {
             var now = DateTime.Now;
 
@@ -159,14 +159,25 @@ namespace Caching.Elasticsearch.FlashSale
                  .Query(q => q
                      .Bool(b => b // Sử dụng Bool query để kết hợp nhiều điều kiện
                          .Must(
-                             m => m.Term(t => t
-                                 .Field(f => f.supersale)
-                                 .Value(true)
-                             )
+                            m => m.Term(t => t // Điều kiện supersale = true
+                                .Field(f => f.supersale)
+                                .Value(true)
+                            ),
+
+                            m => m.Term(t => t // Điều kiện status = 1
+                                .Field(f => f.status)
+                                .Value(1)
+                            ),
+
+                            m => m.Terms(t => t // Sử dụng Terms query để tìm kiếm nhiều flashsale_id
+                                .Field(f => f.flashsale_id)
+                                .Terms(flashsale_ids) // Truyền danh sách ID vào đây
+                            )
+
                          )
                      )
-                 ).Take(4000)
-                .Size(4000)
+                 )
+                .Size(20)
              );
 
             if (response.IsValid)

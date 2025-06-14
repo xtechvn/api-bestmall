@@ -190,7 +190,13 @@ namespace HuloToys_Service.Controllers
 
                 if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, _configuration["KEY:private_key"]))
                 {
-                    var list = await flashSaleProductESRepository.GetListSuperSale();
+                    var list_fl = await flashSaleESRepository.SearchActiveFlashSales();
+                    List<int> list_id = new List<int>();
+                    if(list_fl!=null && list_fl.Count > 0)
+                    {
+                        list_id = list_fl.Select(x => x.flashsale_id).ToList();
+                    }
+                    var list = await flashSaleProductESRepository.GetListSuperSale(list_id);
                     if (list == null || list.Count <= 0)
                     {
                         return Ok(new

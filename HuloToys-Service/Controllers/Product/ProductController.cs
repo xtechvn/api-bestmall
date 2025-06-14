@@ -1035,9 +1035,25 @@ namespace WEB.CMS.Controllers
                     }
 
                     return Ok(new
-                    {
-                        status = (int)ResponseType.FAILED,
-                        msg = "No Items"
+                    { 
+						status = (int)ResponseType.SUCCESS,
+                        msg = ResponseMessages.Success,
+                        data = new
+                        {
+                            items = list,
+                            count = result==null?0: result.count,
+                            label_detail = new
+                            {
+                                label.Id,
+                                label.LabelName,
+                                label.LabelCode,
+                                label.Icon,
+                                label.Banner,
+                                label.Description,
+                                label.Avatar
+
+                            }
+                        }
                     });
                 }
             }

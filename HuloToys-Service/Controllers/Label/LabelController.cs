@@ -76,7 +76,7 @@ namespace HuloToys_Service.Controllers.Label
                                 x.Icon,
                                 x.LabelCode,
                                 x.Description,
-
+                                x.Avatar
                             }),
                             total= (result != null && result.Count > 0) ? result.First().TotalRow:0
                         });
@@ -93,6 +93,8 @@ namespace HuloToys_Service.Controllers.Label
                                 x.Icon,
                                 x.LabelCode,
                                 x.Description,
+                                x.Avatar
+
                             }),
                             total = (result != null && result.Count > 0) ? result.First().TotalRow : 0
 
@@ -111,7 +113,9 @@ namespace HuloToys_Service.Controllers.Label
                                 x.LabelName,
                                 x.Icon,
                                 x.LabelCode,
-                                x.Description
+                                x.Description,
+                                x.Avatar
+
                             }),
                             total = (result != null && result.Count > 0) ? result.First().TotalRow : 0
 

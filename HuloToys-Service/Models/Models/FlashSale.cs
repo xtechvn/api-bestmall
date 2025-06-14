@@ -27,5 +27,7 @@ public partial class FlashSale
 
     public string? Name { get; set; }
 
+    public string? Banner { get; set; }
+
     public virtual ICollection<RunningScheduleService> RunningScheduleServices { get; set; } = new List<RunningScheduleService>();
 }

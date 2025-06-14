@@ -582,6 +582,7 @@ public partial class DataMSContext : DbContext
 
             entity.ToTable("FlashSale");
 
+            entity.Property(e => e.Banner).HasMaxLength(500);
             entity.Property(e => e.CreateDate)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
@@ -712,6 +713,8 @@ public partial class DataMSContext : DbContext
             entity.HasKey(e => e.Id).HasName("PK_Store");
 
             entity.ToTable("Label");
+
+            entity.Property(e => e.Avatar).HasMaxLength(500);
             entity.Property(e => e.Banner).HasMaxLength(500);
             entity.Property(e => e.CreateTime).HasColumnType("datetime");
             entity.Property(e => e.Description).HasMaxLength(500);

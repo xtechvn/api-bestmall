@@ -181,10 +181,16 @@ namespace APP_CHECKOUT.Repositories
                     total_price += (cart.product.price * cart.quanity);
                     total_profit += (cart.product.profit * cart.quanity);
                     total_amount += (amount_product * cart.quanity);
+
+                    //cart.total_price = cart.product.price * cart.quanity;
+                    //cart.total_discount = cart.product.discount * cart.quanity;
+                    //cart.total_profit = cart.product.profit * cart.quanity;
+                    //cart.total_amount = amount_product * cart.quanity;
+
                     cart.total_price = cart.product.price * cart.quanity;
-                    cart.total_discount = cart.product.discount * cart.quanity;
                     cart.total_profit = cart.product.profit * cart.quanity;
                     cart.total_amount = amount_product * cart.quanity;
+                    cart.total_discount = cart.product.discount * cart.quanity;
                     total_weight += ((cart.product.weight == null ? 0 : (float)cart.product.weight) * cart.quanity / 1000);
 
                 }

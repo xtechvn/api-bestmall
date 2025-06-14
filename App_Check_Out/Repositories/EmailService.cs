@@ -161,7 +161,7 @@ namespace APP_CHECKOUT.Repositories
                         ;
                 }
                 htmlContent = htmlContent.Replace("{products}", product_html);
-                htmlContent = htmlContent.Replace("{total_discount}", (order.total_discount==null?"0 đ":"- "+((double)order.total_discount).ToString("N0")+" đ"));
+                htmlContent = htmlContent.Replace("{total_discount}", (order.total_discount==null?"":"- "+((double)order.total_discount).ToString("N0")+" đ"));
 
                 return htmlContent;
             }

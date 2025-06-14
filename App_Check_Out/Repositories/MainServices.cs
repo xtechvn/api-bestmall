@@ -395,8 +395,11 @@ namespace APP_CHECKOUT.Repositories
                         logging_service.InsertLogTelegramDirect("OrderDetail Created - " + detail.OrderId + ": " + detail.OrderDetailId);
                         order.total_price = total_price;
                         order.total_profit=total_profit;
-                        order.total_amount= total_amount;
                     }
+                    order.total_amount = (double)order_summit.Amount;
+                    order.total_profit = (double)order_summit.Profit;
+                    order.total_discount = (double)order_summit.Discount;
+
                     //await nhanhVnService.PostToNhanhVN(order_summit,order, client, address_client);
                     await orderDetailMongoDbModel.Update(order);
 

@@ -910,6 +910,8 @@ namespace WEB.CMS.Controllers
                     if (request.page_index < 1) request.page_index = 1;
                     ProductListResponseFEModel result = null;
                     Label label = new Label();
+                    var list = new List<ProductMongoDbModelFEResponseCollection>();
+
                     //--Get Label:
                     var cache_name_label = CacheType.LABEL + request.label_id;
                     var j_data_label = await _redisService.GetAsync(cache_name_label, Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
@@ -920,7 +922,7 @@ namespace WEB.CMS.Controllers
                     else
                     {
                         label = await _labelRepository.GetById((int)request.label_id);
-                        if(label!=null && label.Id > 0)
+                        if (label != null && label.Id > 0)
                         {
                             _redisService.Set(cache_name_label, JsonConvert.SerializeObject(label), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
 
@@ -942,106 +944,30 @@ namespace WEB.CMS.Controllers
                             result = await _productDetailService.ProductListingByLabelAndSupplier(request);
                             _redisService.Set(cache_name, JsonConvert.SerializeObject(result), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
                         }
-                        if (result != null && result.items!=null&& result.items.Count > 0)
+                        if (result != null && result.items != null && result.items.Count > 0)
                         {
-                            var list = result.items.Select(x => new
-                            {
-                                x._id,
-                                x.code,
-                                x.name,
-                                x.avatar,
-                                x.price,
-                                x.amount,
-                                x.amount_min,
-                                x.amount_max,
-                                x.rating,
-                                x.star,
-                                x.total_sold,
-                                x.review_count,
-                                x.old_price,
-                                x.discount,
-                                x.exists_flashsale_id,
-                                x.exists_flashsale_name,
-                                x.amount_after_flashsale,
-                                x.flash_sale_fromdate,
-                                x.flash_sale_todate
-                            });
-                            return Ok(new
-                            {
-                                status = (int)ResponseType.SUCCESS,
-                                msg = ResponseMessages.Success,
-                                data = new
-                                {
-                                    items = list,
-                                    count = result.count,
-                                    label_detail = new
-                                    {
-                                        label.Id,
-                                        label.LabelName,
-                                        label.LabelCode,
-                                        label.Icon,
-                                        label.Banner,
-                                       label.Description,
-                                    }
-                                }
-                            });
+                            list = JsonConvert.DeserializeObject<List<ProductMongoDbModelFEResponseCollection>>(JsonConvert.SerializeObject(result.items));
+
                         }
                     }
-                    result = await _productDetailService.ProductListingByLabelAndSupplier(request);
-                    if (result != null && result.items.Count > 0)
+                    if (list == null || list.Count <= 0)
                     {
-                        var list = result.items.Select(x => new
+                        result = await _productDetailService.ProductListingByLabelAndSupplier(request);
+                        if (result != null && result.items.Count > 0)
                         {
-                            x._id,
-                            x.code,
-                            x.name,
-                            x.avatar,
-                            x.price,
-                            x.amount,
-                            x.amount_min,
-                            x.amount_max,
-                            x.rating,
-                            x.star,
-                            x.total_sold,
-                            x.review_count,
-                            x.old_price,
-                            x.discount,
-                            x.exists_flashsale_id,
-                            x.exists_flashsale_name,
-                            x.amount_after_flashsale,
-                            x.flash_sale_fromdate,
-                            x.flash_sale_todate
-                        });
-                        return Ok(new
-                        {
-                            status = (int)ResponseType.SUCCESS,
-                            msg = ResponseMessages.Success,
-                            data = new
-                            {
-                                items = list,
-                                count = result.count,
-                                label_detail = new
-                                {
-                                   label.Id,
-                                   label.LabelName,
-                                   label.LabelCode,
-                                   label.Icon,
-                                   label.Banner,
-                                    label.Description,
-                                }
+                            list = JsonConvert.DeserializeObject<List<ProductMongoDbModelFEResponseCollection>>(JsonConvert.SerializeObject(result.items));
 
-                            }
-                        });
+
+                        }
                     }
-
                     return Ok(new
-                    { 
-						status = (int)ResponseType.SUCCESS,
+                    {
+                        status = (int)ResponseType.SUCCESS,
                         msg = ResponseMessages.Success,
                         data = new
                         {
                             items = list,
-                            count = result==null?0: result.count,
+                            count = result == null ? 0 : result.count,
                             label_detail = new
                             {
                                 label.Id,
@@ -1055,7 +981,13 @@ namespace WEB.CMS.Controllers
                             }
                         }
                     });
+
                 }
+                return Ok(new
+                {
+                    status = (int)ResponseType.FAILED,
+                    msg = "No Items"
+                });
             }
             catch (Exception ex)
             {
@@ -1068,7 +1000,6 @@ namespace WEB.CMS.Controllers
                 msg = ResponseMessages.DataInvalid,
             });
         }
-
 
         [HttpPost("favourites/listing")]
         public async Task<IActionResult> ProductFavouritesListing([FromBody] APIRequestGenericModel input)

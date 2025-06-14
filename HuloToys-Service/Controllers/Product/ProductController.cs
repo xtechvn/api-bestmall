@@ -113,7 +113,7 @@ namespace WEB.CMS.Controllers
                         });
                     }
                     ProductListResponseFEModel result = null;
-                    var cache_name = CacheType.PRODUCT_LISTING + (request.keyword ?? "") + request.group_id;
+                    var cache_name = CacheType.PRODUCT_LISTING + (request.keyword ?? "") + request.group_id + request.page_index + request.page_size;
                     // Kiểm tra các tham số giá
                     if (request.group_id <= 0) request.group_id = -1; // Mặc định là 0 nếu không có giá trị
                     if (request.price_from <= 0 || request.price_from == null) request.price_from = 0; // Mặc định là 0 nếu không có giá trị
@@ -125,40 +125,31 @@ namespace WEB.CMS.Controllers
                     var page_size=request.page_size;
                     int skip = (request.page_index - 1) * request.page_size;
                     int size = request.page_size;
-                    int max_size = 300;
                     // Nếu không lọc theo giá, sử dụng cache Redis
                     if (request.price_from <= 0 && request.price_to <= 0)
                     {
                         var j_data = await _redisService.GetAsync(cache_name, Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
-                        if (j_data != null && j_data.Trim() != "" && (skip+size)<= max_size)
+                        if (j_data != null && j_data.Trim() != "")
                         {
                             result = JsonConvert.DeserializeObject<ProductListResponseFEModel>(j_data);
-                            if(result!=null && result.items.Count >= (skip + size))
-                            {
-                                result.items = result.items.Skip(skip).Take(size).ToList();
-                            }
+                           
                         }
-                        if (result == null || result.items == null || result.items.Count <= 0)
-                        {
-                            result = await _productDetailService.ProductListing(request);
-                        }
+                        
                     }
-                    if ((result == null || result.items == null || result.items.Count <= 0) && (skip + size) <= max_size)
+                    if ((result == null || result.items == null || result.items.Count <= 0) )
                     {
-                        request.page_index = 1;
-                        request.page_size = max_size;
                         result = await _productDetailService.ProductListing(request);
-                        var expire_time = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 4, 0, 0);
-                        _redisService.Set(cache_name, JsonConvert.SerializeObject(result), expire_time.AddDays(1), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
-                        var product_filtered = _productDetailService.FilterProducts(result.items,request.price_from,request.price_to, page_index, page_size);
-                        if(product_filtered == null || product_filtered.Count <= 0)
-                        {
-                            result.items=result.items.Skip(skip).Take(size).ToList();
-                        }
-                        else
-                        {
-                            result.items = product_filtered;
-                        }
+                        //var expire_time = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 4, 0, 0);
+                        _redisService.Set(cache_name, JsonConvert.SerializeObject(result)/*, expire_time.AddDays(1)*/, Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
+                        //var product_filtered = _productDetailService.FilterProducts(result.items,request.price_from,request.price_to, page_index, page_size);
+                        //if(product_filtered == null || product_filtered.Count <= 0)
+                        //{
+                        //    result.items=result.items.Skip(skip).Take(size).ToList();
+                        //}
+                        //else
+                        //{
+                        //    result.items = product_filtered;
+                        //}
                     }
                     if (result != null && result.items !=null&& result.items.Count > 0)
                     {
@@ -807,146 +798,147 @@ namespace WEB.CMS.Controllers
                     if (request.page_size <= 0) request.page_size = 10;
                     if (request.page_index < 1) request.page_index = 1;
                     ProductListResponseFEModel result = null;
-                    //// Nếu không lọc theo giá, sử dụng cache Redis
-                    //if (request.price_from == 0 && request.price_to <= 0 && request.rating <= 0)
-                    //{
-                        var cache_name = CacheType.PRODUCT_LISTING + (request.keyword ?? "") + request.group_id + request.label_id;
-                    //    var j_data = await _redisService.GetAsync(cache_name, Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
-                    //    if (j_data != null && j_data.Trim() != "")
-                    //    {
-                    //        result = JsonConvert.DeserializeObject<ProductListResponseFEModel>(j_data);
 
-                    //    }
-                    //    if (result == null || result.items == null || result.items.Count <= 0)
-                    //    {
-                    //        request.label_id = -1;
-                    //        result = await _productDetailService.ProductListingByLabelAndSupplier(request);
-                    //    }
-                    //    if (result != null && result.items.Count > 0)
-                    //    {
-                    //        _redisService.Set(cache_name, JsonConvert.SerializeObject(result), DateTime.Now.AddDays(1), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
-                    //        var list = result.items.Select(x => new
-                    //        {
-                    //            x._id,
-                    //            x.code,
-                    //            x.name,
-                    //            x.avatar,
-                    //            x.price,
-                    //            x.amount,
-                    //            x.amount_min,
-                    //            x.amount_max,
-                    //            x.rating,
-                    //            x.star,
-                    //            x.total_sold,
-                    //            x.review_count,
-                    //            x.old_price,
-                    //            x.discount,
-                    //            x.exists_flashsale_id,
-                    //            x.exists_flashsale_name,
-                    //            x.amount_after_flashsale,
-                    //            x.flash_sale_fromdate,
-                    //            x.flash_sale_todate
-                    //        });
-                    //        return Ok(new
-                    //        {
-                    //            status = (int)ResponseType.SUCCESS,
-                    //            msg = ResponseMessages.Success,
-                    //            data = new
-                    //            {
-                    //                items = list,
-                    //                count = result.count
-                    //            }
-                    //        });
-                    //    }
-                    //}
-                    //result = await _productDetailService.ProductListingByLabelAndSupplier(request);
-                    //if (result != null && result.items.Count > 0)
-                    //{
-                    //    return Ok(new
-                    //    {
-                    //        status = (int)ResponseType.SUCCESS,
-                    //        msg = ResponseMessages.Success,
-                    //        data = new
-                    //        {
-                    //            items = result.items,
-                    //            count = result.count
-                    //        }
-                    //    });
-                    //}
-                    var page_index = request.page_index;
-                    var page_size = request.page_size;
-                    int skip = (request.page_index - 1) * request.page_size;
-                    int size = request.page_size;
-                    int max_size = 300;
                     // Nếu không lọc theo giá, sử dụng cache Redis
-                    if (request.price_from <= 0 && request.price_to <= 0)
+                    if (request.price_from == 0 && request.price_to <= 0 && request.rating <= 0)
                     {
+                        var cache_name = CacheType.PRODUCT_LISTING + (request.keyword ?? "") + request.group_id + request.label_id;
                         var j_data = await _redisService.GetAsync(cache_name, Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
-                        if (j_data != null && j_data.Trim() != "" && (skip + size) <= max_size)
+                        if (j_data != null && j_data.Trim() != "")
                         {
                             result = JsonConvert.DeserializeObject<ProductListResponseFEModel>(j_data);
-                            if (result != null && result.items.Count >= (skip + size))
-                            {
-                                result.items = result.items.Skip(skip).Take(size).ToList();
-                            }
+
                         }
                         if (result == null || result.items == null || result.items.Count <= 0)
                         {
+                            request.label_id = -1;
                             result = await _productDetailService.ProductListingByLabelAndSupplier(request);
                         }
-                    }
-                    if ((result == null || result.items == null || result.items.Count <= 0) && (skip + size) <= max_size)
-                    {
-                        request.page_index = 1;
-                        request.page_size = max_size;
-                        result = await _productDetailService.ProductListingByLabelAndSupplier(request);
-                        var expire_time = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 4, 0, 0);
-                        _redisService.Set(cache_name, JsonConvert.SerializeObject(result), expire_time.AddDays(1), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
-                        var product_filtered = _productDetailService.FilterProducts(result.items, request.price_from, request.price_to, page_index, page_size);
-                        if (product_filtered == null || product_filtered.Count <= 0)
+                        if (result != null && result.items.Count > 0)
                         {
-                            result.items = result.items.Skip(skip).Take(size).ToList();
+                            _redisService.Set(cache_name, JsonConvert.SerializeObject(result), DateTime.Now.AddDays(1), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
+                            var list = result.items.Select(x => new
+                            {
+                                x._id,
+                                x.code,
+                                x.name,
+                                x.avatar,
+                                x.price,
+                                x.amount,
+                                x.amount_min,
+                                x.amount_max,
+                                x.rating,
+                                x.star,
+                                x.total_sold,
+                                x.review_count,
+                                x.old_price,
+                                x.discount,
+                                x.exists_flashsale_id,
+                                x.exists_flashsale_name,
+                                x.amount_after_flashsale,
+                                x.flash_sale_fromdate,
+                                x.flash_sale_todate
+                            });
+                            return Ok(new
+                            {
+                                status = (int)ResponseType.SUCCESS,
+                                msg = ResponseMessages.Success,
+                                data = new
+                                {
+                                    items = list,
+                                    count = result.count
+                                }
+                            });
                         }
-                        else
-                        {
-                            result.items = product_filtered;
-                        }
                     }
-                    if (result != null && result.items != null && result.items.Count > 0)
+                    result = await _productDetailService.ProductListingByLabelAndSupplier(request);
+                    if (result != null && result.items.Count > 0)
                     {
-                        var list = result.items.Select(x => new
-                        {
-                            x._id,
-                            x.code,
-                            x.name,
-                            x.avatar,
-                            x.price,
-                            x.amount,
-                            x.amount_min,
-                            x.amount_max,
-                            x.rating,
-                            x.star,
-                            x.total_sold,
-                            x.review_count,
-                            x.old_price,
-                            x.discount,
-                            x.exists_flashsale_id,
-                            x.exists_flashsale_name,
-                            x.amount_after_flashsale,
-                            x.flash_sale_fromdate,
-                            x.flash_sale_todate
-                        });
                         return Ok(new
                         {
                             status = (int)ResponseType.SUCCESS,
                             msg = ResponseMessages.Success,
                             data = new
                             {
-                                items = list,
+                                items = result.items,
                                 count = result.count
                             }
                         });
                     }
+                    //var page_index = request.page_index;
+                    //var page_size = request.page_size;
+                    //int skip = (request.page_index - 1) * request.page_size;
+                    //int size = request.page_size;
+                    //int max_size = 300;
+                    //// Nếu không lọc theo giá, sử dụng cache Redis
+                    //if (request.price_from <= 0 && request.price_to <= 0)
+                    //{
+                    //    var j_data = await _redisService.GetAsync(cache_name, Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
+                    //    if (j_data != null && j_data.Trim() != "" && (skip + size) <= max_size)
+                    //    {
+                    //        result = JsonConvert.DeserializeObject<ProductListResponseFEModel>(j_data);
+                    //        if (result != null && result.items.Count >= (skip + size))
+                    //        {
+                    //            result.items = result.items.Skip(skip).Take(size).ToList();
+                    //        }
+                    //    }
+                    //    if (result == null || result.items == null || result.items.Count <= 0)
+                    //    {
+                    //        result = await _productDetailService.ProductListingByLabelAndSupplier(request);
+                    //    }
+                    //}
+                    //if ((result == null || result.items == null || result.items.Count <= 0) && (skip + size) <= max_size)
+                    //{
+                    //    request.page_index = 1;
+                    //    request.page_size = max_size;
+                    //    result = await _productDetailService.ProductListingByLabelAndSupplier(request);
+                    //    var expire_time = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 4, 0, 0);
+                    //    _redisService.Set(cache_name, JsonConvert.SerializeObject(result), expire_time.AddDays(1), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
+                    //    var product_filtered = _productDetailService.FilterProducts(result.items, request.price_from, request.price_to, page_index, page_size);
+                    //    if (product_filtered == null || product_filtered.Count <= 0)
+                    //    {
+                    //        result.items = result.items.Skip(skip).Take(size).ToList();
+                    //    }
+                    //    else
+                    //    {
+                    //        result.items = product_filtered;
+                    //    }
+                    //}
+                    //if (result != null && result.items != null && result.items.Count > 0)
+                    //{
+                    //    var list = result.items.Select(x => new
+                    //    {
+                    //        x._id,
+                    //        x.code,
+                    //        x.name,
+                    //        x.avatar,
+                    //        x.price,
+                    //        x.amount,
+                    //        x.amount_min,
+                    //        x.amount_max,
+                    //        x.rating,
+                    //        x.star,
+                    //        x.total_sold,
+                    //        x.review_count,
+                    //        x.old_price,
+                    //        x.discount,
+                    //        x.exists_flashsale_id,
+                    //        x.exists_flashsale_name,
+                    //        x.amount_after_flashsale,
+                    //        x.flash_sale_fromdate,
+                    //        x.flash_sale_todate
+                    //    });
+                    //    return Ok(new
+                    //    {
+                    //        status = (int)ResponseType.SUCCESS,
+                    //        msg = ResponseMessages.Success,
+                    //        data = new
+                    //        {
+                    //            items = list,
+                    //            count = result.count
+                    //        }
+                    //    });
+                    //}
                     return Ok(new
                     {
                         status = (int)ResponseType.FAILED,
@@ -1002,6 +994,7 @@ namespace WEB.CMS.Controllers
                     if (request.page_size <= 0) request.page_size = 10;
                     if (request.page_index < 1) request.page_index = 1;
                     ProductListResponseFEModel result = null;
+                    List<ProductMongoDbModelFEResponseCollection> list = new List<ProductMongoDbModelFEResponseCollection>();
                     Label label = new Label();
                     //--Get Label:
                     var cache_name_label = CacheType.LABEL + request.label_id;
@@ -1019,145 +1012,145 @@ namespace WEB.CMS.Controllers
 
                         }
                     }
-                    //// Nếu không lọc theo giá, sử dụng cache Redis
-                    //if (request.price_from == 0 && request.price_to <= 0 && request.rating <= 0)
-                    //{
-                        var cache_name = CacheType.PRODUCT_LISTING + (request.keyword ?? "") + request.group_id + request.label_id + request.page_index + request.page_size;
-                    //    var j_data = await _redisService.GetAsync(cache_name, Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
-                    //    if (j_data != null && j_data.Trim() != "")
-                    //    {
-                    //        result = JsonConvert.DeserializeObject<ProductListResponseFEModel>(j_data);
-
-                    //    }
-                    //    if (result == null || result.items == null || result.items.Count <= 0)
-                    //    {
-                    //        request.supplier_id = -1;
-                    //        result = await _productDetailService.ProductListingByLabelAndSupplier(request);
-                    //        _redisService.Set(cache_name, JsonConvert.SerializeObject(result), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
-                    //    }
-                    //    if (result != null && result.items!=null&& result.items.Count > 0)
-                    //    {
-                    //        list = JsonConvert.DeserializeObject<List<ProductMongoDbModelFEResponseCollection>>(JsonConvert.SerializeObject(result.items));
-
-                    //    }
-                    //}
-                    //if (list == null || list.Count <= 0)
-                    //{
-                    //    result = await _productDetailService.ProductListingByLabelAndSupplier(request);
-                    //    if (result != null && result.items.Count > 0)
-                    //    {
-                    //        list = JsonConvert.DeserializeObject<List<ProductMongoDbModelFEResponseCollection>>(JsonConvert.SerializeObject(result.items));
-
-
-                    //    }
-                    //}
-                    //return Ok(new
-                    //{
-                    //    status = (int)ResponseType.SUCCESS,
-                    //    msg = ResponseMessages.Success,
-                    //    data = new
-                    //    {
-                    //        items = list,
-                    //        count = result==null?0: result.count,
-                    //        label_detail = new
-                    //        {
-                    //            label.Id,
-                    //            label.LabelName,
-                    //            label.LabelCode,
-                    //            label.Icon,
-                    //            label.Banner,
-                    //            label.Description,
-                    //            label.Avatar
-
-                    //        }
-                    //    }
-                    //});
-                    var page_index = request.page_index;
-                    var page_size = request.page_size;
-                    int skip = (request.page_index - 1) * request.page_size;
-                    int size = request.page_size;
-                    int max_size = 300;
                     // Nếu không lọc theo giá, sử dụng cache Redis
-                    if (request.price_from <= 0 && request.price_to <= 0)
+                    if (request.price_from == 0 && request.price_to <= 0 && request.rating <= 0)
                     {
+                        var cache_name = CacheType.PRODUCT_LISTING + (request.keyword ?? "") + request.group_id + request.label_id + request.page_index + request.page_size;
                         var j_data = await _redisService.GetAsync(cache_name, Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
-                        if (j_data != null && j_data.Trim() != "" && (skip + size) <= max_size)
+                        if (j_data != null && j_data.Trim() != "")
                         {
                             result = JsonConvert.DeserializeObject<ProductListResponseFEModel>(j_data);
-                            if (result != null && result.items.Count >= (skip + size))
-                            {
-                                result.items = result.items.Skip(skip).Take(size).ToList();
-                            }
+
                         }
                         if (result == null || result.items == null || result.items.Count <= 0)
                         {
+                            request.supplier_id = -1;
                             result = await _productDetailService.ProductListingByLabelAndSupplier(request);
+                            _redisService.Set(cache_name, JsonConvert.SerializeObject(result), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
+                        }
+                        if (result != null && result.items != null && result.items.Count > 0)
+                        {
+                            list = JsonConvert.DeserializeObject<List<ProductMongoDbModelFEResponseCollection>>(JsonConvert.SerializeObject(result.items));
+
                         }
                     }
-                    if ((result == null || result.items == null || result.items.Count <= 0) && (skip + size) <= max_size)
+                    if (list == null || list.Count <= 0)
                     {
-                        request.page_index = 1;
-                        request.page_size = max_size;
                         result = await _productDetailService.ProductListingByLabelAndSupplier(request);
-                        var expire_time = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 4, 0, 0);
-                        _redisService.Set(cache_name, JsonConvert.SerializeObject(result), expire_time.AddDays(1), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
-                        var product_filtered = _productDetailService.FilterProducts(result.items, request.price_from, request.price_to, page_index, page_size);
-                        if (product_filtered == null || product_filtered.Count <= 0)
+                        if (result != null && result.items.Count > 0)
                         {
-                            result.items = result.items.Skip(skip).Take(size).ToList();
-                        }
-                        else
-                        {
-                            result.items = product_filtered;
+                            list = JsonConvert.DeserializeObject<List<ProductMongoDbModelFEResponseCollection>>(JsonConvert.SerializeObject(result.items));
+
+
                         }
                     }
-                    if (result != null && result.items != null && result.items.Count > 0)
+                    return Ok(new
                     {
-                        var list = result.items.Select(x => new
+                        status = (int)ResponseType.SUCCESS,
+                        msg = ResponseMessages.Success,
+                        data = new
                         {
-                            x._id,
-                            x.code,
-                            x.name,
-                            x.avatar,
-                            x.price,
-                            x.amount,
-                            x.amount_min,
-                            x.amount_max,
-                            x.rating,
-                            x.star,
-                            x.total_sold,
-                            x.review_count,
-                            x.old_price,
-                            x.discount,
-                            x.exists_flashsale_id,
-                            x.exists_flashsale_name,
-                            x.amount_after_flashsale,
-                            x.flash_sale_fromdate,
-                            x.flash_sale_todate,
-
-                        });
-                        return Ok(new
-                        {
-                            status = (int)ResponseType.SUCCESS,
-                            msg = ResponseMessages.Success,
-                            data = new
+                            items = list,
+                            count = result == null ? 0 : result.count,
+                            label_detail = new
                             {
-                                items = list,
-                                count = result.count,
-                                label_detail = new
-                                {
-                                    label.Id,
-                                    label.LabelName,
-                                    label.LabelCode,
-                                    label.Icon,
-                                    label.Banner,
-                                    label.Description,
-                                    label.Avatar
+                                label.Id,
+                                label.LabelName,
+                                label.LabelCode,
+                                label.Icon,
+                                label.Banner,
+                                label.Description,
+                                label.Avatar
 
-                                }
                             }
-                        });
-                    }
+                        }
+                    });
+                    //var page_index = request.page_index;
+                    //var page_size = request.page_size;
+                    //int skip = (request.page_index - 1) * request.page_size;
+                    //int size = request.page_size;
+                    //int max_size = 300;
+                    //// Nếu không lọc theo giá, sử dụng cache Redis
+                    //if (request.price_from <= 0 && request.price_to <= 0)
+                    //{
+                    //    var j_data = await _redisService.GetAsync(cache_name, Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
+                    //    if (j_data != null && j_data.Trim() != "" && (skip + size) <= max_size)
+                    //    {
+                    //        result = JsonConvert.DeserializeObject<ProductListResponseFEModel>(j_data);
+                    //        if (result != null && result.items.Count >= (skip + size))
+                    //        {
+                    //            result.items = result.items.Skip(skip).Take(size).ToList();
+                    //        }
+                    //    }
+                    //    if (result == null || result.items == null || result.items.Count <= 0)
+                    //    {
+                    //        result = await _productDetailService.ProductListingByLabelAndSupplier(request);
+                    //    }
+                    //}
+                    //if ((result == null || result.items == null || result.items.Count <= 0) && (skip + size) <= max_size)
+                    //{
+                    //    request.page_index = 1;
+                    //    request.page_size = max_size;
+                    //    result = await _productDetailService.ProductListingByLabelAndSupplier(request);
+                    //    var expire_time = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 4, 0, 0);
+                    //    _redisService.Set(cache_name, JsonConvert.SerializeObject(result), expire_time.AddDays(1), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
+                    //    var product_filtered = _productDetailService.FilterProducts(result.items, request.price_from, request.price_to, page_index, page_size);
+                    //    if (product_filtered == null || product_filtered.Count <= 0)
+                    //    {
+                    //        result.items = result.items.Skip(skip).Take(size).ToList();
+                    //    }
+                    //    else
+                    //    {
+                    //        result.items = product_filtered;
+                    //    }
+                    //}
+                    //if (result != null && result.items != null && result.items.Count > 0)
+                    //{
+                    //    var list = result.items.Select(x => new
+                    //    {
+                    //        x._id,
+                    //        x.code,
+                    //        x.name,
+                    //        x.avatar,
+                    //        x.price,
+                    //        x.amount,
+                    //        x.amount_min,
+                    //        x.amount_max,
+                    //        x.rating,
+                    //        x.star,
+                    //        x.total_sold,
+                    //        x.review_count,
+                    //        x.old_price,
+                    //        x.discount,
+                    //        x.exists_flashsale_id,
+                    //        x.exists_flashsale_name,
+                    //        x.amount_after_flashsale,
+                    //        x.flash_sale_fromdate,
+                    //        x.flash_sale_todate,
+
+                    //    });
+                    //    return Ok(new
+                    //    {
+                    //        status = (int)ResponseType.SUCCESS,
+                    //        msg = ResponseMessages.Success,
+                    //        data = new
+                    //        {
+                    //            items = list,
+                    //            count = result.count,
+                    //            label_detail = new
+                    //            {
+                    //                label.Id,
+                    //                label.LabelName,
+                    //                label.LabelCode,
+                    //                label.Icon,
+                    //                label.Banner,
+                    //                label.Description,
+                    //                label.Avatar
+
+                    //            }
+                    //        }
+                    //    });
+                    //}
 
                 }
                 return Ok(new

@@ -20,6 +20,8 @@ using APP_CHECKOUT.Constants;
 using System.Text;
 using Nest;
 using System.Net.Http;
+using Caching.Elasticsearch.FlashSale;
+using HuloToys_Service.Controllers.Product.Bussiness;
 
 namespace APP_CHECKOUT.Repositories
 {
@@ -37,6 +39,9 @@ namespace APP_CHECKOUT.Repositories
         private readonly NhanhVnService nhanhVnService;
         private readonly WorkQueueClient workQueueClient;
         private readonly EmailService emailService;
+        private readonly FlashSaleESRepository flashSaleESRepository;
+        private readonly FlashSaleProductESRepository flashSaleProductESRepository;
+        private readonly ProductDetailService productDetailService;
 
         public MainServices( ILoggingService loggingService) {
 
@@ -49,9 +54,12 @@ namespace APP_CHECKOUT.Repositories
             accountClientESService = new AccountClientESService(ConfigurationManager.AppSettings["Elastic_Host"]);
             clientESService = new ClientESService(ConfigurationManager.AppSettings["Elastic_Host"]);
             addressClientESService = new AddressClientESService(ConfigurationManager.AppSettings["Elastic_Host"]);
+            flashSaleESRepository = new FlashSaleESRepository(ConfigurationManager.AppSettings["Elastic_Host"]);
+            flashSaleProductESRepository = new FlashSaleProductESRepository(ConfigurationManager.AppSettings["Elastic_Host"]);
             nhanhVnService = new NhanhVnService(logging_service);
-            workQueueClient = new WorkQueueClient( loggingService);
-            emailService = new EmailService(clientESService,accountClientESService,locationDAL);
+            workQueueClient = new WorkQueueClient(loggingService);
+            emailService = new EmailService(clientESService, accountClientESService, locationDAL);
+            productDetailService=new ProductDetailService(clientESService,flashSaleESRepository,flashSaleProductESRepository,productDetailMongoAccess);
         }
         public async Task Excute(CheckoutQueueModel request)
         {
@@ -111,19 +119,20 @@ namespace APP_CHECKOUT.Repositories
                 float total_weight = 0;
                 foreach (var cart in order.carts)
                 {
+                    if (cart == null || cart.product == null) continue; 
                     string name_url = CommonHelpers.RemoveUnicode(cart.product.name);
                     name_url = CommonHelpers.RemoveSpecialCharacters(name_url);
                     name_url = name_url.Replace(" ", "-").Trim();
                     string parent_product_id = cart.product._id;
-                    try
+                    //try
+                    //{
+                    //    var product = await productDetailService.GetByID(cart.product._id);
+                    if (cart.product != null && cart.product.parent_product_id != null && cart.product.parent_product_id.Trim() != "")
                     {
-                        var product = await productDetailMongoAccess.GetByID(cart.product._id);
-                        if(product!=null && product.parent_product_id!=null && product.parent_product_id.Trim() != "")
-                        {
-                            parent_product_id = product.parent_product_id;
-                        }
+                        parent_product_id = cart.product.parent_product_id;
                     }
-                    catch { }
+                    //}
+                    //catch { }
                     var amount_product = cart.product.amount;
                     if (cart.product.flash_sale_todate >= DateTime.Now && cart.product.amount_after_flashsale != null && cart.product.amount_after_flashsale > 0)
                     {
@@ -158,7 +167,7 @@ namespace APP_CHECKOUT.Repositories
                     cart.total_price = cart.product.price * cart.quanity;
                     cart.total_discount = cart.product.discount * cart.quanity;
                     cart.total_profit = cart.product.profit * cart.quanity;
-                    cart.total_amount = cart.product.amount * cart.quanity;
+                    cart.total_amount = amount_product * cart.quanity;
                     total_weight += ((cart.product.weight == null ? 0 : (float)cart.product.weight) * cart.quanity / 1000);
 
                 }
@@ -202,7 +211,8 @@ namespace APP_CHECKOUT.Repositories
                     ShippingCode = "",
                     ShippingType = order.delivery_detail.shipping_type,
                     ShippingStatus = 0,
-                    PackageWeight = total_weight
+                    PackageWeight = total_weight,
+                    
 
                 };
                 List<Province> provinces = GetProvince();
@@ -315,11 +325,11 @@ namespace APP_CHECKOUT.Repositories
                     }
 
                 }
+                order.total_discount = total_discount;
                 var order_id = await orderDAL.CreateOrder(order_summit);
                 // Console.WriteLine("Created Order - " + order.order_no+": "+ order_id);
                 logging_service.InsertLogTelegramDirect("Order Created - " + order.order_no + " - " + total_amount);
                 workQueueClient.SyncES(order_id, "SP_GetOrder", "hulotoys_sp_getorder", Convert.ToInt16(ProjectType.HULOTOYS));
-
                 if (order_id > 0)
                 {
                     order.order_id = order_id;
@@ -333,7 +343,6 @@ namespace APP_CHECKOUT.Repositories
                         order.total_price = total_price;
                         order.total_profit=total_profit;
                         order.total_amount= total_amount;
-                        order.total_discount= total_discount;
                     }
                     //await nhanhVnService.PostToNhanhVN(order_summit,order, client, address_client);
                     await orderDetailMongoDbModel.Update(order);

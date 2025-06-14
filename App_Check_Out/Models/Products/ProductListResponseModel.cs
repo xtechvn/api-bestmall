@@ -7,9 +7,9 @@ namespace APP_CHECKOUT.Models.Models
         public List<ProductMongoDbModel> items { get; set; }
         public long count { get; set; }
     }
-    public class ProductListFEResponseModel
+    public class ProductListResponseFEModel
     {
-        public List<ProductMongoDbModel> items { get; set; }
+        public List<ProductMongoDbModelFEResponse> items { get; set; }
         public long count { get; set; }
     }
 }

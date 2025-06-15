@@ -651,7 +651,7 @@ namespace WEB.CMS.Controllers
                     }
                     if (request.page_index < 1) request.page_index = 1;
                     if (request.page_size < 1) request.page_size = 5;
-                    var data =  _raitingESService.GetListByFilter(request);
+                    var data =  productRaitingService.GetListByFilter(request);
                     return Ok(new
                     {
                         status = (int)ResponseType.SUCCESS,

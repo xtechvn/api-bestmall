@@ -114,7 +114,7 @@ namespace APP_CHECKOUT.Repositories
                 }
                 htmlContent = htmlContent.Replace("{address}", full_address);
                 htmlContent = htmlContent.Replace("{phone}", order.phone);
-                htmlContent = htmlContent.Replace("{amount}", order.total_amount.ToString("N0"));
+                htmlContent = htmlContent.Replace("{amount}", (order.total_price==null? order.total_amount : ((double)order.total_price)).ToString("N0"));
                 htmlContent = htmlContent.Replace("{total_amount}", order.total_amount.ToString("N0"));
                 string template = @"
                                             <tr>

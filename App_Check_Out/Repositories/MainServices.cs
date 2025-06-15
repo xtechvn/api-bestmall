@@ -369,7 +369,7 @@ namespace APP_CHECKOUT.Repositories
 
                         }
                         voucher_apply.discount = total_discount;
-                        voucher_apply.total_order_amount_after = voucher_apply.total_order_amount_before - total_discount;
+                        voucher_apply.total_order_amount_after = (double)order_summit.Amount - total_discount;
                         order_summit.VoucherId = voucher_apply.voucher_id;
                         order_summit.Discount = voucher_apply.discount;
                         order_summit.Amount = voucher_apply.total_order_amount_after;
@@ -393,10 +393,12 @@ namespace APP_CHECKOUT.Repositories
                         await orderDetailDAL.CreateOrderDetail(detail);
                         Console.WriteLine("Created OrderDetail - " + detail.OrderId + ": " + detail.OrderDetailId);
                         logging_service.InsertLogTelegramDirect("OrderDetail Created - " + detail.OrderId + ": " + detail.OrderDetailId);
-                        order.total_price = total_price;
-                        order.total_profit=total_profit;
+                     
                     }
-                    order.total_amount = (double)order_summit.Amount;
+                    order.total_price = (double)order_summit.Amount + total_discount;
+                    order.total_profit = total_profit;
+                    order.total_amount = (double)order_summit.Amount ;
+                    
                     order.total_profit = (double)order_summit.Profit;
                     order.total_discount = (double)order_summit.Discount;
 

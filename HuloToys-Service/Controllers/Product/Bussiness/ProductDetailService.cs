@@ -155,30 +155,30 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                 result.product_main.amount_min = result.product_sub.Min(x => (x.amount_after_flashsale != null && x.amount_after_flashsale > 0 ? x.amount_after_flashsale : x.amount));
                 result.product_main.amount_max = result.product_sub.Max(x => (x.amount_after_flashsale != null && x.amount_after_flashsale > 0 ? x.amount_after_flashsale : x.amount));
                 //--Get group:
-                if (result.product_main != null && result.product_main.group_product_id != null && result.product_main.group_product_id.Trim() != "")
-                {
-                    result.groups = new List<GroupProductESModel>();
-                    try
-                    {
-                        var split = result.product_main.group_product_id.Split(",");
-                        if (split != null && split.Count() > 0)
-                        {
-                            foreach (var item in split)
-                            {
-                                try
-                                {
-                                    var g = groupProductESService.GetById(Convert.ToInt32(item));
-                                    if (g != null && g.Id > 0)
-                                    {
-                                        result.groups.Add(g);
-                                    }
-                                }
-                                catch { }
-                            }
-                        }
-                    }
-                    catch { }
-                }
+                //if (result.product_main != null && result.product_main.group_product_id != null && result.product_main.group_product_id.Trim() != "")
+                //{
+                //    result.groups = new List<GroupProductESModel>();
+                //    try
+                //    {
+                //        var split = result.product_main.group_product_id.Split(",");
+                //        if (split != null && split.Count() > 0)
+                //        {
+                //            foreach (var item in split)
+                //            {
+                //                try
+                //                {
+                //                    var g = groupProductESService.GetById(Convert.ToInt32(item));
+                //                    if (g != null && g.Id > 0)
+                //                    {
+                //                        result.groups.Add(g);
+                //                    }
+                //                }
+                //                catch { }
+                //            }
+                //        }
+                //    }
+                //    catch { }
+                //}
             }
             catch (Exception ex)
             {

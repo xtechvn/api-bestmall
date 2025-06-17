@@ -194,7 +194,7 @@ namespace HuloToys_Service.Controllers
                                     isReceiverInfoEmail = 1,
                                     Name = request.user_name.Trim(),
                                     ClientName = request.user_name.Trim(),
-                                    Password = request.password,
+                                    Password = CommonHelper.MD5Hash(request.password),
                                     Phone = "",
                                     Status = 0,
                                     UserName = request.user_name,

@@ -1,5 +1,7 @@
-﻿using Caching.Elasticsearch;
+﻿using Azure.Core;
+using Caching.Elasticsearch;
 using HuloToys_Service.Models.Client;
+using HuloToys_Service.RabitMQ;
 using HuloToys_Service.Utilities.Lib;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
@@ -122,6 +124,42 @@ namespace HuloToys_Service.Controllers.Client.Business
                               "GetDetailClientIdFromToken with [" + account_client_id + "] ID=" + (account_client_id == null ? "[accountclientid null]" : account_client_id.ToString()));
                 return null;
             }
+        }
+        public async Task<bool> ReSyncClientAndAccountClient()
+        {
+            try
+            {
+                await Task.Delay(5000);
+                var work_queue = new WorkQueueClient(_configuration);
+
+                var j_param = new Dictionary<string, object>
+                {
+                    { "store_name", "SP_GetAccountClient" },
+                    { "index_es", "hulotoys_" + "SP_GetAccountClient".ToLower() },
+                    { "project_type", 1 },
+                    { "id", -1 }
+                };
+
+                var _data_push = JsonConvert.SerializeObject(j_param);
+                var response_queue = work_queue.InsertQueueSimpleSyncES(_data_push);
+                 j_param = new Dictionary<string, object>
+                {
+                    { "store_name", "SP_GetClient" },
+                    { "index_es", "hulotoys_" + "SP_GetClient".ToLower() },
+                    { "project_type", 1 },
+                    { "id", -1 }
+                };
+
+                 _data_push = JsonConvert.SerializeObject(j_param);
+                 response_queue = work_queue.InsertQueueSimpleSyncES(_data_push);
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegramByUrl(_configuration["telegram:log_try_catch:bot_token"], _configuration["telegram:log_try_catch:group_id"],
+                              "ReSyncClientAndAccountClient: "+ex.ToString());
+                return false;
+            }
+            return true;
         }
     }
 }

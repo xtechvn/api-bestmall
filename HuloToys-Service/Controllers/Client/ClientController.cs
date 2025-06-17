@@ -23,6 +23,7 @@ using HuloToys_Service.Controllers.Client.Business;
 using Nest;
 using HuloToys_Service.IRepositories;
 using Repositories.IRepositories;
+using HuloToys_Service.Models.Models;
 
 namespace HuloToys_Service.Controllers
 {
@@ -156,49 +157,83 @@ namespace HuloToys_Service.Controllers
                                 if (clients != null && clients.Count > 0)
                                 {
                                     clients = clients.Where(x => x.Email.Trim().ToLower() == request.user_name.Trim().ToLower()).ToList();
-                                    if (clients == null || clients.Count <= 0)
+                                    if (clients != null && clients.Count > 0)
                                     {
-                                        return Ok(new
+                                        foreach (var client in clients)
                                         {
-                                            status = (int)ResponseType.FAILED,
-                                            msg = "Không tìm thấy tài khoản nào tương ứng với thông tin đăng nhập này, vui lòng đăng ký hoặc thử lại"
-                                        });
-                                    }
-                                    foreach (var client in clients)
-                                    {
-                                        var account_client = accountClientESService.GetByClientID(client.Id);
-
-                                        if (account_client != null && account_client.Id > 0 && account_client.ClientId > 0)
-                                        {
-                                            var token = await clientServices.GenerateToken(account_client.UserName, ipAddress);
-                                            return Ok(new
+                                            var account_client = accountClientESService.GetByClientID(client.Id);
+                                            if (account_client != null && account_client.Id > 0 && account_client.ClientId > 0)
                                             {
-                                                status = (int)ResponseType.SUCCESS,
-                                                msg = "Success",
-                                                data = new ClientLoginResponseModel()
+                                                var token = await clientServices.GenerateToken(account_client.UserName, ipAddress);
+                                                return Ok(new
                                                 {
-                                                    //account_client_id = account_client_exists.id,
-                                                    user_name = account_client.UserName,
-                                                    name = client.ClientName,
-                                                    token = token,
-                                                    ip = ipAddress,
-                                                    time_expire = clientServices.GetExpiredTimeFromToken(token)
-                                                }
-                                            });
+                                                    status = (int)ResponseType.SUCCESS,
+                                                    msg = "Success",
+                                                    data = new ClientLoginResponseModel()
+                                                    {
+                                                        //account_client_id = account_client_exists.id,
+                                                        user_name = account_client.UserName,
+                                                        name = client.ClientName,
+                                                        token = token,
+                                                        ip = ipAddress,
+                                                        time_expire = clientServices.GetExpiredTimeFromToken(token)
+                                                    }
+                                                });
+                                            }
                                         }
                                     }
                                 }
-                                else
+                                
+                                
+                                AccountClientViewModel model = new AccountClientViewModel()
                                 {
+                                    ClientId = -1,
+                                    ClientType = 0,
+                                    Email = request.user_name == null || request.user_name.Trim() == "" ? "" : request.user_name.Trim(),
+                                    Id = -1,
+                                    isReceiverInfoEmail = 1,
+                                    Name = request.user_name.Trim(),
+                                    ClientName = request.user_name.Trim(),
+                                    Password = request.password,
+                                    Phone = "",
+                                    Status = 0,
+                                    UserName = request.user_name,
+                                    GoogleToken = request.token,
+                                    ClientCode = await _identifierServiceRepository.buildClientNo(0)
+                                };
+                                var queue_model = new ClientConsumerQueueModel()
+                                {
+                                    data_push = JsonConvert.SerializeObject(model),
+                                    type = QueueType.ADD_USER
+                                };
+                                bool result = workQueueClient.InsertQueueSimple(JsonConvert.SerializeObject(queue_model), QueueName.queue_app_push);
+                                if (result)
+                                {
+
+                                    var token = await clientServices.GenerateToken(request.user_name, ipAddress);
                                     return Ok(new
                                     {
-                                        status = (int)ResponseType.FAILED,
-                                        msg = "Không tìm thấy tài khoản nào tương ứng với thông tin đăng nhập này, vui lòng đăng ký hoặc thử lại"
+                                        status = (int)ResponseType.SUCCESS,
+                                        msg = "Success",
+                                        data = new ClientLoginResponseModel()
+                                        {
+                                            //account_client_id = account_client_exists.id,
+                                            user_name = request.user_name,
+                                            name = request.user_name.Trim(),
+                                            token = token,
+                                            ip = ipAddress,
+                                            time_expire = clientServices.GetExpiredTimeFromToken(token)
+                                        },
+                                        code = ResponseCode.Success,
                                     });
                                 }
-                                   
+                                return Ok(new
+                                {
+                                    status = (int)ResponseType.FAILED,
+                                    msg = "Không tìm thấy tài khoản nào tương ứng với thông tin đăng nhập này, vui lòng đăng ký hoặc thử lại"
+                                });
+
                             }
-                            break;
                         default:
                             {
 

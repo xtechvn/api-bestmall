@@ -706,6 +706,8 @@ namespace HuloToys_Service.Controllers.News.Business
                                 update_last = _article.ModifiedOn == null ? DateTime.Now : (DateTime)_article.ModifiedOn,
                                 position = _article.Position,
                                 category_id = groupProductId,
+                                createdon=_article.CreatedOn == null ? DateTime.Now : (DateTime)_article.CreatedOn,
+                                modifiedon = _article.ModifiedOn == null ? DateTime.Now : (DateTime)_article.ModifiedOn,
                             };
                             list_article.Add(model);
                         }

@@ -33,6 +33,16 @@ namespace HuloToys_Service.Controllers
         [HttpPost("add")]
         public async Task<IActionResult> AddClientContact([FromBody] APIRequestGenericModel input)
         {
+            //ClientContactMongoDbModel model_input = new ClientContactMongoDbModel()
+            //{
+            //    email="customer_1@gmail.com",
+            //    phone="0123456789",
+            //    message= "Test  Client Contact"
+            //};
+            //input = new APIRequestGenericModel()
+            //{
+            //    token= CommonHelper.Encode(JsonConvert.SerializeObject(model_input),  _configuration["KEY:private_key"])
+            //};
             try
             {
                 JArray objParr = null;

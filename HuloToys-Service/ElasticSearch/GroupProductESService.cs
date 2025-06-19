@@ -197,7 +197,10 @@ namespace HuloToys_Service.ElasticSearch
                                   
                                   )
                               )
-                         ));
+                                                            
+                         )
+                         .Sort(s => s.Ascending(f => f.ParentId))
+                         );
 
                 if (query.IsValid)
                 {

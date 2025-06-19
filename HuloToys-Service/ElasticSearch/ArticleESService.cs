@@ -9,13 +9,13 @@ using System.Reflection;
 
 namespace HuloToys_Service.ElasticSearch
 {
-    public class ArticleESService : ESRepository<ArticleViewModel>
+    public class ArticleESService : ESRepository<CategoryArticleModel>
     {
         public string index = "hulotoys_sp_getallarticle";
         private readonly IConfiguration configuration;
-        private static ElasticClient elasticClient;
         private static string _ElasticHost;
         private readonly ElasticClient _client;
+        private readonly ElasticClient custom_elastic_client;
 
         private ISearchResponse<CategoryArticleModel> search_response;
         public ArticleESService(string Host, IConfiguration _configuration) : base(Host, _configuration)
@@ -27,6 +27,17 @@ namespace HuloToys_Service.ElasticSearch
             var settings = new ConnectionSettings(new Uri(_ElasticHost))
                 .DefaultIndex(index);
             _client = new ElasticClient(settings);
+            var nodes = new Uri[] { new Uri(_ElasticHost) };
+            var connectionPool = new SniffingConnectionPool(nodes); // Sử dụng Sniffing để khám phá nút khác trong cụm
+            var connectionSettings = new ConnectionSettings(connectionPool)
+                .RequestTimeout(TimeSpan.FromMinutes(2))  // Tăng thời gian chờ nếu cần
+                .SniffOnStartup(true)                     // Khám phá các nút khi khởi động
+                .SniffOnConnectionFault(true)             // Khám phá lại các nút khi có lỗi kết nối
+                .EnableHttpCompression();                // Bật nén HTTP để truyền tải nhanh hơn
+                                                         //.DisableDirectStreaming()  // Kích hoạt ghi lại luồng request/response
+                                                         //.PrettyJson();              // Định dạng kết quả JSON cho dễ đọc
+
+            custom_elastic_client = new ElasticClient(connectionSettings);
         }
 
         public List<CategoryArticleModel> getListNews(int category_id)
@@ -34,20 +45,7 @@ namespace HuloToys_Service.ElasticSearch
             var data = new List<CategoryArticleModel>();
             try
             {
-                if (elasticClient == null)
-                {
-                    var nodes = new Uri[] { new Uri(_ElasticHost) };
-                    var connectionPool = new SniffingConnectionPool(nodes); // Sử dụng Sniffing để khám phá nút khác trong cụm
-                    var connectionSettings = new ConnectionSettings(connectionPool)
-                        .RequestTimeout(TimeSpan.FromMinutes(2))  // Tăng thời gian chờ nếu cần
-                        .SniffOnStartup(true)                     // Khám phá các nút khi khởi động
-                        .SniffOnConnectionFault(true)             // Khám phá lại các nút khi có lỗi kết nối
-                        .EnableHttpCompression();                // Bật nén HTTP để truyền tải nhanh hơn
-                                                                 //.DisableDirectStreaming()  // Kích hoạt ghi lại luồng request/response
-                                                                 //.PrettyJson();              // Định dạng kết quả JSON cho dễ đọc
-
-                    elasticClient = new ElasticClient(connectionSettings);
-                }
+               
 
                 var query= new QueryContainer(
                         new QueryStringQuery
@@ -59,7 +57,7 @@ namespace HuloToys_Service.ElasticSearch
                 if (category_id <= 0)
                 {
                     // Lấy ra toàn bộ các bài viết của các chuyên mục theo thời gian bài nào mới nhất lên đầu
-                    search_response = elasticClient.Search<CategoryArticleModel>(s => s
+                    search_response = custom_elastic_client.Search<CategoryArticleModel>(s => s
                     .Size(300)
                    .Index(configuration["DataBaseConfig:Elastic:Index:Article"])  // Chỉ mục bạn muốn tìm kiếm
                        .Sort(sort => sort
@@ -69,7 +67,7 @@ namespace HuloToys_Service.ElasticSearch
                 }
                 else
                 {
-                    search_response = elasticClient.Search<CategoryArticleModel>(s => s
+                    search_response = custom_elastic_client.Search<CategoryArticleModel>(s => s
                         .Size(300)
                         .Index(configuration["DataBaseConfig:Elastic:Index:Article"])  // Chỉ mục muốn tìm kiếm
                         .Sort(sort => sort
@@ -138,20 +136,8 @@ namespace HuloToys_Service.ElasticSearch
         {
             try
             {
-                if (elasticClient == null)
-                {
-                    var nodes = new Uri[] { new Uri(_ElasticHost) };
-                    var connectionPool = new SniffingConnectionPool(nodes); // Sử dụng Sniffing để khám phá nút khác trong cụm
-                    var connectionSettings = new ConnectionSettings(connectionPool)
-                        .RequestTimeout(TimeSpan.FromMinutes(2))  // Tăng thời gian chờ nếu cần
-                        .SniffOnStartup(true)                     // Khám phá các nút khi khởi động
-                        .SniffOnConnectionFault(true)             // Khám phá lại các nút khi có lỗi kết nối
-                        .EnableHttpCompression();                 // Bật nén HTTP để truyền tải nhanh hơn
 
-                    elasticClient = new ElasticClient(connectionSettings);
-                }
-
-                var query = elasticClient.Search<ArticleModel2>(sd => sd
+                var query = custom_elastic_client.Search<ArticleModel2>(sd => sd
                  .Index(configuration["DataBaseConfig:Elastic:Index:Article"])  // Chỉ mục bạn muốn tìm kiếm
                .Query(q => q
                    .Term(t => t.Field(f => f.id).Value(id))  // Tìm kiếm chính xác theo giá trị id (dạng int)
@@ -178,23 +164,10 @@ namespace HuloToys_Service.ElasticSearch
             try
             {
                 int totalCount = 0;
-                if (elasticClient == null)
-                {
-                    var nodes = new Uri[] { new Uri(_ElasticHost) };
-                    var connectionPool = new SniffingConnectionPool(nodes); // Sử dụng Sniffing để khám phá nút khác trong cụm
-                    var connectionSettings = new ConnectionSettings(connectionPool)
-                        .RequestTimeout(TimeSpan.FromMinutes(2))  // Tăng thời gian chờ nếu cần
-                        .SniffOnStartup(true)                     // Khám phá các nút khi khởi động
-                        .SniffOnConnectionFault(true)             // Khám phá lại các nút khi có lỗi kết nối
-                        .EnableHttpCompression();                 // Bật nén HTTP để truyền tải nhanh hơn
-
-
-                    elasticClient = new ElasticClient(connectionSettings);
-
-                }
+               
                 if (category_id > 0)
                 {
-                    var countResponse = elasticClient.Count<CategoryArticleModel>(c => c
+                    var countResponse = custom_elastic_client.Count<CategoryArticleModel>(c => c
                                        .Index(configuration["DataBaseConfig:Elastic:Index:ArticleCategory"])  // Chỉ mục bạn muốn tìm kiếm
                                        .Query(q => q
                         .Term(t => t.Field("CategoryId").Value(category_id))  // Tìm theo category_id
@@ -203,7 +176,7 @@ namespace HuloToys_Service.ElasticSearch
                 }
                 else
                 {
-                    var countResponse = elasticClient.Count<CategoryArticleModel>(c => c.Index(configuration["DataBaseConfig:Elastic:Index:ArticleCategory"]));
+                    var countResponse = custom_elastic_client.Count<CategoryArticleModel>(c => c.Index(configuration["DataBaseConfig:Elastic:Index:ArticleCategory"]));
                     totalCount = Convert.ToInt32(countResponse.Count);
                 }
 
@@ -221,12 +194,8 @@ namespace HuloToys_Service.ElasticSearch
         {
             try
             {
-                var nodes = new Uri[] { new Uri(_ElasticHost) };
-                var connectionPool = new StaticConnectionPool(nodes);
-                var connectionSettings = new ConnectionSettings(connectionPool).DisableDirectStreaming().DefaultIndex("people");
-                var elasticClient = new ElasticClient(connectionSettings);
-
-                var query = elasticClient.Search<ArticleESModel>(sd => sd
+                
+                var query = _client.Search<ArticleESModel>(sd => sd
                                .Index(index)
                                .Query(q => q
                                    .Term(m => m.Field("Id").Value(id)
@@ -251,12 +220,8 @@ namespace HuloToys_Service.ElasticSearch
         {
             try
             {
-                var nodes = new Uri[] { new Uri(_ElasticHost) };
-                var connectionPool = new StaticConnectionPool(nodes);
-                var connectionSettings = new ConnectionSettings(connectionPool).DisableDirectStreaming().DefaultIndex("people");
-                var elasticClient = new ElasticClient(connectionSettings);
-
-                var query = elasticClient.Search<ArticleESModel>(sd => sd
+               
+                var query = _client.Search<ArticleESModel>(sd => sd
                                .Index(index)
                                .Size(100)
                                .Query(q => q.MatchAll()
@@ -301,12 +266,8 @@ namespace HuloToys_Service.ElasticSearch
         {
             try
             {
-                var nodes = new Uri[] { new Uri(_ElasticHost) };
-                var connectionPool = new StaticConnectionPool(nodes);
-                var connectionSettings = new ConnectionSettings(connectionPool).DisableDirectStreaming().DefaultIndex("people");
-                var elasticClient = new ElasticClient(connectionSettings);
-
-                var query = elasticClient.Search<ArticleESModel>(sd => sd
+              
+                var query = _client.Search<ArticleESModel>(sd => sd
                                .Index(index)
                                .Query(q => q
                                    .Range(m => m.Field("Position").GreaterThanOrEquals(1).LessThanOrEquals(7)
@@ -350,12 +311,8 @@ namespace HuloToys_Service.ElasticSearch
         {
             try
             {
-                var nodes = new Uri[] { new Uri(_ElasticHost) };
-                var connectionPool = new StaticConnectionPool(nodes);
-                var connectionSettings = new ConnectionSettings(connectionPool).DisableDirectStreaming().DefaultIndex("people");
-                var elasticClient = new ElasticClient(connectionSettings);
-
-                var query = elasticClient.Search<ArticleESModel>(sd => sd
+              
+                var query = _client.Search<ArticleESModel>(sd => sd
                                .Index(index)
                           .Query(q =>
                            q.Bool(
@@ -391,6 +348,44 @@ namespace HuloToys_Service.ElasticSearch
                 LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
             }
             return null;
+        }
+
+
+        public List<ArticleESModel> GetArticlesByCategoryId(int categoryId, int skip, int take)
+        {
+            try
+            {
+                // Đảm bảo skip và take không âm
+                if (skip < 0) skip = 0;
+                if (take <= 0) take = 10; 
+
+                var query = _client.Search<ArticleESModel>(s => s
+                    .From(skip) 
+                    .Size(take) 
+                    .Query(q => q
+                        .Bool(b => b
+                            .Should(
+                                q.Wildcard(w => w
+                                    .Field(f => f.ListCategoryId)
+                                    .Value($"*{categoryId}*")
+                                )
+                            )
+                            .MinimumShouldMatch(1) 
+                        )
+                    )
+                );
+
+                if (query.IsValid)
+                {
+                    return query.Documents.ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
+            }
+            return new List<ArticleESModel>();
         }
     }
 }

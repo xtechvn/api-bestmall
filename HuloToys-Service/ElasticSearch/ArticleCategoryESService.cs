@@ -12,25 +12,24 @@ namespace HuloToys_Service.ElasticSearch
         public string index = "article_category_hulotoys_store";
         private readonly IConfiguration configuration;
         private static string _ElasticHost;
+        private static ElasticClient elasticClient;
 
         public ArticleCategoryESService(string Host, IConfiguration _configuration) : base(Host, _configuration)
         {
             _ElasticHost = Host;
             configuration = _configuration;
             index = _configuration["DataBaseConfig:Elastic:Index:ArticleCategory"];
-
+            var nodes = new Uri[] { new Uri(_ElasticHost) };
+            var connectionPool = new StaticConnectionPool(nodes);
+            var connectionSettings = new ConnectionSettings(connectionPool).DisableDirectStreaming().DefaultIndex(index);
+            elasticClient = new ElasticClient(connectionSettings);
         }
         public List<ArticleCategoryESModel> GetByArticleId(long id)
         {
             try
             {
-                var nodes = new Uri[] { new Uri(_ElasticHost) };
-                var connectionPool = new StaticConnectionPool(nodes);
-                var connectionSettings = new ConnectionSettings(connectionPool).DisableDirectStreaming().DefaultIndex("people");
-                var elasticClient = new ElasticClient(connectionSettings);
-
+               
                 var query = elasticClient.Search<ArticleCategoryESModel>(sd => sd
-                               .Index(index)
                                .Size(4000)
                                .Query(q => q
                                    .Match(m => m.Field("ArticleId").Query(id.ToString())
@@ -54,13 +53,8 @@ namespace HuloToys_Service.ElasticSearch
         {
             try
             {
-                var nodes = new Uri[] { new Uri(_ElasticHost) };
-                var connectionPool = new StaticConnectionPool(nodes);
-                var connectionSettings = new ConnectionSettings(connectionPool).DisableDirectStreaming().DefaultIndex("people");
-                var elasticClient = new ElasticClient(connectionSettings);
-
+              
                 var query = elasticClient.Search<ArticleCategoryESModel>(sd => sd
-                               .Index(index)
                                .Size(4000)
                                .Query(q => q.MatchAll()
                                ));
@@ -83,13 +77,9 @@ namespace HuloToys_Service.ElasticSearch
         {
             try
             {
-                var nodes = new Uri[] { new Uri(_ElasticHost) };
-                var connectionPool = new StaticConnectionPool(nodes);
-                var connectionSettings = new ConnectionSettings(connectionPool).DisableDirectStreaming().DefaultIndex("people");
-                var elasticClient = new ElasticClient(connectionSettings);
+              
 
                 var query = elasticClient.Search<ArticleCategoryESModel>(sd => sd
-                               .Index(index)
                                .Query(q => q
                                    .Term(m => m.Field("CategoryId").Value(CategoryId)
                                )));

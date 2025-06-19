@@ -191,6 +191,42 @@ namespace Caching.Elasticsearch.FlashSale
                 return new List<FlashSaleProductESModel>();
             }
         }
+        public async Task<long> CountListSuperSale(List<int> flashsale_ids)
+        {
+            var now = DateTime.Now;
+
+
+            var response = await _client.CountAsync<FlashSaleProductESModel>(s => s
+                .Query(q => q
+                    .Bool(b => b // Sử dụng Bool query để kết hợp nhiều điều kiện
+                        .Must(
+                            m => m.Term(t => t // Điều kiện supersale = true
+                                .Field(f => f.supersale)
+                                .Value(true)
+                            ),
+                            m => m.Term(t => t // Điều kiện status = 1
+                                .Field(f => f.status)
+                                .Value(1)
+                            ),
+                            m => m.Terms(t => t // Sử dụng Terms query để tìm kiếm nhiều flashsale_id
+                                .Field(f => f.flashsale_id)
+                                .Terms(flashsale_ids) // Truyền danh sách ID vào đây
+                            )
+                        )
+                    )
+                )
+            );
+
+            if (response.IsValid)
+            {
+                return response.Count;
+            }
+            else
+            {
+
+                return 0;
+            }
+        }
     }
 
 

@@ -228,7 +228,9 @@ namespace HuloToys_Service.Controllers
                     {
                         status = (int)ResponseType.SUCCESS,
                         msg = ResponseMessages.Success,
-                        data = list_products
+                        data = list_products,
+                        count = await flashSaleProductESRepository.CountListSuperSale(list_id)
+
                     });
                 }
                 return Ok(new

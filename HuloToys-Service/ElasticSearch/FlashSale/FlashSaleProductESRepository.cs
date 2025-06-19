@@ -151,34 +151,35 @@ namespace Caching.Elasticsearch.FlashSale
             return true;
 
         }
-        public async Task<List<FlashSaleProductESModel>> GetListSuperSale(List<int> flashsale_ids)
+        public async Task<List<FlashSaleProductESModel>> GetListSuperSale(List<int> flashsale_ids, int page_index=1, int page_size=10)
         {
             var now = DateTime.Now;
 
+            // Tính toán 'from' (skip) dựa trên page_index và page_size
+            var from = (page_index - 1) * page_size;
+
             var response = await _client.SearchAsync<FlashSaleProductESModel>(s => s
-                 .Query(q => q
-                     .Bool(b => b // Sử dụng Bool query để kết hợp nhiều điều kiện
-                         .Must(
+                .Query(q => q
+                    .Bool(b => b // Sử dụng Bool query để kết hợp nhiều điều kiện
+                        .Must(
                             m => m.Term(t => t // Điều kiện supersale = true
                                 .Field(f => f.supersale)
                                 .Value(true)
                             ),
-
                             m => m.Term(t => t // Điều kiện status = 1
                                 .Field(f => f.status)
                                 .Value(1)
                             ),
-
                             m => m.Terms(t => t // Sử dụng Terms query để tìm kiếm nhiều flashsale_id
                                 .Field(f => f.flashsale_id)
                                 .Terms(flashsale_ids) // Truyền danh sách ID vào đây
                             )
-
-                         )
-                     )
-                 )
-                .Size(20)
-             );
+                        )
+                    )
+                )
+                .From(from) // Thiết lập số lượng tài liệu bỏ qua
+                .Size(page_size) // Thiết lập số lượng tài liệu trả về tối đa
+            );
 
             if (response.IsValid)
             {
@@ -186,6 +187,7 @@ namespace Caching.Elasticsearch.FlashSale
             }
             else
             {
+               
                 return new List<FlashSaleProductESModel>();
             }
         }

@@ -1132,7 +1132,7 @@ namespace HuloToys_Service.Controllers.News.Business
             try
             {
                 var group = GetByParentId(parent_id);
-               // group = group.Where(x => x.IsShowFooter == true).ToList();
+               //group = group.Where(x => x.IsShowFooter == true).ToList();
                 var list = new List<ArticleGroupViewModel>();
 
                 // Lấy chỉ mấy thằng con có IsShowFooter == true
@@ -1146,7 +1146,8 @@ namespace HuloToys_Service.Controllers.News.Business
                     image_path = child.ImagePath,
                     name = child.Name,
                     order_no = child.OrderNo ?? 0, // fix lỗi nullable ở đây
-                    url_path = child.Path
+                    url_path = child.Path,
+                    product_count=child.ProductCount ?? 0,
                 }));
 
                 return list.OrderBy(x => x.order_no).ToList();

@@ -266,37 +266,25 @@ namespace HuloToys_Service.ElasticSearch
         {
             try
             {
-              
+
                 var query = _client.Search<ArticleESModel>(sd => sd
-                               .Index(index)
-                               .Query(q => q
-                                   .Range(m => m.Field("Position").GreaterThanOrEquals(1).LessThanOrEquals(7)
-                               )));
+                    .Index(index)
+                    .Query(q => q
+                        .Bool(b => b
+                            .Must(
+                                m => m.Range(r => r.Field("Position").GreaterThanOrEquals(1).LessThanOrEquals(7)),
+                                m => m.Term(t => t.Field("Status").Value(1)), 
+                                 m => m.DateRange(dr => dr 
+                                    .Field(f => f.PublishDate)
+                                    .LessThanOrEquals(DateTime.Now) 
+                                 )
+                            )
+                        )
+                    ));
                 if (query.IsValid)
                 {
                     var data = query.Documents as List<ArticleESModel>;
-                    //var result = data.Select(a => new ArticleViewModel
-                    //{
-
-                    //    Id = a.id,
-                    //    Title = a.title,
-                    //    Lead = a.lead,
-                    //    Body = a.body,
-                    //    Status = a.status,
-                    //    ArticleType = a.articletype,
-                    //    PageView = a.pageview,
-                    //    PublishDate = a.publishdate,
-                    //    AuthorId = a.authorid,
-                    //    Image169 = a.image169,
-                    //    Image43 = a.image43,
-                    //    Image11 = a.image11,
-                    //    CreatedOn = a.createdon,
-                    //    ModifiedOn = a.modifiedon,
-                    //    DownTime = a.downtime,
-                    //    UpTime = a.uptime,
-                    //    Position = a.position,
-
-                    //}).ToList();
+                   
                     return data;
                 }
             }

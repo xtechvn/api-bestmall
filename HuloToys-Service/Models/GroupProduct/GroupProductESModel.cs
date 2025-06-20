@@ -49,7 +49,10 @@ namespace HuloToys_Service.Models.ElasticSearch
         public bool IsShowFooter { get; set; }
         [PropertyName("Code")]
 
-        public string? Code { get; set; }
+        public string? Code { get; set; }  
+        [PropertyName("ProductCount")]
+
+        public long? ProductCount { get; set; }
 
         public List<GroupProductESModel> group_product_child { get; set; }
 

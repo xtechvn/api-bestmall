@@ -780,9 +780,9 @@ namespace HuloToys_Service.Controllers
         public async Task<ActionResult> GetAllCategory([FromBody] APIRequestGenericModel input)
         {
             try
-            {
-                //string j_param = "{'category_id':21}";
-                //input=new APIRequestGenericModel()
+            {	
+				//string j_param = "{'category_id':1}";
+                //input = new APIRequestGenericModel()
                 //{
                 //    token = CommonHelper.Encode(j_param, configuration["KEY:private_key"])
                 //};

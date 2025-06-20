@@ -912,7 +912,7 @@ namespace HuloToys_Service.Controllers.News.Business
                 {
                     var obj_cate_child = new List<GroupProductESModel>();
                     var cate_child_detail = groupProductESService.GetListGroupProductByParentId(item.Id);
-                    if (cate_child_detail.Count > 0)
+                    if (cate_child_detail!=null && cate_child_detail.Count > 0)
                     {
                         foreach (var item_child in cate_child_detail)
                         {
@@ -925,6 +925,7 @@ namespace HuloToys_Service.Controllers.News.Business
                                 Path = item_child.Path,
                                 IsShowHeader = item_child.IsShowHeader,
                                 IsShowFooter = item_child.IsShowFooter,
+                                ProductCount=item_child.ProductCount
                             };
                             obj_cate_child.Add(cate_child);
                         }
@@ -937,7 +938,9 @@ namespace HuloToys_Service.Controllers.News.Business
                         Path = item.Path,
                         IsShowHeader = item.IsShowHeader,
                         IsShowFooter = item.IsShowFooter,
-                        group_product_child = obj_cate_child
+                        group_product_child = obj_cate_child,
+                        ProductCount = item.ProductCount
+
                     };
                     obj_cate.Add(cate_parent);
                 }
@@ -1062,7 +1065,7 @@ namespace HuloToys_Service.Controllers.News.Business
                 if (groupList == null || !groupList.Any())
                     return new List<ArticleGroupViewModel>();
                 // Chỉ lấy nhóm có IsShowHeader = true
-                groupList = groupList.Where(x => x.IsShowHeader == true && x.ProductCount>0).ToList();
+                groupList = groupList.Where(x => x.IsShowHeader == true).ToList();
 
                 var list = groupList
                     .OrderBy(x => x.OrderNo)

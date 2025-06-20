@@ -1061,9 +1061,8 @@ namespace HuloToys_Service.Controllers.News.Business
                 var groupList = GetByParentId(parent_id);
                 if (groupList == null || !groupList.Any())
                     return new List<ArticleGroupViewModel>();
-
                 // Chỉ lấy nhóm có IsShowHeader = true
-                groupList = groupList.Where(x => x.IsShowHeader == true).ToList();
+                groupList = groupList.Where(x => x.IsShowHeader == true && x.ProductCount>0).ToList();
 
                 var list = groupList
                     .OrderBy(x => x.OrderNo)
@@ -1076,14 +1075,16 @@ namespace HuloToys_Service.Controllers.News.Business
                         image_path = parent.ImagePath,
                         url_path = parent.Path,
                         order_no = (int)(parent.OrderNo ?? 0),
-                        group_product_child = parent.group_product_child?.OrderBy(c => c.OrderNo).Select(child => new ArticleGroupViewModel
+                        product_count=parent.ProductCount??0,
+                        group_product_child = parent.group_product_child?.Where(x => x.ProductCount > 0).OrderBy(c => c.OrderNo).Select(child => new ArticleGroupViewModel
                         {
                             id = child.Id,
                             name = child.Name,
                             image_path = child.ImagePath,
                             url_path = child.Path,
                             order_no = (int)(child.OrderNo ?? 0),
-                            group_product_child = new List<ArticleGroupViewModel>() // Nếu cần đệ quy sâu hơn
+                            group_product_child = new List<ArticleGroupViewModel>(),
+                            product_count = child.ProductCount ?? 0,
                         }).ToList() ?? new List<ArticleGroupViewModel>()
                     }).ToList();
 

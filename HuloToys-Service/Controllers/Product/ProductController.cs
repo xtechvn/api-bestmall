@@ -500,7 +500,6 @@ namespace WEB.CMS.Controllers
                         data = await _newsBusiness.GetFooterCategoryByParentID(request.group_id);
                         if (data != null && data.Count > 0)
                         {
-                            data = data.Where(x => x.product_count != null && x.product_count > 0).ToList();
                             try
                             {
                                  _redisService.Set(cache_name, JsonConvert.SerializeObject(data), Convert.ToInt32(_configuration["Redis:Database:db_common"]));

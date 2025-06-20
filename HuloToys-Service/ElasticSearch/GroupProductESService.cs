@@ -40,8 +40,6 @@ namespace HuloToys_Service.ElasticSearch
                            q.Bool(
                                qb => qb.Must(
                                   
-                                  q => q.Term(m => m.Field("Status").Value(ArticleStatus.PUBLISH))
-                                  ,
                                    sh => sh.Term(m => m.Field("ParentId").Value(parent_id.ToString())
                                    )
                                    )

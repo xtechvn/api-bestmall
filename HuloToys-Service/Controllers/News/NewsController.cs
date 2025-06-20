@@ -774,8 +774,11 @@ namespace HuloToys_Service.Controllers
         {
             try
             {
-                //string j_param = "{'confirm':1}";
-                //token = CommonHelper.Encode(j_param, configuration["DataBaseConfig:key_api:b2c"]);
+                //string j_param = "{'category_id':1}";
+                //input = new APIRequestGenericModel()
+                //{
+                //    token = CommonHelper.Encode(j_param, configuration["KEY:private_key"])
+                //};
                 JArray objParr = null;
                 if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, configuration["KEY:private_key"]))
                 {

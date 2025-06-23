@@ -353,11 +353,11 @@ namespace HuloToys_Service.ElasticSearch
                       .Query(q => q
                           .Bool(b => b
                               .Must(
-                                  q.Term(t => t.Field(f => f.Status).Value(1)),
-                                  q.DateRange(r => r
-                                      .Field(f => f.PublishDate)
-                                      .LessThanOrEquals(DateTime.Now)
-                                  )
+                                  q.Term(t => t.Field(f => f.Status).Value(1))
+                                  //q.DateRange(r => r
+                                  //    .Field(f => f.PublishDate)
+                                  //    .LessThanOrEquals(DateTime.Now)
+                                  //)
                               )
                               .Should(
                                   q.Wildcard(w => w

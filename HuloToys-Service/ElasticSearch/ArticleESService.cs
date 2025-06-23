@@ -273,7 +273,7 @@ namespace HuloToys_Service.ElasticSearch
                         .Bool(b => b
                             .Must(
                                 m => m.Range(r => r.Field("Position").GreaterThanOrEquals(1).LessThanOrEquals(7)),
-                                m => m.Term(t => t.Field("Status").Value(1)), 
+                                m => m.Term(t => t.Field("Status").Value(0)), 
                                  m => m.DateRange(dr => dr 
                                     .Field(f => f.PublishDate)
                                     .LessThanOrEquals(DateTime.Now) 
@@ -353,7 +353,7 @@ namespace HuloToys_Service.ElasticSearch
                       .Query(q => q
                           .Bool(b => b
                               .Must(
-                                  q.Term(t => t.Field(f => f.Status).Value(1))
+                                  q.Term(t => t.Field(f => f.Status).Value(0))
                                   //q.DateRange(r => r
                                   //    .Field(f => f.PublishDate)
                                   //    .LessThanOrEquals(DateTime.Now)

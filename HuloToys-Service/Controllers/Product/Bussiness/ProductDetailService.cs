@@ -402,9 +402,9 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                 if (raiting != null && raiting.Count > 0)
                 {
                     var sum_raiting = raiting.Average(x => x.Star);
-                    item.star = sum_raiting == null ? 5 : (float)sum_raiting;
+                    item.star = sum_raiting == null ? 5 : (float)Math.Round((float)sum_raiting, 1);
                     item.review_count = raiting.Count;
-                    item.rating = (sum_raiting == null ? 5 : (float)sum_raiting);
+                    item.rating = (sum_raiting == null ? 5 : (float)Math.Round((float)sum_raiting, 1));
                 }
                 else
                 {

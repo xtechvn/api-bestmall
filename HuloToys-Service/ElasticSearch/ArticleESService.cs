@@ -345,23 +345,30 @@ namespace HuloToys_Service.ElasticSearch
             {
                 // Đảm bảo skip và take không âm
                 if (skip < 0) skip = 0;
-                if (take <= 0) take = 10; 
+                if (take <= 0) take = 10;
 
                 var query = _client.Search<ArticleESModel>(s => s
-                    .From(skip) 
-                    .Size(take) 
-                    .Query(q => q
-                        .Bool(b => b
-                            .Should(
-                                q.Wildcard(w => w
-                                    .Field(f => f.ListCategoryId)
-                                    .Value($"*{categoryId}*")
-                                )
-                            )
-                            .MinimumShouldMatch(1) 
-                        )
-                    )
-                );
+                      .From(skip)
+                      .Size(take)
+                      .Query(q => q
+                          .Bool(b => b
+                              .Must(
+                                  q.Term(t => t.Field(f => f.Status).Value(1)),
+                                  q.DateRange(r => r
+                                      .Field(f => f.PublishDate)
+                                      .LessThanOrEquals(DateTime.Now)
+                                  )
+                              )
+                              .Should(
+                                  q.Wildcard(w => w
+                                      .Field(f => f.ListCategoryId)
+                                      .Value($"*{categoryId}*")
+                                  )
+                              )
+                              .MinimumShouldMatch(1)
+                          )
+                      )
+                  );
 
                 if (query.IsValid)
                 {

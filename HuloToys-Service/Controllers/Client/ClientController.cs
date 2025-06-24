@@ -473,10 +473,19 @@ namespace HuloToys_Service.Controllers
                         if (client != null && client.Id > 0)
                         {
                             string new_password = CommonHelper.MD5Hash(request.password);
-                            //Generate new Forgot password token:
+                        //Generate new Forgot password token:
+                        string old_password = CommonHelper.MD5Hash(request.old_password);
+                        if (old_password != client.Password)
+                        {
+                            return Ok(new
+                            {
+                                status = (int)ResponseType.FAILED,
+                                msg = "Mật khẩu cũ không chính xác"
+                            });
+                        }
 
 
-                            AccountClientViewModel model = new AccountClientViewModel()
+                        AccountClientViewModel model = new AccountClientViewModel()
                             {
                                 ClientId = client.Id,
                                 ClientType = 0,

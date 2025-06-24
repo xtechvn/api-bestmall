@@ -13,6 +13,7 @@ using Newtonsoft.Json;
 using System.Reflection;
 using Utilities;
 using Utilities.Contants;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace HuloToys_Service.Controllers.News.Business
 {
@@ -617,54 +618,100 @@ namespace HuloToys_Service.Controllers.News.Business
                     var list_article = new List<ArticleFeModel>();
                     var list_article2 = new List<ArticleFeModel>();
                     var list_pinned = new List<ArticleFeModel>();
-                    var data = articleCategoryESService.GetByCategoryId(cate_id);
-                    if (data != null && data.Count > 0)
+                    //var data = articleCategoryESService.GetByCategoryId(cate_id);
+                    //if (data != null && data.Count > 0)
+                    //{
+                    //    data = data.GroupBy(s => s.articleid).Select(s => s.First()).ToList();
+                    //    data = data.Where(s => s.categoryid == cate_id).ToList();
+                    //    foreach (var item in data)
+                    //    {
+                    //        var groupProductName = string.Empty;
+                    //        var groupProductId = string.Empty;
+                    //        var article_Category = articleCategoryESService.GetByArticleId((long)item.articleid);
+                    //        if (article_Category != null)
+                    //        {
+                    //            article_Category = article_Category.GroupBy(s => s.categoryid).Select(s => s.First()).ToList();
+                    //            foreach (var item2 in article_Category)
+                    //            {
+                    //                var groupProduct = groupProductESService.GetDetailGroupProductById((long)item2.categoryid);
+                    //                if (groupProduct != null && groupProduct.ParentId > 0)
+                    //                {
+                    //                    groupProductName += groupProduct.Name + ",";
+                    //                    groupProductId += groupProduct.Id + ",";
+                    //                }
+                    //            }
+                    //        }
+
+                    //        var _article = articleESService.GetDetailById((long)item.articleid);
+                    //        if (_article != null && _article.Status == ArticleStatus.PUBLISH)
+                    //        {
+                    //            var model = new ArticleFeModel
+                    //            {
+                    //                id = _article.Id,
+                    //                category_name = groupProductName,
+                    //                title = _article.Title,
+                    //                lead = _article.Lead,
+                    //                image_169 = _article.Image169,
+                    //                image_43 = _article.Image43,
+                    //                image_11 = _article.Image11,
+                    //                publish_date = (DateTime)_article.PublishDate,
+                    //                article_type = _article.ArticleType,
+                    //                update_last = _article.ModifiedOn==null? DateTime.Now: (DateTime)_article.ModifiedOn,
+                    //                position = _article.Position,
+                    //                category_id = groupProductId,
+                    //            };
+                    //            list_article.Add(model);
+                    //        }
+
+                    //    }
+                    //}
+                    var data = articleESService.GetArticlesByCategoryId(cate_id,skip,take);
+                    if (data != null && data.Count>0)
                     {
-                        data = data.GroupBy(s => s.articleid).Select(s => s.First()).ToList();
-                        data = data.Where(s => s.categoryid == cate_id).ToList();
-                        foreach (var item in data)
+                        foreach (var _article in data)
                         {
+                            var lits_group_item = new List<long>();
                             var groupProductName = string.Empty;
                             var groupProductId = string.Empty;
-                            var article_Category = articleCategoryESService.GetByArticleId((long)item.articleid);
-                            if (article_Category != null)
+                            try
                             {
-                                article_Category = article_Category.GroupBy(s => s.categoryid).Select(s => s.First()).ToList();
-                                foreach (var item2 in article_Category)
+                                if(_article.ListCategoryId!=null && _article.ListCategoryId.Trim() != "")
                                 {
-                                    var groupProduct = groupProductESService.GetDetailGroupProductById((long)item2.categoryid);
-                                    if (groupProduct != null && groupProduct.ParentId > 0)
+                                    var split = _article.ListCategoryId.Split(",");
+                                    if(split!=null && split.Count() > 0)
                                     {
-                                        groupProductName += groupProduct.Name + ",";
-                                        groupProductId += groupProduct.Id + ",";
+                                        lits_group_item = split.Select(x => Convert.ToInt64(x)).ToList();
+
                                     }
                                 }
                             }
-
-                            var _article = articleESService.GetDetailById((long)item.articleid);
-                            if (_article != null && _article.Status == ArticleStatus.PUBLISH)
+                            catch { }
+                            var groupProduct = groupProductESService.GetGroupProductByIDs(lits_group_item);
+                            if(groupProduct!=null && groupProduct.Count > 0)
                             {
-                                var model = new ArticleFeModel
-                                {
-                                    id = _article.Id,
-                                    category_name = groupProductName,
-                                    title = _article.Title,
-                                    lead = _article.Lead,
-                                    image_169 = _article.Image169,
-                                    image_43 = _article.Image43,
-                                    image_11 = _article.Image11,
-                                    publish_date = (DateTime)_article.PublishDate,
-                                    article_type = _article.ArticleType,
-                                    update_last = _article.ModifiedOn==null? DateTime.Now: (DateTime)_article.ModifiedOn,
-                                    position = _article.Position,
-                                    category_id = groupProductId,
-                                };
-                                list_article.Add(model);
+                                groupProductName = string.Join(",", groupProduct.Select(x => x.Name));
+                                groupProductId = string.Join(",", groupProduct.Select(x => x.Id));
                             }
-
+                            var model = new ArticleFeModel
+                            {
+                                id = _article.Id,
+                                category_name = groupProductName,
+                                title = _article.Title,
+                                lead = _article.Lead,
+                                image_169 = _article.Image169,
+                                image_43 = _article.Image43,
+                                image_11 = _article.Image11,
+                                publish_date = _article.PublishDate==null?DateTime.Now:(DateTime)_article.PublishDate,
+                                article_type = _article.ArticleType,
+                                update_last = _article.ModifiedOn == null ? DateTime.Now : (DateTime)_article.ModifiedOn,
+                                position = _article.Position,
+                                category_id = groupProductId,
+                                createdon=_article.CreatedOn == null ? DateTime.Now : (DateTime)_article.CreatedOn,
+                                modifiedon = _article.ModifiedOn == null ? DateTime.Now : (DateTime)_article.ModifiedOn,
+                            };
+                            list_article.Add(model);
                         }
                     }
-
 
                     var article = articleESService.GetListArticlePosition();
                     article = article.Where(S => S.Status == ArticleStatus.PUBLISH).ToList();
@@ -865,7 +912,7 @@ namespace HuloToys_Service.Controllers.News.Business
                 {
                     var obj_cate_child = new List<GroupProductESModel>();
                     var cate_child_detail = groupProductESService.GetListGroupProductByParentId(item.Id);
-                    if (cate_child_detail.Count > 0)
+                    if (cate_child_detail!=null && cate_child_detail.Count > 0)
                     {
                         foreach (var item_child in cate_child_detail)
                         {
@@ -878,6 +925,7 @@ namespace HuloToys_Service.Controllers.News.Business
                                 Path = item_child.Path,
                                 IsShowHeader = item_child.IsShowHeader,
                                 IsShowFooter = item_child.IsShowFooter,
+                                ProductCount=item_child.ProductCount
                             };
                             obj_cate_child.Add(cate_child);
                         }
@@ -890,7 +938,9 @@ namespace HuloToys_Service.Controllers.News.Business
                         Path = item.Path,
                         IsShowHeader = item.IsShowHeader,
                         IsShowFooter = item.IsShowFooter,
-                        group_product_child = obj_cate_child
+                        group_product_child = obj_cate_child,
+                        ProductCount = item.ProductCount
+
                     };
                     obj_cate.Add(cate_parent);
                 }
@@ -1014,7 +1064,6 @@ namespace HuloToys_Service.Controllers.News.Business
                 var groupList = GetByParentId(parent_id);
                 if (groupList == null || !groupList.Any())
                     return new List<ArticleGroupViewModel>();
-
                 // Chỉ lấy nhóm có IsShowHeader = true
                 groupList = groupList.Where(x => x.IsShowHeader == true).ToList();
 
@@ -1029,14 +1078,16 @@ namespace HuloToys_Service.Controllers.News.Business
                         image_path = parent.ImagePath,
                         url_path = parent.Path,
                         order_no = (int)(parent.OrderNo ?? 0),
-                        group_product_child = parent.group_product_child?.OrderBy(c => c.OrderNo).Select(child => new ArticleGroupViewModel
+                        product_count=parent.ProductCount??0,
+                        group_product_child = parent.group_product_child?.Where(x => x.ProductCount > 0).OrderBy(c => c.OrderNo).Select(child => new ArticleGroupViewModel
                         {
                             id = child.Id,
                             name = child.Name,
                             image_path = child.ImagePath,
                             url_path = child.Path,
                             order_no = (int)(child.OrderNo ?? 0),
-                            group_product_child = new List<ArticleGroupViewModel>() // Nếu cần đệ quy sâu hơn
+                            group_product_child = new List<ArticleGroupViewModel>(),
+                            product_count = child.ProductCount ?? 0,
                         }).ToList() ?? new List<ArticleGroupViewModel>()
                     }).ToList();
 
@@ -1085,7 +1136,7 @@ namespace HuloToys_Service.Controllers.News.Business
             try
             {
                 var group = GetByParentId(parent_id);
-               // group = group.Where(x => x.IsShowFooter == true).ToList();
+               //group = group.Where(x => x.IsShowFooter == true).ToList();
                 var list = new List<ArticleGroupViewModel>();
 
                 // Lấy chỉ mấy thằng con có IsShowFooter == true
@@ -1099,7 +1150,8 @@ namespace HuloToys_Service.Controllers.News.Business
                     image_path = child.ImagePath,
                     name = child.Name,
                     order_no = child.OrderNo ?? 0, // fix lỗi nullable ở đây
-                    url_path = child.Path
+                    url_path = child.Path,
+                    product_count=child.ProductCount ?? 0,
                 }));
 
                 return list.OrderBy(x => x.order_no).ToList();

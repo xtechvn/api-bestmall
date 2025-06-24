@@ -23,6 +23,7 @@
         public bool isshowfooter { get; set; }
 
         public List<ArticleGroupViewModel> group_product_child { get; set; }
+        public long? product_count { get; set; }
 
     }
     public class ProductGroupViewModel

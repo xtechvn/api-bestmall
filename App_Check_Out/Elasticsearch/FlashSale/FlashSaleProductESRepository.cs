@@ -1,6 +1,5 @@
-﻿using HuloToys_Service.Elasticsearch;
+﻿using APP_CHECKOUT.Elasticsearch;
 using Nest;
-using Utilities;
 
 namespace Caching.Elasticsearch.FlashSale
 {
@@ -9,14 +8,11 @@ namespace Caching.Elasticsearch.FlashSale
     {
         public string index = "hulotoys_sp_getflashsaleproduct";
         private static string _ElasticHost;
-        private static IConfiguration configuration;
         private readonly ElasticClient _client;
 
-        public FlashSaleProductESRepository(string Host, IConfiguration _configuration) : base(Host, _configuration)
+        public FlashSaleProductESRepository(string Host) : base(Host)
         {
             _ElasticHost = Host;
-            configuration = _configuration;
-            index = _configuration["DataBaseConfig:Elastic:Index:FlashSaleProduct"];
             var settings = new ConnectionSettings(new Uri(_ElasticHost))
                 .DefaultIndex(index);
             _client = new ElasticClient(settings);
@@ -151,35 +147,34 @@ namespace Caching.Elasticsearch.FlashSale
             return true;
 
         }
-        public async Task<List<FlashSaleProductESModel>> GetListSuperSale(List<int> flashsale_ids, int page_index=1, int page_size=10)
+        public async Task<List<FlashSaleProductESModel>> GetListSuperSale(List<int> flashsale_ids)
         {
             var now = DateTime.Now;
 
-            // Tính toán 'from' (skip) dựa trên page_index và page_size
-            var from = (page_index - 1) * page_size;
-
             var response = await _client.SearchAsync<FlashSaleProductESModel>(s => s
-                .Query(q => q
-                    .Bool(b => b // Sử dụng Bool query để kết hợp nhiều điều kiện
-                        .Must(
+                 .Query(q => q
+                     .Bool(b => b // Sử dụng Bool query để kết hợp nhiều điều kiện
+                         .Must(
                             m => m.Term(t => t // Điều kiện supersale = true
                                 .Field(f => f.supersale)
                                 .Value(true)
                             ),
+
                             m => m.Term(t => t // Điều kiện status = 1
                                 .Field(f => f.status)
                                 .Value(1)
                             ),
+
                             m => m.Terms(t => t // Sử dụng Terms query để tìm kiếm nhiều flashsale_id
                                 .Field(f => f.flashsale_id)
                                 .Terms(flashsale_ids) // Truyền danh sách ID vào đây
                             )
-                        )
-                    )
-                )
-                .From(from) // Thiết lập số lượng tài liệu bỏ qua
-                .Size(page_size) // Thiết lập số lượng tài liệu trả về tối đa
-            );
+
+                         )
+                     )
+                 )
+                .Size(20)
+             );
 
             if (response.IsValid)
             {
@@ -187,44 +182,7 @@ namespace Caching.Elasticsearch.FlashSale
             }
             else
             {
-               
                 return new List<FlashSaleProductESModel>();
-            }
-        }
-        public async Task<long> CountListSuperSale(List<int> flashsale_ids)
-        {
-            var now = DateTime.Now;
-
-
-            var response = await _client.CountAsync<FlashSaleProductESModel>(s => s
-                .Query(q => q
-                    .Bool(b => b // Sử dụng Bool query để kết hợp nhiều điều kiện
-                        .Must(
-                            m => m.Term(t => t // Điều kiện supersale = true
-                                .Field(f => f.supersale)
-                                .Value(true)
-                            ),
-                            m => m.Term(t => t // Điều kiện status = 1
-                                .Field(f => f.status)
-                                .Value(1)
-                            ),
-                            m => m.Terms(t => t // Sử dụng Terms query để tìm kiếm nhiều flashsale_id
-                                .Field(f => f.flashsale_id)
-                                .Terms(flashsale_ids) // Truyền danh sách ID vào đây
-                            )
-                        )
-                    )
-                )
-            );
-
-            if (response.IsValid)
-            {
-                return response.Count;
-            }
-            else
-            {
-
-                return 0;
             }
         }
     }

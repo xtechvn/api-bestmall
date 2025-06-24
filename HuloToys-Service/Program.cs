@@ -70,6 +70,7 @@ internal class Program
         builder.Services.AddSingleton<ProductFavouritesMongoAccess>();
         builder.Services.AddSingleton<ProductSpecificationMongoAccess>();
         builder.Services.AddSingleton<NewsMongoService>();
+        builder.Services.AddSingleton<ClientContactMongodbService>();
 
 
         builder.Services.AddSingleton<RedisConn>();

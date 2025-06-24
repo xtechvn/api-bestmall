@@ -1,6 +1,7 @@
 ﻿using HuloToys_Service.Models.Queue;
 using HuloToys_Service.RedisWorker;
 using HuloToys_Service.Utilities.Lib;
+using Microsoft.Extensions.Hosting;
 using RabbitMQ.Client;
 using System.Reflection;
 using System.Text;
@@ -128,6 +129,44 @@ namespace HuloToys_Service.RabitMQ
                 catch (Exception ex)
                 {
                     LogHelper.InsertLogTelegram("InsertQueueSimple ==> error:  " + ex.Message);
+                    return false;
+                }
+            }
+        }
+        public bool InsertQueueSimpleSyncES(string message)
+        {
+            var factory_sync = new ConnectionFactory()
+            {
+                HostName = configuration["Queue:Host"],
+                UserName = configuration["Queue:Username"],
+                Password = configuration["Queue:Password"],
+                VirtualHost = configuration["Queue:V_Host_Sync"],
+                Port = Protocols.DefaultProtocol.DefaultPort
+            };
+            using (var connection = factory_sync.CreateConnection())
+            using (var channel = connection.CreateModel())
+            {
+                try
+                {
+                    channel.QueueDeclare(queue: configuration["Queue:QueueSyncES"],
+                                     durable: true,
+                                     exclusive: false,
+                                     autoDelete: false,
+                                     arguments: null);
+
+                    var body = Encoding.UTF8.GetBytes(message);
+
+                    channel.BasicPublish(exchange: "",
+                                         routingKey: configuration["Queue:QueueSyncES"],
+                                         basicProperties: null,
+                                         body: body);
+                    return true;
+
+                }
+                catch (Exception ex)
+                {
+                    string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.Message;
+                    LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], error_msg);
                     return false;
                 }
             }

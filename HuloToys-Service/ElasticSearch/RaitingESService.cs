@@ -54,7 +54,7 @@ namespace HuloToys_Service.ElasticSearch
 
                 mustQueries.Add(new MatchQuery
                 {
-                    Field = Infer.Field<RatingESModel>(x => x.ProductId),
+                    Field = Infer.Field<RatingESModel>(x => x.ProductDetailId),
                     Query=request.id
                 });
 

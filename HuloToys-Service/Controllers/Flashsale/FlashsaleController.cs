@@ -1,6 +1,7 @@
 ﻿using Azure.Core;
 using Caching.Elasticsearch;
 using Caching.Elasticsearch.FlashSale;
+using HuloToys_Front_End.Models.Products;
 using HuloToys_Service.Controllers.Client.Business;
 using HuloToys_Service.Controllers.Flashsale.Bussiness;
 using HuloToys_Service.Controllers.Product.Bussiness;
@@ -19,7 +20,7 @@ using Utilities;
 using Utilities.Contants;
 using static Nest.JoinField;
 
-namespace HuloToys_Service.Controllers.Flashsale
+namespace HuloToys_Service.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
@@ -184,13 +185,36 @@ namespace HuloToys_Service.Controllers.Flashsale
         {
             try
             {
-                //input.token = "F081O1oSKR4nJktCB3d5ekEyMysRMQY0LBBoCGN6TgYGUTYtKygpBxF9Xn85";
+                //var model_input = new 
+                //{
+                //   page_index=1,
+                //   page_size=10
+                //};
+                //input = new APIRequestGenericModel()
+                //{
+                //    token = CommonHelper.Encode(JsonConvert.SerializeObject(model_input), _configuration["KEY:private_key"])
+                //};
 
                 JArray objParr = null;
 
                 if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, _configuration["KEY:private_key"]))
                 {
-                    var list = await flashSaleProductESRepository.GetListSuperSale();
+                    var request = JsonConvert.DeserializeObject<ProductFavouritesListRequestModel>(objParr[0].ToString());
+                    if (request == null || request.page_index <=0 || request.page_size <= 0)
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+                    var list_fl = await flashSaleESRepository.SearchActiveFlashSales();
+                    List<int> list_id = new List<int>();
+                    if(list_fl!=null && list_fl.Count > 0)
+                    {
+                        list_id = list_fl.Select(x => x.flashsale_id).ToList();
+                    }
+                    var list = await flashSaleProductESRepository.GetListSuperSale(list_id, request.page_index, request.page_size);
                     if (list == null || list.Count <= 0)
                     {
                         return Ok(new
@@ -204,7 +228,9 @@ namespace HuloToys_Service.Controllers.Flashsale
                     {
                         status = (int)ResponseType.SUCCESS,
                         msg = ResponseMessages.Success,
-                        data = list_products
+                        data = list_products,
+                        count = await flashSaleProductESRepository.CountListSuperSale(list_id)
+
                     });
                 }
                 return Ok(new

@@ -53,7 +53,10 @@ namespace HuloToys_Service.Models.Article
         public DateTime? UpTime { get; set; }
         [PropertyName("Position")]
 
-        public short? Position { get; set; }
+        public short? Position { get; set; }  
+        [PropertyName("ListCategoryId")]
+
+        public string ListCategoryId { get; set; }
 
     }
 }

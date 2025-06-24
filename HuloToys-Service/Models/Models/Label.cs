@@ -8,7 +8,6 @@ public partial class Label
     public int Id { get; set; }
 
     public string? LabelName { get; set; }
-    public string? Banner { get; set; }
 
     public string? LabelCode { get; set; }
 
@@ -33,4 +32,8 @@ public partial class Label
     public int? CreatedBy { get; set; }
 
     public int? UpdatedBy { get; set; }
+
+    public string? Banner { get; set; }
+
+    public string? Avatar { get; set; }
 }

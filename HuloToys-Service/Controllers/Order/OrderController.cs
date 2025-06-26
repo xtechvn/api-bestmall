@@ -721,6 +721,68 @@ namespace HuloToys_Service.Controllers
                 msg = ResponseMessages.FunctionExcutionFailed
             });
         }
-        
+        [HttpPost("fe-history-count")]
+        public async Task<ActionResult> CountOrderFEHistory([FromBody] APIRequestGenericModel input)
+        {
+            try
+            {
+
+
+                JArray objParr = null;
+                if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, configuration["KEY:private_key"]))
+                {
+                    var request = JsonConvert.DeserializeObject<OrderHistoryRequestModel>(objParr[0].ToString());
+                    if (request == null || request.page_index <= 0 || request.page_size <= 0
+                        )
+                    {
+
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+                    long account_client_id = await clientServices.GetAccountClientIdFromToken(request.token);
+                    if (account_client_id <= 0)
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+                    var account_client = accountClientESService.GetById(account_client_id);
+                    var client = clientESService.GetById((long)account_client.ClientId);
+                    if (request.status == "-1") request.status = "";
+
+                    var (allOrders, status016, status25, status3) = orderESRepository.CountOrdersByStatus((long)account_client.ClientId);
+
+                    return Ok(new
+                    {
+                        status = (int)ResponseType.SUCCESS,
+                        msg = "Success",
+                        data =new { 
+                            all=allOrders,
+                            waiting_payment=status016,
+                            on_delivery=status25,
+                            success=status3
+                        }
+                    });
+
+                }
+
+            }
+            catch (Exception ex)
+            {
+                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
+            }
+            return Ok(new
+            {
+                status = (int)ResponseType.FAILED,
+                msg = ResponseMessages.DataInvalid
+            });
+
+        }
     }
 }

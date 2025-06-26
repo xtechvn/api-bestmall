@@ -2,14 +2,9 @@
 using HuloToys_Service.Elasticsearch;
 using HuloToys_Service.Utilities.Lib;
 using Nest;
-using Newtonsoft.Json;
-using System.Collections.Generic;
 using System.Reflection;
-using Utilities;
-using HuloToys_Service.Models.ElasticSearch;
 using HuloToys_Service.Models.Orders;
-using Azure.Core;
-using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using Utilities.Contants;
 
 namespace Caching.Elasticsearch
 {
@@ -17,6 +12,7 @@ namespace Caching.Elasticsearch
     {
         public string index = "order_hulotoys_store";
         private readonly IConfiguration configuration;
+        private readonly ElasticClient elasticClient;
         private static string _ElasticHost;
 
         public OrderESService(string Host, IConfiguration _configuration) : base(Host, _configuration)
@@ -24,7 +20,10 @@ namespace Caching.Elasticsearch
             _ElasticHost = Host;
             configuration = _configuration;
             index = _configuration["DataBaseConfig:Elastic:Index:Order"];
-
+            var nodes = new Uri[] { new Uri(_ElasticHost) };
+            var connectionPool = new StaticConnectionPool(nodes);
+            var connectionSettings = new ConnectionSettings(connectionPool).DisableDirectStreaming().DefaultIndex(index);
+            elasticClient = new ElasticClient(connectionSettings);
 
         }
         public List<OrderESModel> GetByClientID(long client_id)
@@ -32,12 +31,8 @@ namespace Caching.Elasticsearch
             List<OrderESModel> result = new List<OrderESModel>();
             try
             {
-                var nodes = new Uri[] { new Uri(_ElasticHost) };
-                var connectionPool = new StaticConnectionPool(nodes);
-                var connectionSettings = new ConnectionSettings(connectionPool).DisableDirectStreaming().DefaultIndex("people");
-                var elasticClient = new ElasticClient(connectionSettings);
+
                 var query = elasticClient.Search<OrderESModel>(sd => sd
-                            .Index(index)
                             .Query(q => q
                                 .Term(m => m.ClientId, client_id)
                             )
@@ -68,16 +63,12 @@ namespace Caching.Elasticsearch
             OrderFEResponseModel result = new OrderFEResponseModel();
             try
             {
-                var nodes = new Uri[] { new Uri(_ElasticHost) };
-                var connectionPool = new StaticConnectionPool(nodes);
-                var connectionSettings = new ConnectionSettings(connectionPool).DisableDirectStreaming().DefaultIndex("people");
-                var elasticClient = new ElasticClient(connectionSettings);
+
                 if (status == null || status.Trim() == "")
                 {
                     Func<QueryContainerDescriptor<OrderESModel>, QueryContainer> query_container = q => q
                                   .Term(m => m.ClientId, client_id);
                     var query = elasticClient.Search<OrderESModel>(sd => sd
-                              .Index(index)
                               .Query(query_container)
                               .From((page_index - 1) * page_size)
                               .Size(page_size)
@@ -85,7 +76,6 @@ namespace Caching.Elasticsearch
 
                               );
                     var query_count = elasticClient.Count<OrderESModel>(sd => sd
-                              .Index(index)
                               .Query(query_container)
                               );
                     if (!query.IsValid && !query_count.IsValid)
@@ -100,7 +90,7 @@ namespace Caching.Elasticsearch
                         result.page_size = page_size;
                         return result;
                     }
-                   
+
                 }
                 else
                 {
@@ -110,7 +100,6 @@ namespace Caching.Elasticsearch
                                 q.Terms(t => t.Field(x => x.OrderStatus).Terms(status.Split(",")))
                                 ;
                     var query = elasticClient.Search<OrderESModel>(sd => sd
-                             .Index(index)
                              .Query(query_container)
                               .From((page_index - 1) * page_size)
                               .Size(page_size)
@@ -118,7 +107,6 @@ namespace Caching.Elasticsearch
 
                              );
                     var query_count = elasticClient.Count<OrderESModel>(sd => sd
-                             .Index(index)
                              .Query(query_container)
                              );
                     if (!query.IsValid)
@@ -147,14 +135,9 @@ namespace Caching.Elasticsearch
             OrderESModel result = new OrderESModel();
             try
             {
-                var nodes = new Uri[] { new Uri(_ElasticHost) };
-                var connectionPool = new StaticConnectionPool(nodes);
-                var connectionSettings = new ConnectionSettings(connectionPool).DisableDirectStreaming().DefaultIndex("people");
-                var elasticClient = new ElasticClient(connectionSettings);
+
 
                 var query = elasticClient.Search<OrderESModel>(sd => sd
-                               .Index(index)
-
                                .Query(q => q
                                    .Term(m => m.ClientId, client_id)
                                    )
@@ -182,13 +165,8 @@ namespace Caching.Elasticsearch
             List<OrderESModel> result = new List<OrderESModel>();
             try
             {
-                var nodes = new Uri[] { new Uri(_ElasticHost) };
-                var connectionPool = new StaticConnectionPool(nodes);
-                var connectionSettings = new ConnectionSettings(connectionPool).DisableDirectStreaming().DefaultIndex("people");
-                var elasticClient = new ElasticClient(connectionSettings);
 
                 var search_response = elasticClient.Search<OrderESModel>(s => s
-                        .Index(index)
                         .Size(4000)
                         .Query(q =>
                          q.Bool(
@@ -225,13 +203,8 @@ namespace Caching.Elasticsearch
 
             try
             {
-                var nodes = new Uri[] { new Uri(_ElasticHost) };
-                var connectionPool = new StaticConnectionPool(nodes);
-                var connectionSettings = new ConnectionSettings(connectionPool).DisableDirectStreaming().DefaultIndex("people");
-                var elasticClient = new ElasticClient(connectionSettings);
 
                 var query = elasticClient.Count<OrderESModel>(sd => sd
-                                   .Index(index)
                                   .Query(q =>
                                    q.Bool(
                                        qb => qb.Must(
@@ -265,14 +238,7 @@ namespace Caching.Elasticsearch
             OrderESModel result = new OrderESModel();
             try
             {
-                var nodes = new Uri[] { new Uri(_ElasticHost) };
-                var connectionPool = new StaticConnectionPool(nodes);
-                var connectionSettings = new ConnectionSettings(connectionPool).DisableDirectStreaming().DefaultIndex("people");
-                var elasticClient = new ElasticClient(connectionSettings);
-
                 var query = elasticClient.Search<OrderESModel>(sd => sd
-                               .Index(index)
-
                                .Query(q => q
                                     .Term(m => m.Id, order_id)
                                    ));
@@ -298,15 +264,10 @@ namespace Caching.Elasticsearch
         {
             try
             {
-                var nodes = new Uri[] { new Uri(_ElasticHost) };
-                var connectionPool = new StaticConnectionPool(nodes);
-                // Đảm bảo rằng bạn đang sử dụng đúng index cho OrderESModel của mình.
-                var connectionSettings = new ConnectionSettings(connectionPool).DisableDirectStreaming().DefaultIndex("people");
-                var elasticClient = new ElasticClient(connectionSettings);
 
                 var searchResponse = elasticClient.Search<OrderESModel>(sd => sd
-                    .Index(index) // Sử dụng biến 'index' của bạn ở đây
-                    .Query(q => {
+                    .Query(q =>
+                    {
                         // Khởi tạo một Container cho các điều kiện query
                         QueryContainer queryContainer = q.Term(m => m.VoucherId, voucher_id);
 
@@ -337,6 +298,44 @@ namespace Caching.Elasticsearch
                 LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
                 return 0; // Trả về 0 nếu có lỗi
             }
+        }
+        public (long allOrdersCount, long status016Count, long status25Count, long status3Count) CountOrdersByStatus(long client_id)
+        {
+            // 1. Query cơ bản cho ClientId (dùng chung cho tất cả các truy vấn)
+            Func<QueryContainerDescriptor<OrderESModel>, QueryContainer> baseClientQuery = q =>
+                q.Match(m => m.Field(x => x.ClientId).Query(client_id.ToString()));
+
+            // 2. Đếm tất cả OrderStatus cho ClientId đó
+            var allOrdersCountResponse = elasticClient.Count<OrderESModel>(c => c
+                .Index(index)
+                .Query(baseClientQuery)
+            );
+            long allOrdersCount = allOrdersCountResponse.IsValid ? allOrdersCountResponse.Count : 0;
+
+            // 3. Đếm OrderStatus = 0, 1, 6
+            var status016CountResponse = elasticClient.Count<OrderESModel>(c => c
+                .Index(index)
+                .Query(q => baseClientQuery(q) && q.Terms(t => t.Field(f => f.OrderStatus).Terms(new[] { 0, 1, 6 })))
+            );
+            long status016Count = status016CountResponse.IsValid ? status016CountResponse.Count : 0;
+
+            // 4. Đếm OrderStatus = 2, 5
+            var status25CountResponse = elasticClient.Count<OrderESModel>(c => c
+                .Index(index)
+                .Query(q => baseClientQuery(q) && q.Terms(t => t.Field(f => f.OrderStatus).Terms(new[] { 2, 5 })))
+            );
+            long status25Count = status25CountResponse.IsValid ? status25CountResponse.Count : 0;
+
+            // 5. Đếm OrderStatus = 3
+            var status3CountResponse = elasticClient.Count<OrderESModel>(c => c
+                .Index(index)
+                .Query(q => baseClientQuery(q) && q.Match(m => m.Field(f => f.OrderStatus).Query("3")))
+            // Hoặc có thể dùng Terms: q.Terms(t => t.Field(f => f.OrderStatus).Terms(new [] { 3 }))
+            );
+            long status3Count = status3CountResponse.IsValid ? status3CountResponse.Count : 0;
+
+            // Trả về kết quả
+            return (allOrdersCount, status016Count, status25Count, status3Count);
         }
     }
 }

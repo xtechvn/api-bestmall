@@ -299,43 +299,41 @@ namespace Caching.Elasticsearch
                 return 0; // Trả về 0 nếu có lỗi
             }
         }
-        public (long allOrdersCount, long status016Count, long status25Count, long status3Count) CountOrdersByStatus(long client_id)
+        public (long allOrdersCount, long status016Count, long status25Count, long status3Count, long status4Count) CountOrdersByStatus(long client_id)
         {
-            // 1. Query cơ bản cho ClientId (dùng chung cho tất cả các truy vấn)
             Func<QueryContainerDescriptor<OrderESModel>, QueryContainer> baseClientQuery = q =>
                 q.Match(m => m.Field(x => x.ClientId).Query(client_id.ToString()));
 
-            // 2. Đếm tất cả OrderStatus cho ClientId đó
             var allOrdersCountResponse = elasticClient.Count<OrderESModel>(c => c
                 .Index(index)
                 .Query(baseClientQuery)
             );
             long allOrdersCount = allOrdersCountResponse.IsValid ? allOrdersCountResponse.Count : 0;
 
-            // 3. Đếm OrderStatus = 0, 1, 6
             var status016CountResponse = elasticClient.Count<OrderESModel>(c => c
                 .Index(index)
                 .Query(q => baseClientQuery(q) && q.Terms(t => t.Field(f => f.OrderStatus).Terms(new[] { 0, 1, 6 })))
             );
             long status016Count = status016CountResponse.IsValid ? status016CountResponse.Count : 0;
 
-            // 4. Đếm OrderStatus = 2, 5
             var status25CountResponse = elasticClient.Count<OrderESModel>(c => c
                 .Index(index)
                 .Query(q => baseClientQuery(q) && q.Terms(t => t.Field(f => f.OrderStatus).Terms(new[] { 2, 5 })))
             );
             long status25Count = status25CountResponse.IsValid ? status25CountResponse.Count : 0;
 
-            // 5. Đếm OrderStatus = 3
             var status3CountResponse = elasticClient.Count<OrderESModel>(c => c
                 .Index(index)
                 .Query(q => baseClientQuery(q) && q.Match(m => m.Field(f => f.OrderStatus).Query("3")))
-            // Hoặc có thể dùng Terms: q.Terms(t => t.Field(f => f.OrderStatus).Terms(new [] { 3 }))
             );
             long status3Count = status3CountResponse.IsValid ? status3CountResponse.Count : 0;
 
-            // Trả về kết quả
-            return (allOrdersCount, status016Count, status25Count, status3Count);
+            var status4CountResponse = elasticClient.Count<OrderESModel>(c => c
+                .Index(index)
+                .Query(q => baseClientQuery(q) && q.Match(m => m.Field(f => f.OrderStatus).Query("4")))
+            );
+            long status4Count = status4CountResponse.IsValid ? status4CountResponse.Count : 0;
+            return (allOrdersCount, status016Count, status25Count, status3Count, status4Count);
         }
     }
 }

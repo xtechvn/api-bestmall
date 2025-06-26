@@ -755,7 +755,7 @@ namespace HuloToys_Service.Controllers
                     var client = clientESService.GetById((long)account_client.ClientId);
                     if (request.status == "-1") request.status = "";
 
-                    var (allOrders, status016, status25, status3) = orderESRepository.CountOrdersByStatus((long)account_client.ClientId);
+                    var (allOrders, status016, status25, status3, status4) = orderESRepository.CountOrdersByStatus((long)account_client.ClientId);
 
                     return Ok(new
                     {
@@ -765,7 +765,8 @@ namespace HuloToys_Service.Controllers
                             all=allOrders,
                             waiting_payment=status016,
                             on_delivery=status25,
-                            success=status3
+                            success=status3,
+                            cancel=status4
                         }
                     });
 

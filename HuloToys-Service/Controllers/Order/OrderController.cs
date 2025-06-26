@@ -732,7 +732,7 @@ namespace HuloToys_Service.Controllers
                 if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, configuration["KEY:private_key"]))
                 {
                     var request = JsonConvert.DeserializeObject<OrderHistoryRequestModel>(objParr[0].ToString());
-                    if (request == null || request.page_index <= 0 || request.page_size <= 0
+                    if (request == null || request.token == null || request.token.Trim() == ""
                         )
                     {
 
@@ -753,7 +753,6 @@ namespace HuloToys_Service.Controllers
                     }
                     var account_client = accountClientESService.GetById(account_client_id);
                     var client = clientESService.GetById((long)account_client.ClientId);
-                    if (request.status == "-1") request.status = "";
 
                     var (allOrders, status016, status25, status3, status4) = orderESRepository.CountOrdersByStatus((long)account_client.ClientId);
 

@@ -52,6 +52,7 @@ namespace HuloToys_Service.Controllers
         private readonly ShippingBussinessSerice shippingBussinessSerice;
         private readonly ProductDetailService productDetailService;
         private readonly IVoucherRepository _voucherRepository;
+        private readonly LocationESService locationESService;
 
         public OrderController(IConfiguration _configuration, RedisConn redisService, IVoucherRepository voucherRepository, /*ProductDetailMongoAccess productDetailMongoAccess,*/
             ProductDetailService _productDetailService, CartMongodbService cartMongodbService, OrderMongodbService _orderMongodbService)
@@ -61,6 +62,7 @@ namespace HuloToys_Service.Controllers
             workQueueClient = new WorkQueueClient(configuration);
             orderESRepository = new OrderESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
             raitingESService = new RaitingESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
+            locationESService = new LocationESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
             accountClientESService = new AccountClientESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
             orderMongodbService = _orderMongodbService;
             //_productDetailMongoAccess = productDetailMongoAccess;
@@ -342,18 +344,34 @@ namespace HuloToys_Service.Controllers
                     }
                     var result = await orderMongodbService.FindById(request.id);
                     OrderESModel order_es = new OrderESModel();
+                    Province province = new Province();
+                    District district = new District();
+                    Ward ward = new Ward();
                     if (result != null &&result.order_id>0)
                     {
                         order_es =  orderESRepository.GetByOrderId(result.order_id);
-                        
-
+                        if (result.provinceid != null)
+                        {
+                            province = locationESService.GetProvincesByProvinceId(result.provinceid);
+                        }
+                        if (result.districtid != null)
+                        {
+                            district = locationESService.GetDistrictByDistrictId(result.districtid);
+                        }
+                        if (result.wardid != null)
+                        {
+                            ward = locationESService.GetWardsByWardId(result.wardid);
+                        }
                     }
                     return Ok(new
                     {
                         status = (int)ResponseType.SUCCESS,
                         msg = "Success",
                         data = result,
-                        data_order = order_es
+                        data_order = order_es,
+                        province,
+                        district,
+                        ward
                     });
 
                 }

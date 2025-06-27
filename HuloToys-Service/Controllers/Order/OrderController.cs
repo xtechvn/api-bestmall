@@ -28,6 +28,7 @@ using Nest;
 using System.Drawing.Printing;
 using REPOSITORIES.IRepositories;
 using HuloToys_Service.Controllers.Product.Bussiness;
+using StackExchange.Redis;
 
 namespace HuloToys_Service.Controllers
 {
@@ -801,6 +802,90 @@ namespace HuloToys_Service.Controllers
                 msg = ResponseMessages.DataInvalid
             });
 
+        }
+        [HttpPost("update-address")]
+        public async Task<ActionResult> UpdateAddress([FromBody] APIRequestGenericModel input)
+        {
+            try
+            {
+
+
+                JArray objParr = null;
+                if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, configuration["KEY:private_key"]))
+                {
+                    var request = JsonConvert.DeserializeObject<OrdersUpdateAddressRequestModel>(objParr[0].ToString());
+                    if (request == null
+                        || request.order_id <= 0
+                        || request.province_id ==null || request.province_id.Trim()==""
+                        || request.district_id ==null || request.district_id.Trim()==""
+                        || request.ward_id ==null || request.ward_id.Trim()==""
+                        || request.address ==null || request.address.Trim()==""
+                        || request.phone ==null || request.phone.Trim()==""
+                        || request.token ==null || request.token.Trim()==""
+                        )
+                    {
+
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+                    long account_client_id = await clientServices.GetAccountClientIdFromToken(request.token);
+                    if (account_client_id <= 0)
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+                    Province province = locationESService.GetProvincesByProvinceId(request.province_id);
+                    District district = locationESService.GetDistrictByDistrictId(request.district_id);
+                    Ward ward = locationESService.GetWardsByWardId(request.ward_id);
+                   
+                    var account_client = accountClientESService.GetById(account_client_id);
+                    var client = clientESService.GetById((long)account_client.ClientId);
+                    var model = new
+                    {
+                        OrderId= request.order_id,
+                        ClientId= (long)account_client.ClientId,
+                        ProvinceId= province==null? (int?)null: province.Id,
+                        DistrictId= district == null ? (int?)null : district.Id,
+                        WardId = ward == null ? (int?)null : ward.Id,
+                        Address =request.address,
+                        Phone=request.phone
+                    };
+                    var queue_model = new
+                    {
+                        type = QueueType.UPDATE_ORDER,
+                        data_push = JsonConvert.SerializeObject(model)
+                    };
+                    var pushed_queue = work_queue.InsertQueueSimple(JsonConvert.SerializeObject(queue_model), QueueName.queue_app_push);
+
+                    return Ok(new
+                    {
+                        status = (int)ResponseType.SUCCESS,
+                        msg = "Success",
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
+                return Ok(new
+                {
+                    status = (int)ResponseType.FAILED,
+                    msg = ResponseMessages.FunctionExcutionFailed
+                });
+
+            }
+            return Ok(new
+            {
+                status = (int)ResponseType.FAILED,
+                msg = ResponseMessages.FunctionExcutionFailed
+            });
         }
     }
 }

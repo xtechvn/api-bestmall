@@ -170,21 +170,21 @@ namespace HuloToys_Service.Controllers
                     if (request.status == "-1") request.status = "";
                     if (request.order_no == null) request.order_no = "";
 
-                    var cache_name = CacheType.ORDER_DETAIL_FE + client.Id+request.status+request.page_index+request.page_size;
-                    var j_data = await _redisService.GetAsync(cache_name, Convert.ToInt32(configuration["Redis:Database:db_search_result"]));
-                    if (j_data != null && j_data.Trim() != "")
-                    {
-                        OrderFEResponseModel data = JsonConvert.DeserializeObject<OrderFEResponseModel>(j_data);
-                        if (data != null && data.data != null&& data.data.Count>0)
-                        {
-                            return Ok(new
-                            {
-                                status = (int)ResponseType.SUCCESS,
-                                msg = ResponseMessages.Success,
-                                data = data
-                            });
-                        }
-                    }
+                    //var cache_name = CacheType.ORDER_DETAIL_FE + client.Id+request.status+request.page_index+request.page_size;
+                    //var j_data = await _redisService.GetAsync(cache_name, Convert.ToInt32(configuration["Redis:Database:db_search_result"]));
+                    //if (j_data != null && j_data.Trim() != "")
+                    //{
+                    //    OrderFEResponseModel data = JsonConvert.DeserializeObject<OrderFEResponseModel>(j_data);
+                    //    if (data != null && data.data != null&& data.data.Count>0)
+                    //    {
+                    //        return Ok(new
+                    //        {
+                    //            status = (int)ResponseType.SUCCESS,
+                    //            msg = ResponseMessages.Success,
+                    //            data = data
+                    //        });
+                    //    }
+                    //}
                     var result = orderESRepository.GetFEByClientID((long)account_client.ClientId, request.status,request.order_no, (request.page_index <= 0 ? 1 : request.page_index), (request.page_size <= 0 ? 10 : request.page_size));
                     if(result!=null && result.data!=null && result.data.Count > 0)
                     {

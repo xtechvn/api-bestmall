@@ -76,7 +76,7 @@ namespace Caching.Elasticsearch
                 ////                )))
                 ////            );
                 var query = elasticClient.Search<Province>(sd => sd
-                    .Size(10) // Tương ứng với "size": 10 trong JSON
+                    .Index(index_province)
                     .Query(q => q
                         .Bool(b => b
                             .Must(m => m
@@ -186,7 +186,7 @@ namespace Caching.Elasticsearch
                 //                )
                 //            );
                 var query = elasticClient.Search<District>(sd => sd
-                  .Size(10) // Tương ứng với "size": 10 trong JSON
+                    .Index(index_district)
                   .Query(q => q
                       .Bool(b => b
                           .Must(m => m
@@ -299,7 +299,7 @@ namespace Caching.Elasticsearch
                 //                )
                 //            );
                 var query = elasticClient.Search<Ward>(sd => sd
-                 .Size(10) // Tương ứng với "size": 10 trong JSON
+                            .Index(index_wards)
                  .Query(q => q
                      .Bool(b => b
                          .Must(m => m

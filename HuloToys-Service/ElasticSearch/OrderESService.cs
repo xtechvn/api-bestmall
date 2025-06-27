@@ -58,77 +58,70 @@ namespace Caching.Elasticsearch
             }
             return null;
         }
-        public OrderFEResponseModel GetFEByClientID(long client_id, string status, int page_index, int page_size)
+        public OrderFEResponseModel GetFEByClientID(long client_id, string status, string order_no, int page_index, int page_size)
         {
             OrderFEResponseModel result = new OrderFEResponseModel();
             try
             {
-
-                if (status == null || status.Trim() == "")
+                // Build a list of QueryContainer predicates
+                var mustQueries = new List<Func<QueryContainerDescriptor<OrderESModel>, QueryContainer>>
                 {
-                    Func<QueryContainerDescriptor<OrderESModel>, QueryContainer> query_container = q => q
-                                  .Term(m => m.ClientId, client_id);
-                    var query = elasticClient.Search<OrderESModel>(sd => sd
-                              .Query(query_container)
-                              .From((page_index - 1) * page_size)
-                              .Size(page_size)
-                              .Sort(ss => ss.Descending(o => o.CreatedDate)) // Add sorting by CreatedDate descending
+                    // Always add ClientId filter
+                    q => q.Term(m => m.ClientId, client_id)
+                };
 
-                              );
-                    var query_count = elasticClient.Count<OrderESModel>(sd => sd
-                              .Query(query_container)
-                              );
-                    if (!query.IsValid && !query_count.IsValid)
-                    {
-                        return result;
-                    }
-                    else
-                    {
-                        result.data = query.Documents as List<OrderESModel>;
-                        result.total = query_count.Count;
-                        result.page_index = page_index;
-                        result.page_size = page_size;
-                        return result;
-                    }
+                // Add OrderNo containment filter if order_no is provided
+                if (order_no!=null && order_no.Trim()!="")
+                {
+                    mustQueries.Add(q => q.Match(m => m.Field(f => f.OrderNo).Query(order_no)));
+                }
 
+                // Add OrderStatus filter if status is provided
+                if (!string.IsNullOrWhiteSpace(status))
+                {
+                    mustQueries.Add(q => q.Terms(t => t.Field(x => x.OrderStatus).Terms(status.Split(",", StringSplitOptions.RemoveEmptyEntries))));
+                }
+
+                // Combine all 'must' queries using Bool.Must
+                Func<QueryContainerDescriptor<OrderESModel>, QueryContainer> finalQueryContainer = q => q
+                    .Bool(b => b.Must(mustQueries.ToArray())); // Convert list to array for Must method
+
+                var searchRequest = new SearchDescriptor<OrderESModel>()
+                    .Query(finalQueryContainer)
+                    .From((page_index - 1) * page_size)
+                    .Size(page_size)
+                    .Sort(ss => ss.Descending(o => o.CreatedDate));
+
+                var query = elasticClient.Search<OrderESModel>(searchRequest);
+
+
+                var countRequest = new CountDescriptor<OrderESModel>().Query(finalQueryContainer);
+
+                var query_count = elasticClient.Count(countRequest); // Pass the descriptor directly
+
+
+                if (!query.IsValid || !query_count.IsValid)
+                {
+                    // It's generally better to check for !IsValid on individual responses,
+                    // and if any are invalid, return an appropriate error or empty result.
+                    // For a more robust solution, you might throw an exception or log specific errors.
+                    return result; // Returns empty result if either query or count is invalid
                 }
                 else
                 {
-                    Func<QueryContainerDescriptor<OrderESModel>, QueryContainer> query_container = q =>
-                                q.Match(m => m.Field(x => x.ClientId).Query(client_id.ToString()))
-                                 &&
-                                q.Terms(t => t.Field(x => x.OrderStatus).Terms(status.Split(",")))
-                                ;
-                    var query = elasticClient.Search<OrderESModel>(sd => sd
-                             .Query(query_container)
-                              .From((page_index - 1) * page_size)
-                              .Size(page_size)
-                              .Sort(ss => ss.Descending(o => o.CreatedDate)) // Add sorting by CreatedDate descending
-
-                             );
-                    var query_count = elasticClient.Count<OrderESModel>(sd => sd
-                             .Query(query_container)
-                             );
-                    if (!query.IsValid)
-                    {
-                        return result;
-                    }
-                    else
-                    {
-                        result.data = query.Documents as List<OrderESModel>;
-                        result.total = query_count.Count;
-                        result.page_index = page_index;
-                        result.page_size = page_size;
-                        return result;
-                    }
+                    result.data = query.Documents.ToList(); // Use ToList() for safety
+                    result.total = query_count.Count;
+                    result.page_index = page_index;
+                    result.page_size = page_size;
+                    return result;
                 }
             }
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
+                // LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
             }
-            return null;
+            return null; // Or throw the exception, or return an error result model
         }
         public OrderESModel GetLastestClientID(long client_id)
         {

@@ -2,6 +2,8 @@
 using MongoDB.Driver;
 using System.Reflection;
 using HuloToys_Service.Models.Orders;
+using Azure.Core;
+using Nest;
 
 namespace HuloToys_Service.MongoDb
 {
@@ -50,6 +52,33 @@ namespace HuloToys_Service.MongoDb
                 filterDefinition &= Builders<OrderDetailMongoDbModel>.Filter.Eq(x => x._id, id);
 
                 return await bookingCollection.Find(filterDefinition).FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
+                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
+            }
+            return null;
+
+        }
+        public async Task<string> UpdateAddress(OrderDetailMongoDbModel updated_model)
+        {
+            try
+            {
+                var filter = Builders<OrderDetailMongoDbModel>.Filter;
+                var filterDefinition = filter.Empty;
+                filterDefinition &= Builders<OrderDetailMongoDbModel>.Filter.Eq(x => x._id, updated_model._id);
+                var update = Builders<OrderDetailMongoDbModel>.Update
+                  .Set(x => x.provinceid, updated_model.provinceid) 
+                  .Set(x => x.districtid, updated_model.districtid) 
+                  .Set(x => x.wardid, updated_model.wardid) 
+                  .Set(x => x.receivername, updated_model.receivername) 
+                  .Set(x => x.address, updated_model.address) 
+                  .Set(x => x.address_id, updated_model.address_id) 
+                  ;
+
+                await bookingCollection.UpdateOneAsync(filterDefinition,update);
+                return updated_model._id;
             }
             catch (Exception ex)
             {

@@ -822,6 +822,7 @@ namespace HuloToys_Service.Controllers
                         || request.address ==null || request.address.Trim()==""
                         || request.phone ==null || request.phone.Trim()==""
                         || request.token ==null || request.token.Trim()==""
+                        || request.id ==null || request.id.Trim()==""
                         )
                     {
 
@@ -843,7 +844,18 @@ namespace HuloToys_Service.Controllers
                     Province province = locationESService.GetProvincesByProvinceId(request.province_id);
                     District district = locationESService.GetDistrictByDistrictId(request.district_id);
                     Ward ward = locationESService.GetWardsByWardId(request.ward_id);
-                   
+                    var result = await orderMongodbService.FindById(request.id);
+                    if(result!=null && result._id != null)
+                    {
+                        result.provinceid = request.province_id;
+                        result.districtid = request.district_id;
+                        result.wardid = request.ward_id;
+                        result.phone = request.phone;
+                        result.receivername = request.receiver_name;
+                        result.address = request.address;
+                        result.address_id = request.address_id;
+                        await orderMongodbService.UpdateAddress(result);
+                    }
                     var account_client = accountClientESService.GetById(account_client_id);
                     var client = clientESService.GetById((long)account_client.ClientId);
                     var model = new

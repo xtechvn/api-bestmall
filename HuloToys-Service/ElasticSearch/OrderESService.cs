@@ -73,7 +73,7 @@ namespace Caching.Elasticsearch
                 // Add OrderNo containment filter if order_no is provided
                 if (order_no!=null && order_no.Trim()!="")
                 {
-                    mustQueries.Add(q => q.Match(m => m.Field(f => f.OrderNo).Query(order_no)));
+                    mustQueries.Add(q => q.Wildcard(w => w.Field(f => f.OrderNo).Value($"*{order_no}*")));
                 }
 
                 // Add OrderStatus filter if status is provided

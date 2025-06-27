@@ -168,6 +168,7 @@ namespace HuloToys_Service.Controllers
                     var account_client = accountClientESService.GetById(account_client_id);
                     var client = clientESService.GetById((long)account_client.ClientId);
                     if (request.status == "-1") request.status = "";
+                    if (request.order_no == null) request.order_no = "";
 
                     var cache_name = CacheType.ORDER_DETAIL_FE + client.Id+request.status+request.page_index+request.page_size;
                     var j_data = await _redisService.GetAsync(cache_name, Convert.ToInt32(configuration["Redis:Database:db_search_result"]));
@@ -184,7 +185,7 @@ namespace HuloToys_Service.Controllers
                             });
                         }
                     }
-                    var result = orderESRepository.GetFEByClientID((long)account_client.ClientId, request.status, (request.page_index <= 0 ? 1 : request.page_index), (request.page_size <= 0 ? 10 : request.page_size));
+                    var result = orderESRepository.GetFEByClientID((long)account_client.ClientId, request.status,request.order_no, (request.page_index <= 0 ? 1 : request.page_index), (request.page_size <= 0 ? 10 : request.page_size));
                     if(result!=null && result.data!=null && result.data.Count > 0)
                     {
                         result.data_order = await orderMongodbService.GetListByOrdersNo(result.data.Select(x => x.OrderNo).ToList());

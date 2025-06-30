@@ -34,14 +34,14 @@ namespace HuloToys_Service.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    
+
     public class OrderController : ControllerBase
     {
         private readonly IConfiguration configuration;
         private readonly WorkQueueClient workQueueClient;
         private readonly OrderESService orderESRepository;
         private readonly OrderMongodbService orderMongodbService;
-       // private readonly ProductDetailMongoAccess _productDetailMongoAccess;
+        // private readonly ProductDetailMongoAccess _productDetailMongoAccess;
         private readonly AccountClientESService accountClientESService;
         private readonly CartMongodbService _cartMongodbService;
         private readonly WorkQueueClient work_queue;
@@ -90,7 +90,7 @@ namespace HuloToys_Service.Controllers
                 if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, configuration["KEY:private_key"]))
                 {
                     var request = JsonConvert.DeserializeObject<OrderHistoryRequestModel>(objParr[0].ToString());
-                    if (request == null )
+                    if (request == null)
                     {
 
                         return Ok(new
@@ -111,13 +111,13 @@ namespace HuloToys_Service.Controllers
                     var account_client = accountClientESService.GetById(account_client_id);
                     var client = clientESService.GetById((long)account_client.ClientId);
 
-                    var result=  orderESRepository.GetByClientID(client.Id);
+                    var result = orderESRepository.GetByClientID(client.Id);
 
                     return Ok(new
                     {
                         status = (int)ResponseType.SUCCESS,
                         msg = "Success",
-                        data= result
+                        data = result
                     });
 
                 }
@@ -185,8 +185,8 @@ namespace HuloToys_Service.Controllers
                     //        });
                     //    }
                     //}
-                    var result = orderESRepository.GetFEByClientID((long)account_client.ClientId, request.status,request.order_no, (request.page_index <= 0 ? 1 : request.page_index), (request.page_size <= 0 ? 10 : request.page_size));
-                    if(result!=null && result.data!=null && result.data.Count > 0)
+                    var result = orderESRepository.GetFEByClientID((long)account_client.ClientId, request.status, request.order_no, (request.page_index <= 0 ? 1 : request.page_index), (request.page_size <= 0 ? 10 : request.page_size));
+                    if (result != null && result.data != null && result.data.Count > 0)
                     {
                         result.data_order = await orderMongodbService.GetListByOrdersNo(result.data.Select(x => x.OrderNo).ToList());
                     }
@@ -251,7 +251,7 @@ namespace HuloToys_Service.Controllers
                     {
                         status = (int)ResponseType.SUCCESS,
                         msg = "Success",
-                        data=result
+                        data = result
                     });
 
                 }
@@ -280,7 +280,7 @@ namespace HuloToys_Service.Controllers
                 if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, configuration["KEY:private_key"]))
                 {
                     var request = JsonConvert.DeserializeObject<OrderHistoryRequestModel>(objParr[0].ToString());
-                    if (request == null || request.order_no ==null || request.order_no.Trim()=="")
+                    if (request == null || request.order_no == null || request.order_no.Trim() == "")
                     {
 
                         return Ok(new
@@ -300,12 +300,12 @@ namespace HuloToys_Service.Controllers
                     }
                     var account_client = accountClientESService.GetById(account_client_id);
                     var client = clientESService.GetById((long)account_client.ClientId);
-                    var order=orderESRepository.GetByOrderNo(request.order_no,client.Id);
+                    var order = orderESRepository.GetByOrderNo(request.order_no, client.Id);
                     return Ok(new
                     {
                         status = (int)ResponseType.SUCCESS,
                         msg = "Success",
-                        data= order
+                        data = order
                     });
 
                 }
@@ -349,9 +349,9 @@ namespace HuloToys_Service.Controllers
                     Province province = new Province();
                     District district = new District();
                     Ward ward = new Ward();
-                    if (result != null &&result.order_id>0)
+                    if (result != null && result.order_id > 0)
                     {
-                        order_es =  orderESRepository.GetByOrderId(result.order_id);
+                        order_es = orderESRepository.GetByOrderId(result.order_id);
                         if (result.provinceid != null)
                         {
                             province = locationESService.GetProvincesByProvinceId(result.provinceid);
@@ -418,7 +418,7 @@ namespace HuloToys_Service.Controllers
                     if (result.data == null)
                     {
                         LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"],
-                            "HistoryDetail - OrderController orderESRepository.GetByOrderId("+request.id+") : NULL");
+                            "HistoryDetail - OrderController orderESRepository.GetByOrderId(" + request.id + ") : NULL");
 
                         return Ok(new
                         {
@@ -429,14 +429,14 @@ namespace HuloToys_Service.Controllers
                     else
                     {
                         LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"],
-                           "HistoryDetail - OrderController orderESRepository.GetByOrderId(" + request.id + ") : "+JsonConvert.SerializeObject(result.data));
+                           "HistoryDetail - OrderController orderESRepository.GetByOrderId(" + request.id + ") : " + JsonConvert.SerializeObject(result.data));
                         result.data_order = await orderMongodbService.GetByOrderNo(result.data.OrderNo);
                     }
 
                     var provinces = _redisService.Get(CacheType.PROVINCE, Convert.ToInt32(configuration["Redis:Database:db_common"]));
                     var district = _redisService.Get(CacheType.DISTRICT, Convert.ToInt32(configuration["Redis:Database:db_common"]));
                     var ward = _redisService.Get(CacheType.WARD, Convert.ToInt32(configuration["Redis:Database:db_common"]));
-                    if (result.data.ProvinceId>0&& provinces != null && provinces.Trim() != "")
+                    if (result.data.ProvinceId > 0 && provinces != null && provinces.Trim() != "")
                     {
                         var data = JsonConvert.DeserializeObject<List<Province>>(provinces);
                         result.province = data.FirstOrDefault(x => x.Id == result.data.ProvinceId);
@@ -464,7 +464,7 @@ namespace HuloToys_Service.Controllers
                     var account_client = accountClientESService.GetById(account_client_id);
 
                     var raiting_count = raitingESService.CountCommentByOrderID(request.id, (long)account_client.ClientId);
-                    result.has_raiting=raiting_count> 0;
+                    result.has_raiting = raiting_count > 0;
                     if (result != null)
                     {
                         return Ok(new
@@ -503,7 +503,7 @@ namespace HuloToys_Service.Controllers
                 if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, configuration["KEY:private_key"]))
                 {
                     var request = JsonConvert.DeserializeObject<CartConfirmRequestModel>(objParr[0].ToString());
-                    if (request == null 
+                    if (request == null
                         || request.carts == null || request.carts.Count <= 0)
                     {
 
@@ -541,18 +541,18 @@ namespace HuloToys_Service.Controllers
                         payment_type = request.payment_type,
                         delivery_detail = request.delivery_detail,
                         order_no = order_no,
-                        total_amount=0,
-                        address=request.address.Address,
-                        districtid=request.address.DistrictId,
-                        provinceid=request.address.ProvinceId,
-                        wardid=request.address.WardId,
-                        address_id=request.address_id,
-                        receivername=request.address.ReceiverName,
-                        phone=request.address.Phone,
-                        voucher_id=request.voucher_id,
-                        voucher_code=request.voucher_code
+                        total_amount = 0,
+                        address = request.address.Address,
+                        districtid = request.address.DistrictId,
+                        provinceid = request.address.ProvinceId,
+                        wardid = request.address.WardId,
+                        address_id = request.address_id,
+                        receivername = request.address.ReceiverName,
+                        phone = request.address.Phone,
+                        voucher_id = request.voucher_id,
+                        voucher_code = request.voucher_code
                     };
-                    
+
                     foreach (var item in request.carts)
                     {
                         var cart = await _cartMongodbService.FindById(item.id);
@@ -568,9 +568,9 @@ namespace HuloToys_Service.Controllers
                         }
                         else
                         {
-                            cart.product= await productDetailService.GetByID(cart.product._id);
+                            cart.product = await productDetailService.GetByID(cart.product._id);
                             var amount_product = cart.product.amount;
-                            if(cart.product.flash_sale_todate!=null &&cart.product.flash_sale_todate>=DateTime.Now && cart.product.amount_after_flashsale!=null&& cart.product.amount_after_flashsale > 0)
+                            if (cart.product.flash_sale_todate != null && cart.product.flash_sale_todate >= DateTime.Now && cart.product.amount_after_flashsale != null && cart.product.amount_after_flashsale > 0)
                             {
                                 amount_product = (double)cart.product.amount_after_flashsale;
 
@@ -626,18 +626,18 @@ namespace HuloToys_Service.Controllers
                     var result = await orderMongodbService.Insert(model);
                     //-- Insert Queue:
                     var queue_model = new CheckoutQueueModel() { event_id = (int)CheckoutEventID.CREATE_ORDER, order_mongo_id = result };
-                   
 
-                    var pushed_queue =work_queue.InsertQueueSimpleDurable(JsonConvert.SerializeObject(queue_model) , QueueName.QUEUE_CHECKOUT);
+
+                    var pushed_queue = work_queue.InsertQueueSimpleDurable(JsonConvert.SerializeObject(queue_model), QueueName.QUEUE_CHECKOUT);
                     LogHelper.InsertLogTelegram(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "Push Queue: "
                        + QueueName.QUEUE_CHECKOUT
-                       + "[" + JsonConvert.SerializeObject(queue_model) + "] ["+pushed_queue+"]");
+                       + "[" + JsonConvert.SerializeObject(queue_model) + "] [" + pushed_queue + "]");
 
                     return Ok(new
                     {
                         status = (int)ResponseType.SUCCESS,
                         msg = "Success",
-                        data = new OrderConfirmResponseModel { order_no = order_no, id = result, pushed= pushed_queue }
+                        data = new OrderConfirmResponseModel { order_no = order_no, id = result, pushed = pushed_queue }
                     });
                 }
             }
@@ -657,8 +657,8 @@ namespace HuloToys_Service.Controllers
                 status = (int)ResponseType.FAILED,
                 msg = ResponseMessages.FunctionExcutionFailed
             });
-        } 
-        
+        }
+
         [HttpPost("insert-raiting")]
         public async Task<ActionResult> InsertRaiting([FromBody] APIRequestGenericModel input)
         {
@@ -670,9 +670,9 @@ namespace HuloToys_Service.Controllers
                 if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, configuration["KEY:private_key"]))
                 {
                     var request = JsonConvert.DeserializeObject<ProductInsertRaitingRequestModel>(objParr[0].ToString());
-                    if (request == null 
+                    if (request == null
                         || request.order_id <= 0
-                        || request.token == null || request.token.Trim()=="")
+                        || request.token == null || request.token.Trim() == "")
                     {
 
                         return Ok(new
@@ -693,30 +693,30 @@ namespace HuloToys_Service.Controllers
                     var account_client = accountClientESService.GetById(account_client_id);
                     string main_product_id = request.product_id;
                     var product = await productDetailService.GetByID(request.product_id);
-                    if(product!=null && product.parent_product_id!=null && product.parent_product_id.Trim() != "")
+                    if (product != null && product.parent_product_id != null && product.parent_product_id.Trim() != "")
                     {
-                        main_product_id=product.parent_product_id;
+                        main_product_id = product.parent_product_id;
                     }
                     ProductRaitingPushQueueModel model = new ProductRaitingPushQueueModel()
                     {
-                         UserId= (long)account_client.ClientId,
-                         Comment= request.comment,
-                         CreatedDate=DateTime.UtcNow.ToLocalTime(),
-                         ImgLink=request.img_link,
-                         OrderId=request.order_id,
-                         ProductId= main_product_id,
-                         ProductDetailId=request.product_id,
-                         VideoLink=request.video_link,
-                         Star=request.star,
-                        
+                        UserId = (long)account_client.ClientId,
+                        Comment = request.comment,
+                        CreatedDate = DateTime.UtcNow.ToLocalTime(),
+                        ImgLink = request.img_link,
+                        OrderId = request.order_id,
+                        ProductId = main_product_id,
+                        ProductDetailId = request.product_id,
+                        VideoLink = request.video_link,
+                        Star = request.star,
+
                     };
                     var queue_model = new
                     {
                         type = QueueType.INSERT_PRODUCT_RATING,
                         data_push = JsonConvert.SerializeObject(model)
                     };
-                    var pushed_queue=work_queue.InsertQueueSimple(JsonConvert.SerializeObject(queue_model) , QueueName.queue_app_push);
-                   
+                    var pushed_queue = work_queue.InsertQueueSimple(JsonConvert.SerializeObject(queue_model), QueueName.queue_app_push);
+
                     return Ok(new
                     {
                         status = (int)ResponseType.SUCCESS,
@@ -780,12 +780,13 @@ namespace HuloToys_Service.Controllers
                     {
                         status = (int)ResponseType.SUCCESS,
                         msg = "Success",
-                        data =new { 
-                            all=allOrders,
-                            waiting_payment=status016,
-                            on_delivery=status25,
-                            success=status3,
-                            cancel=status4
+                        data = new
+                        {
+                            all = allOrders,
+                            waiting_payment = status016,
+                            on_delivery = status25,
+                            success = status3,
+                            cancel = status4
                         }
                     });
 
@@ -817,13 +818,13 @@ namespace HuloToys_Service.Controllers
                     var request = JsonConvert.DeserializeObject<OrdersUpdateAddressRequestModel>(objParr[0].ToString());
                     if (request == null
                         || request.order_id <= 0
-                        || request.province_id ==null || request.province_id.Trim()==""
-                        || request.district_id ==null || request.district_id.Trim()==""
-                        || request.ward_id ==null || request.ward_id.Trim()==""
-                        || request.address ==null || request.address.Trim()==""
-                        || request.phone ==null || request.phone.Trim()==""
-                        || request.token ==null || request.token.Trim()==""
-                        || request.id ==null || request.id.Trim()==""
+                        || request.province_id == null || request.province_id.Trim() == ""
+                        || request.district_id == null || request.district_id.Trim() == ""
+                        || request.ward_id == null || request.ward_id.Trim() == ""
+                        || request.address == null || request.address.Trim() == ""
+                        || request.phone == null || request.phone.Trim() == ""
+                        || request.token == null || request.token.Trim() == ""
+                        || request.id == null || request.id.Trim() == ""
                         )
                     {
 
@@ -846,7 +847,7 @@ namespace HuloToys_Service.Controllers
                     District district = locationESService.GetDistrictByDistrictId(request.district_id);
                     Ward ward = locationESService.GetWardsByWardId(request.ward_id);
                     var result = await orderMongodbService.FindById(request.id);
-                    if(result!=null && result._id != null)
+                    if (result != null && result._id != null)
                     {
                         result.provinceid = request.province_id;
                         result.districtid = request.district_id;
@@ -861,13 +862,88 @@ namespace HuloToys_Service.Controllers
                     var client = clientESService.GetById((long)account_client.ClientId);
                     var model = new
                     {
-                        OrderId= request.order_id,
-                        ClientId= (long)account_client.ClientId,
-                        ProvinceId= province==null? (int?)null: province.Id,
-                        DistrictId= district == null ? (int?)null : district.Id,
+                        OrderId = request.order_id,
+                        ClientId = (long)account_client.ClientId,
+                        ProvinceId = province == null ? (int?)null : province.Id,
+                        DistrictId = district == null ? (int?)null : district.Id,
                         WardId = ward == null ? (int?)null : ward.Id,
-                        Address =request.address,
-                        Phone=request.phone
+                        Address = request.address,
+                        Phone = request.phone
+                    };
+                    var queue_model = new
+                    {
+                        type = QueueType.UPDATE_ORDER,
+                        data_push = JsonConvert.SerializeObject(model)
+                    };
+                    var pushed_queue = work_queue.InsertQueueSimple(JsonConvert.SerializeObject(queue_model), QueueName.queue_app_push);
+
+                    return Ok(new
+                    {
+                        status = (int)ResponseType.SUCCESS,
+                        msg = "Success",
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
+                return Ok(new
+                {
+                    status = (int)ResponseType.FAILED,
+                    msg = ResponseMessages.FunctionExcutionFailed
+                });
+
+            }
+            return Ok(new
+            {
+                status = (int)ResponseType.FAILED,
+                msg = ResponseMessages.FunctionExcutionFailed
+            });
+        }
+        [HttpPost("refund")]
+        public async Task<ActionResult> Refund([FromBody] APIRequestGenericModel input)
+        {
+            try
+            {
+
+
+                JArray objParr = null;
+                if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, configuration["KEY:private_key"]))
+                {
+                    var request = JsonConvert.DeserializeObject<OrdersRefundRequestModel>(objParr[0].ToString());
+                    if (request == null
+                        || request.id <= 0
+                        || request.reason == null || request.reason.Trim() == ""
+                        || request.token == null || request.token.Trim() == ""
+                        )
+                    {
+
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+                    long account_client_id = await clientServices.GetAccountClientIdFromToken(request.token);
+                    if (account_client_id <= 0)
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+
+                    var account_client = accountClientESService.GetById(account_client_id);
+                    var client = clientESService.GetById((long)account_client.ClientId);
+                    var model = new
+                    {
+                        OrderId = request.id,
+                        ClientId = (long)account_client.ClientId,
+                        RefundStatus = 1,
+                        RefundReason = request.reason,
+                        RefundDate = DateTime.Now
                     };
                     var queue_model = new
                     {

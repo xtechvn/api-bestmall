@@ -27,6 +27,7 @@ namespace HuloToys_Service.Models.Account
         public byte? Status { get; set; }
         [PropertyName("GroupPermission")]
         public int? GroupPermission { get; set; }
+        [PropertyName("GoogleToken")]
         public string? GoogleToken { get; set; }
 
     }

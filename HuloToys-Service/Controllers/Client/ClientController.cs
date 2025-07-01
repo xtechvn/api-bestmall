@@ -589,7 +589,8 @@ namespace HuloToys_Service.Controllers
                         return Ok(new
                         {
                             status = (int)ResponseType.FAILED,
-                            msg = ResponseMessages.DataInvalid
+                            msg = ResponseMessages.DataInvalid,
+                            code=1
                         });
                     }
                     if (string.IsNullOrEmpty(request.name) || request.name.Trim() == "")
@@ -597,7 +598,8 @@ namespace HuloToys_Service.Controllers
                         return Ok(new
                         {
                             status = (int)ResponseType.FAILED,
-                            msg = ResponseMessages.DataInvalid
+                            msg = ResponseMessages.DataInvalid,
+                            code = 2
                         });
                     }
                     string forgot = CommonHelper.Decode(request.name.Replace("-", "+").Replace("_", "/"), configuration["KEY:private_key"]);
@@ -606,7 +608,8 @@ namespace HuloToys_Service.Controllers
                         return Ok(new
                         {
                             status = (int)ResponseType.FAILED,
-                            msg = ResponseMessages.DataInvalid
+                            msg = ResponseMessages.DataInvalid,
+                            code = 3
                         });
                     }
                     var model = JsonConvert.DeserializeObject<ClientForgotPasswordTokenModel>(forgot);
@@ -615,7 +618,8 @@ namespace HuloToys_Service.Controllers
                         return Ok(new
                         {
                             status = (int)ResponseType.FAILED,
-                            msg = ResponseMessages.DataInvalid
+                            msg = ResponseMessages.DataInvalid,
+                            code = 4
                         });
                     }
                     var account = accountClientESService.GetById(model.account_client_id);
@@ -636,13 +640,15 @@ namespace HuloToys_Service.Controllers
                 return Ok(new
                 {
                     status = (int)ResponseType.FAILED,
-                    msg = ResponseMessages.FunctionExcutionFailed
+                    msg = ResponseMessages.FunctionExcutionFailed,
+                    code = 5
                 });
             }
             return Ok(new
             {
                 status = (int)ResponseType.FAILED,
-                msg = ResponseMessages.DataInvalid
+                msg = ResponseMessages.DataInvalid,
+                code = 6
             });
 
         }

@@ -623,7 +623,7 @@ namespace HuloToys_Service.Controllers
                         });
                     }
                     var account = accountClientESService.GetById(model.account_client_id);
-                    if (account != null && request.name.Trim() == account.ForgotPasswordToken)
+                    if (account != null && request.name.Replace("-", "+").Replace("_", "/").Trim() == account.ForgotPasswordToken)
                     {
                         return Ok(new
                         {

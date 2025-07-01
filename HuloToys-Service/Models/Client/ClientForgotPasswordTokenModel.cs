@@ -4,6 +4,7 @@
     {
         public long account_client_id {  get; set; }
         public long client_id {  get; set; }
+        public string old_password {  get; set; }
         public string email {  get; set; }
         public string user_name {  get; set; }
         public DateTime created_time {  get; set; }

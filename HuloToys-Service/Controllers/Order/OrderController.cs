@@ -906,8 +906,16 @@ namespace HuloToys_Service.Controllers
         {
             try
             {
-
-
+                //var input_model = new
+                //{
+                //    id = 10446,
+                //    reason = "test",
+                //    token = "F08nOlAVBi8vLwxaDGMgagRjYX97aVlkfFt7AmJnTlpFXyNQYmNiUgBpXnt3Q1BJUlZ0WE5BcCxNFysoPCdLQhRzZWoEfmR5Y2tYBHlQcABrbFhOSQVqS2t3ZlFpZRI="
+                //};
+                //input = new APIRequestGenericModel()
+                //{
+                //    token = CommonHelper.Encode(JsonConvert.SerializeObject(input_model), configuration["KEY:private_key"])
+                //};
                 JArray objParr = null;
                 if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, configuration["KEY:private_key"]))
                 {

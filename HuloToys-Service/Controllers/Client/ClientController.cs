@@ -493,6 +493,7 @@ namespace HuloToys_Service.Controllers
                     var request = JsonConvert.DeserializeObject<ClientChangePasswordRequestModel>(objParr[0].ToString());
                     if (request == null
                         || request.password == null || request.password.Trim() == ""
+                        || request.token == null || request.token.Trim() == ""
                         || request.confirm_password == null || request.confirm_password.Trim() == "")
                     {
 
@@ -787,6 +788,74 @@ namespace HuloToys_Service.Controllers
                     status = (int)ResponseType.FAILED,
                     msg = ResponseMessages.FunctionExcutionFailed
                 });
+            }
+            return Ok(new
+            {
+                status = (int)ResponseType.FAILED,
+                msg = ResponseMessages.DataInvalid
+            });
+
+        }
+        [HttpPost("forgot-change-password")]
+        public async Task<ActionResult> ForgotChangePassword([FromBody] APIRequestGenericModel input)
+        {
+            try
+            {
+
+                JArray objParr = null;
+                if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, configuration["KEY:private_key"]))
+                {
+                    var request = JsonConvert.DeserializeObject<ClientChangePasswordRequestModel>(objParr[0].ToString());
+                    if (request == null
+                        || request.password == null || request.password.Trim() == ""
+                        || request.client_id == null || request.client_id <= 0
+                        || request.account_client_id == null || request.account_client_id<=0
+                        || request.confirm_password == null || request.confirm_password.Trim() == "")
+                    {
+
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+                    string new_password = CommonHelper.MD5Hash(request.password);
+                    AccountClientViewModel model = new AccountClientViewModel()
+                    {
+                        ClientId = request.client_id,
+                        ClientType = 0,
+                        Email = null,
+                        Id = (int)request.account_client_id,
+                        isReceiverInfoEmail = null,
+                        Name = null,
+                        Password = new_password,
+                        Phone = null,
+                        Status = 0,
+                        UserName = null,
+                        ForgotPasswordToken = ""
+                    };
+                    var queue_model = new ClientConsumerQueueModel()
+                    {
+                        data_push = JsonConvert.SerializeObject(model),
+                        type = QueueType.UPDATE_USER
+                    };
+                    bool result = workQueueClient.InsertQueueSimple(JsonConvert.SerializeObject(queue_model), QueueName.queue_app_push);
+                    if (result)
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.SUCCESS,
+                            msg = "Success"
+                        });
+                    }
+
+                }
+
+            }
+            catch (Exception ex)
+            {
+                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
             }
             return Ok(new
             {

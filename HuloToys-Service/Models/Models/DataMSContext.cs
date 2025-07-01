@@ -207,7 +207,7 @@ public partial class DataMSContext : DbContext
 
             entity.Property(e => e.CreateDate).HasColumnType("datetime");
             entity.Property(e => e.ForgotPasswordToken)
-                .HasMaxLength(100)
+                .HasMaxLength(2000)
                 .IsUnicode(false);
             entity.Property(e => e.GoogleToken)
                 .HasMaxLength(100)

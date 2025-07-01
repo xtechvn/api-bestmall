@@ -808,6 +808,7 @@ namespace HuloToys_Service.Controllers
                 {
                     var request = JsonConvert.DeserializeObject<ClientChangePasswordRequestModel>(objParr[0].ToString());
                     if (request == null
+                        || request.token_forgot_password == null || request.token_forgot_password.Trim() == ""
                         || request.password == null || request.password.Trim() == ""
                         || request.client_id == null || request.client_id <= 0
                         || request.account_client_id == null || request.account_client_id<=0

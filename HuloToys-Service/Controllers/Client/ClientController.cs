@@ -623,7 +623,12 @@ namespace HuloToys_Service.Controllers
                         });
                     }
                     var account = accountClientESService.GetById(model.account_client_id);
-                    if (account != null && request.name.Replace("-", "+").Replace("_", "/").Trim() == account.ForgotPasswordToken)
+                    if (account != null)
+                    {
+                        LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "Forgot Check ["+account.Id+"][" + account.ForgotPasswordToken + "]");
+
+                    }
+                    if (account != null && request.name.Replace("-", "+").Replace("_", "/").Trim() == account.ForgotPasswordToken.Trim())
                     {
                         return Ok(new
                         {

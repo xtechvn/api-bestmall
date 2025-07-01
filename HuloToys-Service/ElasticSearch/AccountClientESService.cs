@@ -14,26 +14,25 @@ namespace Caching.Elasticsearch
     {
         public string index = "account_client_hulotoys_store";
         private readonly IConfiguration configuration;
-        private static string _ElasticHost;
+        private readonly ElasticClient elasticClient;
 
         public AccountClientESService(string Host, IConfiguration _configuration) : base(Host, _configuration)
         {
-            _ElasticHost = Host;
             configuration = _configuration;
             index = _configuration["DataBaseConfig:Elastic:Index:AccountClient"];
-
+            var nodes = new Uri[] { new Uri(Host) };
+            var connectionPool = new StaticConnectionPool(nodes);
+            var connectionSettings = new ConnectionSettings(connectionPool).DisableDirectStreaming().DefaultIndex(index);
+            elasticClient = new ElasticClient(connectionSettings);
         }
         public AccountESModel GetByUsername(string user_name)
         {
             try
             {
-                var nodes = new Uri[] { new Uri(_ElasticHost) };
-                var connectionPool = new StaticConnectionPool(nodes);
-                var connectionSettings = new ConnectionSettings(connectionPool).DisableDirectStreaming().DefaultIndex("people");
-                var elasticClient = new ElasticClient(connectionSettings);
+                
 
                 var query = elasticClient.Search<AccountESModel>(sd => sd
-                               .Index(index)
+                              // .Index(index)
                                .Query(q => q
                                    .Match(m => m.Field(y=>y.UserName).Query(user_name)
                                )));
@@ -57,16 +56,17 @@ namespace Caching.Elasticsearch
         {
             try
             {
-                var nodes = new Uri[] { new Uri(_ElasticHost) };
-                var connectionPool = new StaticConnectionPool(nodes);
-                var connectionSettings = new ConnectionSettings(connectionPool).DisableDirectStreaming().DefaultIndex("people");
-                var elasticClient = new ElasticClient(connectionSettings);
-
                 var query = elasticClient.Search<AccountESModel>(sd => sd
-                               .Index(index)
-                               .Query(q => q
-                                   .Term(m => m.Id, id)
-                               ));
+                    //.Index(index)
+                    .Query(q => q
+                        .Bool(b => b
+                            .Must(m => m
+                                .Term(t => t.Id, id)
+                            )
+                        )
+                    )
+                    .Size(10) 
+                );
 
                 if (query.IsValid)
                 {
@@ -86,13 +86,8 @@ namespace Caching.Elasticsearch
         {
             try
             {
-                var nodes = new Uri[] { new Uri(_ElasticHost) };
-                var connectionPool = new StaticConnectionPool(nodes);
-                var connectionSettings = new ConnectionSettings(connectionPool).DisableDirectStreaming().DefaultIndex("people");
-                var elasticClient = new ElasticClient(connectionSettings);
-
                 var query = elasticClient.Search<AccountESModel>(sd => sd
-                               .Index(index)
+                              // .Index(index)
                              .Query(q =>
                                q.Bool(
                                    qb => qb.Must( q=>
@@ -131,13 +126,8 @@ namespace Caching.Elasticsearch
         {
             try
             {
-                var nodes = new Uri[] { new Uri(_ElasticHost) };
-                var connectionPool = new StaticConnectionPool(nodes);
-                var connectionSettings = new ConnectionSettings(connectionPool).DisableDirectStreaming().DefaultIndex("people");
-                var elasticClient = new ElasticClient(connectionSettings);
-
                 var query = elasticClient.Search<AccountESModel>(sd => sd
-                               .Index(index)
+                              // .Index(index)
                              .Query(q =>
                                q.Bool(
                                    qb => qb.Must(
@@ -169,13 +159,8 @@ namespace Caching.Elasticsearch
         {
             try
             {
-                var nodes = new Uri[] { new Uri(_ElasticHost) };
-                var connectionPool = new StaticConnectionPool(nodes);
-                var connectionSettings = new ConnectionSettings(connectionPool).DisableDirectStreaming().DefaultIndex("people");
-                var elasticClient = new ElasticClient(connectionSettings);
-
                 var query = elasticClient.Search<AccountESModel>(sd => sd
-                               .Index(index)
+                             //  .Index(index)
                              .Query(q =>
                                q.Bool(
                                    qb => qb.Must(
@@ -209,14 +194,9 @@ namespace Caching.Elasticsearch
         {
             try
             {
-                var nodes = new Uri[] { new Uri(_ElasticHost) };
-                var connectionPool = new StaticConnectionPool(nodes);
-                var connectionSettings = new ConnectionSettings(connectionPool).DisableDirectStreaming().DefaultIndex("people");
-                var elasticClient = new ElasticClient(connectionSettings);
-
 
                 var query = elasticClient.Search<AccountESModel>(sd => sd
-                             .Index(index)
+                            // .Index(index)
                            .Query(q =>
                              q.Bool(
                                  qb => qb.Must(
@@ -245,10 +225,6 @@ namespace Caching.Elasticsearch
         {
             try
             {
-                var nodes = new Uri[] { new Uri(_ElasticHost) };
-                var connectionPool = new StaticConnectionPool(nodes);
-                var connectionSettings = new ConnectionSettings(connectionPool).DisableDirectStreaming().DefaultIndex("people");
-                var elasticClient = new ElasticClient(connectionSettings);
                 var queryContainer = new BoolQuery
                 {
                     Must = new List<QueryContainer>
@@ -266,7 +242,7 @@ namespace Caching.Elasticsearch
                     }
                 };
                 var query = elasticClient.Search<AccountESModel>(sd => sd
-                               .Index(index)
+                             //  .Index(index)
                              .Query(q=>queryContainer));
 
 

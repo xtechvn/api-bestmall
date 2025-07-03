@@ -1142,7 +1142,10 @@ namespace HuloToys_Service.Controllers.News.Business
                 // Lấy chỉ mấy thằng con có IsShowFooter == true
                 var childFooterGroups = group
                     .SelectMany(x => x.group_product_child)
-                    .Where(child => child.IsShowFooter == true);
+                    .Where(child => child.IsShowFooter == true 
+                    && child.ProductCount!=null &&child.ProductCount>0
+                    
+                    );
 
                 list.AddRange(childFooterGroups.Select(child => new ArticleGroupViewModel()
                 {

@@ -255,16 +255,16 @@ namespace HuloToys_Service.Controllers
         {
             try
             {
-                var model_input = new
-                {
-                    type = 4,
-                    page_index = 1,
-                    page_size = 10
-                };
-                input = new APIRequestGenericModel()
-                {
-                    token = CommonHelper.Encode(JsonConvert.SerializeObject(model_input), _configuration["KEY:private_key"])
-                };
+                //var model_input = new
+                //{
+                //    type = 4,
+                //    page_index = 1,
+                //    page_size = 10
+                //};
+                //input = new APIRequestGenericModel()
+                //{
+                //    token = CommonHelper.Encode(JsonConvert.SerializeObject(model_input), _configuration["KEY:private_key"])
+                //};
 
                 JArray objParr = null;
 

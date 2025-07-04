@@ -257,7 +257,7 @@ namespace HuloToys_Service.Controllers
             {
                 //var model_input = new
                 //{
-                //    type = 4,
+                //    type = 3,
                 //    page_index = 1,
                 //    page_size = 10
                 //};

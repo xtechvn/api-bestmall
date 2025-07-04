@@ -344,7 +344,8 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                             rating = selected.rating,
                             review_count = selected.review_count,
                             total_sold = selected.total_sold,
-                            super_sale=item.supersale
+                            super_sale=item.supersale,
+                            badge_type=item.badgetype
                         });
                     }
                 }

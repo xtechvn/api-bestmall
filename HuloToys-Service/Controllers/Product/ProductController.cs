@@ -174,7 +174,8 @@ namespace WEB.CMS.Controllers
                             x.exists_flashsale_name,
                             x.amount_after_flashsale,
                             x.flash_sale_fromdate,
-                            x.flash_sale_todate
+                            x.flash_sale_todate,
+                            x.flashsale_badge_type
                         });
                         return Ok(new
                         {
@@ -367,7 +368,8 @@ namespace WEB.CMS.Controllers
                                 exists_flashsale_name=x.exists_flashsale_name,
                                 amount_after_flashsale= x.amount_after_flashsale,
                                 flash_sale_fromdate= x.flash_sale_fromdate,
-                                flash_sale_todate=x.flash_sale_todate
+                                flash_sale_todate=x.flash_sale_todate,
+                                flashsale_badge_type=x.flashsale_badge_type
                             }).ToList();
                         }
                     }
@@ -837,7 +839,8 @@ namespace WEB.CMS.Controllers
                                 x.exists_flashsale_name,
                                 x.amount_after_flashsale,
                                 x.flash_sale_fromdate,
-                                x.flash_sale_todate
+                                x.flash_sale_todate,
+                                x.flashsale_badge_type
                             });
                             return Ok(new
                             {
@@ -1404,7 +1407,9 @@ namespace WEB.CMS.Controllers
                             x.exists_flashsale_name,
                             x.amount_after_flashsale,
                             x.flash_sale_fromdate,
-                            x.flash_sale_todate
+                            x.flash_sale_todate,
+                            x.flashsale_badge_type
+
                         });
                         return Ok(new
                         {

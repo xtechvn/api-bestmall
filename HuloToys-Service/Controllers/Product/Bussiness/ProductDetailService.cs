@@ -488,6 +488,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                         item.old_price = old_price;
                         item.amount_after_flashsale = NumberHelpers.RoundUpToHundredsDouble((double)item.amount_after_flashsale);
                         item.profit = NumberHelpers.RoundUpToHundredsDouble((double)item.profit);
+                        item.flashsale_badge_type = exists_flash_sale_product.badgetype;
                     }
                 }
             }

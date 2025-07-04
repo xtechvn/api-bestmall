@@ -47,10 +47,11 @@ namespace HuloToys_Front_End.Models.Products
         public string avatar { get; set; }
         public string variation_detail { get; set; }
         public int? exists_flashsale_id { get; set; }
+        public int? flashsale_badge_type { get; set; }
         public string exists_flashsale_name { get; set; }
         public double? amount_after_flashsale { get; set; }
         public DateTime? flash_sale_fromdate { get; set; }
         public DateTime? flash_sale_todate { get; set; }
-
+        
     }
 }

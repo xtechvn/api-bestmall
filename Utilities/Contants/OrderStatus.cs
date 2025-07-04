@@ -46,4 +46,14 @@ namespace Utilities.Contants
         PAID_NOT_ENOUGH = 2,
 
     }
+    public enum ProductFlashSaleBadgeStatus
+    {
+        NORMAL = -1,
+        FEATURED_PRODUCT = 1,
+        FEATURED_BRAND = 2,
+        BESTCHOICE = 3,
+        FAVOURITES = 4,
+        PREMIUM = 5,
+        SUPERSALE = 6
+    }
 }

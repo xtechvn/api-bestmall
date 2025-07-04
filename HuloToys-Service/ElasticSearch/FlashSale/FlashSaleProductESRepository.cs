@@ -239,19 +239,20 @@ namespace Caching.Elasticsearch.FlashSale
                 .Query(q => q
                     .Bool(b =>
                     {
-                        var mustQueries = new List<Func<QueryContainerDescriptor<FlashSaleProductESModel>, QueryContainer>>();
+                        var mustQueries = new List<Func<QueryContainerDescriptor<FlashSaleProductESModel>, QueryContainer>>
+                        {
+                            // Condition: status = 1
+                            m => m.Term(t => t
+                                .Field(f => f.status)
+                                .Value(1)
+                            ),
 
-                        // Condition: status = 1
-                        mustQueries.Add(m => m.Term(t => t
-                            .Field(f => f.status)
-                            .Value(1)
-                        ));
-
-                        // Condition: flashsale_id in flashsale_ids
-                        mustQueries.Add(m => m.Terms(t => t
-                            .Field(f => f.flashsale_id)
-                            .Terms(flashsale_ids)
-                        ));
+                            // Condition: flashsale_id in flashsale_ids
+                            m => m.Terms(t => t
+                                .Field(f => f.flashsale_id)
+                                .Terms(flashsale_ids)
+                            )
+                        };
 
                         // If type is not null, add badgetype filter
                         if (type.HasValue && type>0)

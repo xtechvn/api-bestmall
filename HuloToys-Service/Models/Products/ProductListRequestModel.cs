@@ -22,4 +22,10 @@
         public int page_index { get; set; }
         public int page_size { get; set; }
     }
+    public class ProductFlashSaleByTypeRequestModel
+    {
+        public int? type { get; set; }
+        public int page_index { get; set; }
+        public int page_size { get; set; }
+    }
 }

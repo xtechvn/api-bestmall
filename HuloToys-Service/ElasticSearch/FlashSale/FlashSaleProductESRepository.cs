@@ -1,5 +1,6 @@
 ﻿using HuloToys_Service.Elasticsearch;
 using Nest;
+using System.Drawing.Printing;
 using Utilities;
 
 namespace Caching.Elasticsearch.FlashSale
@@ -216,6 +217,107 @@ namespace Caching.Elasticsearch.FlashSale
                     )
                 )
             );
+
+            if (response.IsValid)
+            {
+                return response.Count;
+            }
+            else
+            {
+
+                return 0;
+            }
+        }
+        public async Task<List<FlashSaleProductESModel>> GetListFlashSaleProductByType(List<int> flashsale_ids, int page_index = 1, int page_size = 10, int? type = null)
+        {
+            var now = DateTime.Now;
+
+            // Calculate 'from' (skip) based on page_index and page_size
+            var from = (page_index - 1) * page_size;
+
+            var response = await _client.SearchAsync<FlashSaleProductESModel>(s => s
+                .Query(q => q
+                    .Bool(b =>
+                    {
+                        var mustQueries = new List<Func<QueryContainerDescriptor<FlashSaleProductESModel>, QueryContainer>>();
+
+                        // Condition: status = 1
+                        mustQueries.Add(m => m.Term(t => t
+                            .Field(f => f.status)
+                            .Value(1)
+                        ));
+
+                        // Condition: flashsale_id in flashsale_ids
+                        mustQueries.Add(m => m.Terms(t => t
+                            .Field(f => f.flashsale_id)
+                            .Terms(flashsale_ids)
+                        ));
+
+                        // If type is not null, add badgetype filter
+                        if (type.HasValue && type>0)
+                        {
+                            mustQueries.Add(m => m.Term(t => t
+                                .Field(f => f.badgetype) // Filter by badgetype
+                                .Value(type.Value)
+                            ));
+                        }
+
+                        b.Must(mustQueries.ToArray());
+                        return b;
+                    })
+                )
+                .From(from) // Set the number of documents to skip
+                .Size(page_size) // Set the maximum number of documents to return
+            );
+
+            if (response.IsValid)
+            {
+                return response.Documents.ToList();
+            }
+            else
+            {
+                // Log the error for debugging purposes if needed
+                // Console.WriteLine($"Elasticsearch search failed: {response.DebugInformation}");
+                return new List<FlashSaleProductESModel>();
+            }
+        }
+        public async Task<long> CountListFlashSaleProductByType(List<int> flashsale_ids, int? type = null)
+        {
+            var now = DateTime.Now;
+
+
+            var response = await _client.CountAsync<FlashSaleProductESModel>(s => s
+                 .Query(q => q
+                     .Bool(b =>
+                     {
+                         var mustQueries = new List<Func<QueryContainerDescriptor<FlashSaleProductESModel>, QueryContainer>>();
+
+                         // Condition: status = 1
+                         mustQueries.Add(m => m.Term(t => t
+                             .Field(f => f.status)
+                             .Value(1)
+                         ));
+
+                         // Condition: flashsale_id in flashsale_ids
+                         mustQueries.Add(m => m.Terms(t => t
+                             .Field(f => f.flashsale_id)
+                             .Terms(flashsale_ids)
+                         ));
+
+                         // If type is not null, add badgetype filter
+                         if (type.HasValue && type > 0)
+                         {
+                             mustQueries.Add(m => m.Term(t => t
+                                 .Field(f => f.badgetype) // Filter by badgetype
+                                 .Value(type.Value)
+                             ));
+                         }
+
+                         b.Must(mustQueries.ToArray());
+                         return b;
+                     })
+                 )
+             );
 
             if (response.IsValid)
             {

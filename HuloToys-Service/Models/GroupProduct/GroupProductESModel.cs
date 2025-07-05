@@ -55,6 +55,9 @@ namespace HuloToys_Service.Models.ElasticSearch
         public long? ProductCount { get; set; }
 
         public List<GroupProductESModel> group_product_child { get; set; }
+        [PropertyName("IsFlashSale")]
+
+        public bool? IsFlashSale { get; set; }
 
     }
 }

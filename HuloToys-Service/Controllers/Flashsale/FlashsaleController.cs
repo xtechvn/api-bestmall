@@ -4,9 +4,12 @@ using Caching.Elasticsearch.FlashSale;
 using HuloToys_Front_End.Models.Products;
 using HuloToys_Service.Controllers.Client.Business;
 using HuloToys_Service.Controllers.Flashsale.Bussiness;
+using HuloToys_Service.Controllers.News.Business;
 using HuloToys_Service.Controllers.Product.Bussiness;
 using HuloToys_Service.ElasticSearch;
 using HuloToys_Service.Models.APIRequest;
+using HuloToys_Service.Models.Article;
+using HuloToys_Service.Models.ElasticSearch;
 using HuloToys_Service.Models.Flashsale;
 using HuloToys_Service.Models.Models;
 using HuloToys_Service.MongoDb;
@@ -285,7 +288,7 @@ namespace HuloToys_Service.Controllers
                     {
                         list_id = list_fl.Select(x => x.flashsale_id).ToList();
                     }
-                    var list = await flashSaleProductESRepository.GetListFlashSaleProductByType(list_id, request.page_index, request.page_size, request.type);
+                    var list = await flashSaleProductESRepository.GetListFlashSaleProductByType(list_id,request.type, request.page_index, request.page_size, request.type);
                     if (list == null || list.Count <= 0)
                     {
                         return Ok(new
@@ -314,6 +317,68 @@ namespace HuloToys_Service.Controllers
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
                 LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
+            }
+            return Ok(new
+            {
+                status = (int)ResponseType.FAILED,
+                msg = ResponseMessages.DataInvalid,
+            });
+        }
+
+        [HttpPost("group-product")]
+        public async Task<IActionResult> GroupProduct([FromBody] APIRequestGenericModel input)
+        {
+            try
+            {
+                JArray objParr = null;
+                if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, _configuration["KEY:private_key"]))
+                {
+                    string cache_name = "GROUP_PRODUCT_FLASHSALE";
+                    string j_data = null;
+                    List<GroupProductESModel> data = null;
+
+                    try
+                    {
+                        j_data = await _redisService.GetAsync(cache_name, Convert.ToInt32(_configuration["Redis:Database:db_common"]));
+                    }
+                    catch (Exception ex)
+                    {
+                        LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"],
+                            "GroupProductController - Redis GET failed: " + ex);
+                    }
+                    if (j_data != null)
+                    {
+                        data = JsonConvert.DeserializeObject<List<GroupProductESModel>>(j_data);
+                    }
+                    else
+                    {
+                        data =  groupProductESService.GetFlashSaleGroupProduct();
+                        if (data != null && data.Count > 0)
+                        {
+                            try
+                            {
+                                _redisService.Set(cache_name, JsonConvert.SerializeObject(data), Convert.ToInt32(_configuration["Redis:Database:db_common"]));
+                            }
+                            catch (Exception ex)
+                            {
+                                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"],
+                                    "GroupProductController - Redis SET failed: " + ex);
+                            }
+                        }
+                    }
+                    return Ok(new
+                    {
+                        status = (int)ResponseType.SUCCESS,
+                        msg = ResponseMessages.Success,
+                        data = data
+                    });
+                }
+
+
+            }
+            catch
+            {
+
             }
             return Ok(new
             {

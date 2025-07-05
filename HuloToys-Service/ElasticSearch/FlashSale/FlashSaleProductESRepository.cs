@@ -228,7 +228,7 @@ namespace Caching.Elasticsearch.FlashSale
                 return 0;
             }
         }
-        public async Task<List<FlashSaleProductESModel>> GetListFlashSaleProductByType(List<int> flashsale_ids, int page_index = 1, int page_size = 10, int? type = null)
+        public async Task<List<FlashSaleProductESModel>> GetListFlashSaleProductByType(List<int> flashsale_ids,int? group_id, int page_index = 1, int page_size = 10, int? type = null)
         {
             var now = DateTime.Now;
 
@@ -241,34 +241,37 @@ namespace Caching.Elasticsearch.FlashSale
                     {
                         var mustQueries = new List<Func<QueryContainerDescriptor<FlashSaleProductESModel>, QueryContainer>>
                         {
-                            // Condition: status = 1
                             m => m.Term(t => t
                                 .Field(f => f.status)
                                 .Value(1)
                             ),
 
-                            // Condition: flashsale_id in flashsale_ids
                             m => m.Terms(t => t
                                 .Field(f => f.flashsale_id)
                                 .Terms(flashsale_ids)
                             )
                         };
 
-                        // If type is not null, add badgetype filter
                         if (type.HasValue && type>0)
                         {
                             mustQueries.Add(m => m.Term(t => t
-                                .Field(f => f.badgetype) // Filter by badgetype
+                                .Field(f => f.badgetype)
                                 .Value(type.Value)
                             ));
                         }
-
+                        if (group_id!=null &&group_id > 0)
+                        {
+                            mustQueries.Add(m => m.QueryString(qs => qs
+                                .Fields(f => f.Field(ff => ff.group_id)) 
+                                .Query($"*{group_id}*") 
+                            ));
+                        }
                         b.Must(mustQueries.ToArray());
                         return b;
                     })
                 )
-                .From(from) // Set the number of documents to skip
-                .Size(page_size) // Set the maximum number of documents to return
+                .From(from) 
+                .Size(page_size)
             );
 
             if (response.IsValid)

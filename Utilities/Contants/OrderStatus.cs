@@ -54,6 +54,8 @@ namespace Utilities.Contants
         BESTCHOICE = 3,
         FAVOURITES = 4,
         PREMIUM = 5,
-        SUPERSALE = 6
+        SUPERSALE = 6,
+        MOSTLY_SOLD = 7
+
     }
 }

@@ -285,7 +285,7 @@ namespace Caching.Elasticsearch.FlashSale
                 return new List<FlashSaleProductESModel>();
             }
         }
-        public async Task<long> CountListFlashSaleProductByType(List<int> flashsale_ids, int? type = null)
+        public async Task<long> CountListFlashSaleProductByType(List<int> flashsale_ids, int? type = null, int? group_id=-1)
         {
             var now = DateTime.Now;
 
@@ -316,7 +316,13 @@ namespace Caching.Elasticsearch.FlashSale
                                  .Value(type.Value)
                              ));
                          }
-
+                         if (group_id != null && group_id > 0)
+                         {
+                             mustQueries.Add(m => m.QueryString(qs => qs
+                                 .Fields(f => f.Field(ff => ff.group_id))
+                                 .Query($"*{group_id}*")
+                             ));
+                         }
                          b.Must(mustQueries.ToArray());
                          return b;
                      })

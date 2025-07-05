@@ -261,10 +261,9 @@ namespace Caching.Elasticsearch.FlashSale
                         }
                         if (group_id!=null &&group_id > 0)
                         {
-                            mustQueries.Add(m => m.QueryString(qs => qs
-                                .Fields(f => f.Field(ff => ff.group_id)) 
-                                .Query($"*{group_id}*") 
-                            ));
+  
+                            mustQueries.Add(f => f.QueryString(qs => qs.Fields(fs => fs.Field("group_id")).Query("*"+ ((int)group_id).ToString()+ "*")));
+
                         }
                         b.Must(mustQueries.ToArray());
                         return b;

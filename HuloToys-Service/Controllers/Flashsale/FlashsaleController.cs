@@ -16,6 +16,7 @@ using HuloToys_Service.MongoDb;
 using HuloToys_Service.RedisWorker;
 using HuloToys_Service.Utilities.Lib;
 using Microsoft.AspNetCore.Mvc;
+using Nest;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Reflection;
@@ -260,7 +261,8 @@ namespace HuloToys_Service.Controllers
             {
                 //var model_input = new
                 //{
-                //    type = 3,
+                //    type = 110,
+                //    group_id = 70,
                 //    page_index = 1,
                 //    page_size = 10
                 //};
@@ -288,7 +290,7 @@ namespace HuloToys_Service.Controllers
                     {
                         list_id = list_fl.Select(x => x.flashsale_id).ToList();
                     }
-                    var list = await flashSaleProductESRepository.GetListFlashSaleProductByType(list_id,request.type, request.page_index, request.page_size, request.type);
+                    var list = await flashSaleProductESRepository.GetListFlashSaleProductByType(list_id,request.group_id, request.page_index, request.page_size, request.type);
                     if (list == null || list.Count <= 0)
                     {
                         return Ok(new
@@ -303,7 +305,7 @@ namespace HuloToys_Service.Controllers
                         status = (int)ResponseType.SUCCESS,
                         msg = ResponseMessages.Success,
                         data = list_products,
-                        count = await flashSaleProductESRepository.CountListFlashSaleProductByType(list_id, request.type)
+                        count = await flashSaleProductESRepository.CountListFlashSaleProductByType(list_id, request.type, request.group_id)
 
                     });
                 }
@@ -328,6 +330,14 @@ namespace HuloToys_Service.Controllers
         [HttpPost("group-product")]
         public async Task<IActionResult> GroupProduct([FromBody] APIRequestGenericModel input)
         {
+            //var input_json = new
+            //{
+            //    group_id= 114
+            //};
+            //input = new APIRequestGenericModel()
+            //{
+            //    token = CommonHelper.Encode(JsonConvert.SerializeObject(input_json), _configuration["KEY:private_key"])
+            //};
             try
             {
                 JArray objParr = null;

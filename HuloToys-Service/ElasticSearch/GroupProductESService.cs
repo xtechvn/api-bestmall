@@ -244,7 +244,7 @@ namespace HuloToys_Service.ElasticSearch
             }
             return null;
         }
-        public List<GroupProductESModel> GetFlashSaleGroupProduct()
+        public List<GroupProductESModel> GetFlashSaleGroupProduct(int parent_id)
         {
             try
             {
@@ -252,15 +252,16 @@ namespace HuloToys_Service.ElasticSearch
                 var connectionPool = new StaticConnectionPool(nodes);
                 var connectionSettings = new ConnectionSettings(connectionPool)
                     .DisableDirectStreaming()
-                    .DefaultIndex(index); 
+                    .DefaultIndex(index);
 
                 var elasticClient = new ElasticClient(connectionSettings);
 
                 var query = elasticClient.Search<GroupProductESModel>(sd => sd
-                    .Size(4000) 
+                    .Size(4000)
                     .Query(q =>
                         q.Bool(b => b.Must(
-                            m => m.Term(f => f.Field("IsFlashSale").Value(true))
+                            m => m.Term(f => f.Field("IsFlashSale").Value(true)),
+                            m => m.Term(f => f.Field(p => p.ParentId).Value(parent_id)) // Added filter for ParentId
                         ))
                     ));
 

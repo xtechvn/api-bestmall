@@ -217,7 +217,9 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                 if (active_flashsale != null && active_flashsale.Count > 0)
                 {
                     list_item = await flashSaleProductESRepository.GetByListFlashsaleId(active_flashsale.Select(x => x.flashsale_id).ToList());
-                    UpdateProductItem(item, active_flashsale, list_item);
+                    var group_type = groupProductESService.GetListGroupProductByParentId(109);
+
+                    UpdateProductItem(item, active_flashsale, list_item, group_type);
                 }
 
             }
@@ -256,10 +258,12 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                 {
                     list_item = await flashSaleProductESRepository.GetByListFlashsaleId(active_flashsale.Select(x => x.flashsale_id).ToList());
                 }
+                var group_type = groupProductESService.GetListGroupProductByParentId(109);
+
                 List<ProductMongoDbModelFEResponse> output = new List<ProductMongoDbModelFEResponse>();
                 foreach (var item in products)
                 {
-                    UpdateProductItem(item, active_flashsale, list_item);
+                    UpdateProductItem(item, active_flashsale, list_item, group_type );
                 }
             }
             catch (Exception ex)
@@ -347,7 +351,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             }
             return result;
         }
-        private bool UpdateProductItem(ProductMongoDbModelFEResponse item, List<FlashSaleESModel> active_flashsale, List<FlashSaleProductESModel> list_item, bool ignore_raiting = false, bool ignore_total_sold = false)
+        private bool UpdateProductItem(ProductMongoDbModelFEResponse item, List<FlashSaleESModel> active_flashsale, List<FlashSaleProductESModel> list_item, List<GroupProductESModel> group_types, bool ignore_raiting = false, bool ignore_total_sold = false)
         {
             try
             {
@@ -363,7 +367,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                 }
                 if (active_flashsale != null && active_flashsale.Count > 0 && list_item != null && list_item.Count > 0)
                 {
-                    UpdateProductFlashsale(item, active_flashsale, list_item);
+                    UpdateProductFlashsale(item, active_flashsale, list_item, group_types);
                 }
             }
             catch (Exception ex)
@@ -427,11 +431,12 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             }
             return true;
         }
-        private bool UpdateProductFlashsale(ProductMongoDbModelFEResponse item, List<FlashSaleESModel> active_flashsale, List<FlashSaleProductESModel> list_item)
+        private bool UpdateProductFlashsale(ProductMongoDbModelFEResponse item, List<FlashSaleESModel> active_flashsale, List<FlashSaleProductESModel> list_item,List<GroupProductESModel> group_types)
         {
             try
             {
                 if (item == null || item._id == null) return false;
+                bool has_badge=false;
                 if (active_flashsale != null && active_flashsale.Count > 0 && list_item != null && list_item.Count > 0)
                 {
                     var exists_flash_sale_product = list_item.FirstOrDefault(x => x.productid == (item.parent_product_id != null && item.parent_product_id.Trim() != "" ? item.parent_product_id : item._id));
@@ -489,6 +494,18 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                         item.amount_after_flashsale = NumberHelpers.RoundUpToHundredsDouble((double)item.amount_after_flashsale);
                         item.profit = NumberHelpers.RoundUpToHundredsDouble((double)item.profit);
                         item.flashsale_badge_type = exists_flash_sale_product.badgetype;
+                        has_badge = true;
+                    }
+                }
+                if (!has_badge) {
+                    if (group_types != null && group_types.Count>0 && item.group_product_id!=null && item.group_product_id.Trim()!="" ) {
+                        try
+                        {
+                            var exists = group_types.FirstOrDefault(x => x.Id == Convert.ToInt32(item.group_product_id.Trim().Split(",")[0]));
+                            if (exists != null && exists.Id>0) { item.flashsale_badge_type = exists.Id; }
+                        }
+                        catch { }
+                    
                     }
                 }
             }
@@ -500,7 +517,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             }
             return true;
         }
-        public List<ProductMongoDbModelFEResponse> FilterProducts(List<ProductMongoDbModelFEResponse> products, double? price_from,
+      public List<ProductMongoDbModelFEResponse> FilterProducts(List<ProductMongoDbModelFEResponse> products, double? price_from,
       double? price_to,
       int page_index,
       int page_size)

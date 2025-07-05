@@ -333,7 +333,16 @@ namespace HuloToys_Service.Controllers
                 JArray objParr = null;
                 if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, _configuration["KEY:private_key"]))
                 {
-                    string cache_name = "GROUP_PRODUCT_FLASHSALE";
+                    var request = JsonConvert.DeserializeObject<ProductFlashSaleByTypeRequestModel>(objParr[0].ToString());
+                    if (request == null || request.group_id ==null || request.group_id <= 0)
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+                    string cache_name = "GROUP_PRODUCT_FLASHSALE_"+request.group_id;
                     string j_data = null;
                     List<GroupProductESModel> data = null;
 
@@ -352,7 +361,7 @@ namespace HuloToys_Service.Controllers
                     }
                     else
                     {
-                        data =  groupProductESService.GetFlashSaleGroupProduct();
+                        data =  groupProductESService.GetFlashSaleGroupProduct((int)request.group_id);
                         if (data != null && data.Count > 0)
                         {
                             try

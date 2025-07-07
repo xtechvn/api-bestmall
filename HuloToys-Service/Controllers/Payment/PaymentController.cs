@@ -60,7 +60,7 @@ namespace HuloToys_Service.Controllers
                         var qr = await _vietQRServices.GetVietQRCode(
                       configuration["BankTransfer:AccountNumber"]
                       , configuration["BankTransfer:AccountName"]
-                      , Convert.ToInt32(configuration["BankTransfer:BankId"])
+                      , configuration["BankTransfer:BankId"]
                       , model.order_no
                       , model.total_amount);
                         return Ok(new

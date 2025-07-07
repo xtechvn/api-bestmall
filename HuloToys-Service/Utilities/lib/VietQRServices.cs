@@ -20,41 +20,56 @@ namespace HuloToys_Service.Utilities.lib
             }
             catch { }
         }
-        public async Task<string> GetVietQRCode(string account_number, string account_name, int bank_id, string order_no, double amount)
+        public async Task<string> GetVietQRCode(string account_number, string account_name, string bank_id, string order_no, double amount)
         {
             try
             {
-                string bank_code = vietQRBanks.First(x => x.id == bank_id).bin;
-                var options = new RestClientOptions("https://api.vietqr.io");
-                var client = new RestClient(options);
-                var request = new RestRequest("/v2/generate", Method.Post);
-                request.AddHeader("x-client-id", xClientId);
-                request.AddHeader("x-api-key", xClientKey);
-                request.AddHeader("Content-Type", "application/json");
-                var body = "{ \"accountNo\": \""
-                    + account_number
-                    + "\", \"accountName\": \""+ account_name + "\", \"acqId\": \""
-                    + (bank_code.Length > 6 ? bank_code.Substring(0, 6) : bank_code)
-                    + "\", \"addInfo\": \""
-                    + order_no
-                    + " THANH TOAN\", \"amount\": \"" + Math.Round(amount, 0)
-                    + "\", \"template\": \"compact\" }";
-                request.AddStringBody(body, DataFormat.Json);
-                RestResponse response = await client.ExecuteAsync(request);
-                var result= response.Content;
-                var jsonData = JObject.Parse(result);
-                var status = int.Parse(jsonData["code"].ToString());
+                //string bank_code = vietQRBanks.First(x => x.id == bank_id).bin;
+                //var options = new RestClientOptions("https://api.vietqr.io");
+                //var client = new RestClient(options);
+                //var request = new RestRequest("/v2/generate", Method.Post);
+                //request.AddHeader("x-client-id", xClientId);
+                //request.AddHeader("x-api-key", xClientKey);
+                //request.AddHeader("Content-Type", "application/json");
+                //var body = "{ \"accountNo\": \""
+                //    + account_number
+                //    + "\", \"accountName\": \""+ account_name + "\", \"acqId\": \""
+                //    + (bank_code.Length > 6 ? bank_code.Substring(0, 6) : bank_code)
+                //    + "\", \"addInfo\": \""
+                //    + order_no
+                //    + " THANH TOAN\", \"amount\": \"" + Math.Round(amount, 0)
+                //    + "\", \"template\": \"compact\" }";
+                //request.AddStringBody(body, DataFormat.Json);
+                //RestResponse response = await client.ExecuteAsync(request);
+                //var result= response.Content;
+                //var jsonData = JObject.Parse(result);
+                //var status = int.Parse(jsonData["code"].ToString());
 
-                if (status == 0)
-                {
-                    return jsonData["data"]["qrDataURL"].ToString();
-                }
+                //if (status == 0)
+                //{
+                //    return jsonData["data"]["qrDataURL"].ToString();
+                //}
+                var template_url = "https://api.vietqr.io/image/"+ bank_id + "-"+ account_number + "-0ClfTJF.jpg?accountName=BEST MALL CO LTD&amount="+ Convert.ToInt32(amount) + "&addInfo="+order_no+" thanh toan";
+                return template_url;
             }
             catch
             {
 
             }
             return null;
+        }
+        public static async Task<string> GetImageBase64FromUrl(string imageUrl)
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                // Tải dữ liệu ảnh dưới dạng mảng byte
+                byte[] imageBytes = await client.GetByteArrayAsync(imageUrl);
+
+                // Chuyển đổi mảng byte thành chuỗi Base64
+                string base64String = Convert.ToBase64String(imageBytes);
+
+                return base64String;
+            }
         }
     }
 }

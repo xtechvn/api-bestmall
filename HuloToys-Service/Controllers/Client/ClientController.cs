@@ -526,6 +526,15 @@ namespace HuloToys_Service.Controllers
                                 msg = "Mật khẩu cũ không chính xác"
                             });
                         }
+                        // ✅ Check thêm:
+                        if (new_password == old_password)
+                        {
+                            return Ok(new
+                            {
+                                status = (int)ResponseType.FAILED,
+                                msg = "Mật khẩu mới không được trùng với mật khẩu cũ"
+                            });
+                        }
 
                         AccountClientViewModel model = new AccountClientViewModel()
                         {

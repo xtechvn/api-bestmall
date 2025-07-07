@@ -352,7 +352,7 @@ namespace HuloToys_Service.Controllers
                             msg = ResponseMessages.DataInvalid
                         });
                     }
-                    string cache_name = "GROUP_PRODUCT_FLASHSALE_"+request.group_id;
+                    string cache_name = "GROUP_PRODUCT_FLASHSALE_" + request.group_id;
                     string j_data = null;
                     List<GroupProductESModel> data = null;
 

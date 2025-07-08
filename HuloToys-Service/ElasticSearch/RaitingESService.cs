@@ -51,12 +51,22 @@ namespace HuloToys_Service.ElasticSearch
                 // Add filters conditionally
                 var mustQueries = new List<QueryContainer>();
                 var shouldQueries = new List<QueryContainer>();
+                var existsQuery_productid = new BoolQuery
+                {   
+					Should = new List<QueryContainer>
+                        {
+                            new MatchQuery { Field = Infer.Field<RatingESModel>(x => x.ProductId), Query=request.id },
+                            new MatchQuery { Field = Infer.Field<RatingESModel>(x => x.ProductDetailId), Query=request.id }
+                        },
+                    MinimumShouldMatch = 1 
+                };
+                mustQueries.Add(existsQuery_productid);
 
-                mustQueries.Add(new MatchQuery
-                {
-                    Field = Infer.Field<RatingESModel>(x => x.ProductId),
-                    Query=request.id
-                });
+                //mustQueries.Add(new MatchQuery
+                //{
+                //    Field = Infer.Field<RatingESModel>(x => x.ProductId),
+                //    Query=request.id
+                //});
 
                 if (request.stars>0)
                 {

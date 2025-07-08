@@ -2,6 +2,7 @@
 using ENTITIES.ViewModels.ArticleViewModels;
 using HuloToys_Service.Utilities.Lib;
 using MongoDB.Driver;
+using System.Drawing.Printing;
 
 namespace HuloToys_Service.Models.Article
 {
@@ -59,12 +60,10 @@ namespace HuloToys_Service.Models.Article
             {
                 var filter = Builders<NewsViewCount>.Filter;
                 var filterDefinition = filter.Empty;
-                var list = await _news_collection.Find(filterDefinition).SortByDescending(x => x.pageview).ToListAsync();
-                if (list != null && list.Count > 0)
-                {
-                    if (list.Count < 10) return list;
-                    else return list.Skip(0).Take(10).ToList();
-                }
+                var model = _news_collection.Find(filterDefinition);
+                model.Options.Skip =0;
+                model.Options.Limit = 5;
+                return await model.ToListAsync();
 
             }
             catch (Exception ex)

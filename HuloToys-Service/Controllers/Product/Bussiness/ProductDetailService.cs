@@ -452,11 +452,11 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                             amount_product = (double)item.amount_min;
 
                         }
-                        double old_price = item.old_price == null || item.old_price <= 0 ? amount_product : (double)item.old_price;
-                        if (old_price <= 0)
-                        {
-                            old_price = amount_product;
-                        }
+                        //double old_price = item.old_price == null || item.old_price <= 0 ? amount_product : (double)item.old_price;
+                        //if (old_price <= 0)
+                        //{
+                        //    old_price = amount_product;
+                        //}
                         switch (exists_flash_sale_product.valuetype)
                         {
                             case 1:
@@ -487,10 +487,10 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                             item.amount_max = NumberHelpers.RoundUpToHundredsDouble((double)item.amount_max);
 
                         }
-                        item.discount = Math.Round(((old_price - (double)item.amount_after_flashsale) / old_price * 100), 0);
+                        item.discount = Math.Round(((amount_product - (double)item.amount_after_flashsale) / amount_product * 100), 0);
                         item.discount = item.discount <= 0 ? 0 : item.discount;
                         //item.price = amount_product- item.profit;
-                        item.old_price = old_price;
+                        //item.old_price = old_price;
                         item.amount_after_flashsale = NumberHelpers.RoundUpToHundredsDouble((double)item.amount_after_flashsale);
                         item.profit = NumberHelpers.RoundUpToHundredsDouble((double)item.profit);
                         item.flashsale_badge_type = exists_flash_sale_product.badgetype;

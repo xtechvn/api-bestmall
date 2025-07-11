@@ -306,7 +306,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                 if (list_item != null && list_item.Count > 0)
                 {
                     var list_product_mongo = await _productDetailMongoAccess.ListByProducts(list_item.Select(x => x.productid).ToList());
-                    LogHelper.InsertLogTelegram( "ListingByType ["+string.Join(",", list_item.Select(x => x.productid)) +"] count=" + (list_product_mongo == null ? "NULL" : list_product_mongo.Count.ToString()));
+                    LogHelper.InsertLogTelegram("ListingByType -1-  count=" + (list_product_mongo == null ? "NULL" : list_product_mongo.Count.ToString()));
 
                     foreach (var item in list_item)
                     {
@@ -362,6 +362,8 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
                 LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
+                LogHelper.InsertLogTelegram("GetFlashSaleProductByProductIds -1-  err=" + ex.ToString());
+
             }
             return result;
         }

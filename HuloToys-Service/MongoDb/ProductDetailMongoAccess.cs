@@ -492,7 +492,7 @@ namespace HuloToys_Service.MongoDb
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegram("ListingByType [" + string.Join(",", ids) + "] err=" +ex.ToString());
+                LogHelper.InsertLogTelegram("ListByProducts err=" + ex.ToString());
 
                 return new List<ProductMongoDbModel>();
             }

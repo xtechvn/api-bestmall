@@ -261,8 +261,8 @@ namespace HuloToys_Service.Controllers
             {
                 //var model_input = new
                 //{
-                //    type = 114,
-                //    group_id = 5,
+                //    type = -1,
+                //    group_id = -1,
                 //    page_index = 1,
                 //    page_size = 10
                 //};
@@ -293,6 +293,7 @@ namespace HuloToys_Service.Controllers
                     var list = await flashSaleProductESRepository.GetListFlashSaleProductByType(list_id,request.group_id, request.page_index, request.page_size, request.type);
                     if (list == null || list.Count <= 0)
                     {
+
                         return Ok(new
                         {
                             status = (int)ResponseType.FAILED,
@@ -300,6 +301,8 @@ namespace HuloToys_Service.Controllers
                         });
                     }
                     var list_products = await productDetailService.GetFlashSaleProductByProductIds(list);
+                    LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], "ListingByType Count="+ list_products==null ?"NULL":list_products.Count.ToString());
+
                     return Ok(new
                     {
                         status = (int)ResponseType.SUCCESS,

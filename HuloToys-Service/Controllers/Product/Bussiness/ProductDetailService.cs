@@ -238,7 +238,19 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             {
                 products=JsonConvert.DeserializeObject<List<ProductMongoDbModelFEResponse>>(JsonConvert.SerializeObject(products_original));
                 if (products == null || products.Count <= 0) return products;
-                products=await UpdateProductDetail(products);
+				var active_flashsale = await flashSaleESRepository.SearchActiveFlashSales();
+                List<FlashSaleProductESModel> list_item = new List<FlashSaleProductESModel>();
+                if (active_flashsale != null && active_flashsale.Count > 0)
+                {
+                    list_item = await flashSaleProductESRepository.GetByListFlashsaleId(active_flashsale.Select(x => x.flashsale_id).ToList());
+                }
+                List<ProductMongoDbModelFEResponse> output=new List<ProductMongoDbModelFEResponse>();
+                var group_type = groupProductESService.GetListGroupProductByParentId(109);
+
+                foreach (var item in products)
+                {
+                    UpdateProductItem(item, active_flashsale, list_item, group_type);
+                }
             }
             catch (Exception ex)
             {

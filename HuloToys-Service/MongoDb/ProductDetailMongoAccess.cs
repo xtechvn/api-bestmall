@@ -497,5 +497,26 @@ namespace HuloToys_Service.MongoDb
                 return new List<ProductMongoDbModel>();
             }
         }
+        public async Task<List<ProductMongoDbModel>> ListByProductIgnoreCondition(List<string> ids)
+        {
+            try
+            {
+                var filter = Builders<ProductMongoDbModel>.Filter;
+                var filterDefinition = filter.Empty;
+                filterDefinition &= Builders<ProductMongoDbModel>.Filter.In(x => x._id, ids);
+                //filterDefinition &= Builders<ProductMongoDbModel>.Filter.Eq(x => x.status, (int)ProductStatus.ACTIVE);
+                //filterDefinition &= Builders<ProductMongoDbModel>.Filter.Eq(p => p.supplier_status, (int)SUPPLIER_STATUS.CONFIRMED);
+
+                var model = _productDetailCollection.Find(filterDefinition);
+                var result = await model.ToListAsync();
+                return result;
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram("ListByProducts err=" + ex.ToString());
+
+                return new List<ProductMongoDbModel>();
+            }
+        }
     }
 }

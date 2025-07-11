@@ -301,7 +301,7 @@ namespace HuloToys_Service.Controllers
                         });
                     }
                     var list_products = await productDetailService.GetFlashSaleProductByProductIds(list);
-                    LogHelper.InsertLogTelegram("ListingByType -2- [" + string.Join(",", list.Select(x => x.productid)) + "] count=" + (list_products == null ? "NULL" : list_products.Count.ToString()));
+                    LogHelper.InsertLogTelegram("ListingByType -2- count=" + (list_products == null ? "NULL" : list_products.Count.ToString()));
 
                     return Ok(new
                     {

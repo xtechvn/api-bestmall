@@ -5,6 +5,7 @@ using HuloToys_Service.Utilities.lib;
 using HuloToys_Service.Utilities.Lib;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using System.Collections.Generic;
 using System.Reflection;
 
 namespace HuloToys_Service.MongoDb
@@ -491,7 +492,7 @@ namespace HuloToys_Service.MongoDb
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], ("ListByProducts Mongo count=" +ex.ToString()));
+                LogHelper.InsertLogTelegram("ListingByType [" + string.Join(",", ids) + "] err=" +ex.ToString());
 
                 return new List<ProductMongoDbModel>();
             }

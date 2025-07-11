@@ -305,7 +305,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             {
                 if (list_item != null && list_item.Count > 0)
                 {
-                    var list_product_mongo = await _productDetailMongoAccess.ListByProductIgnoreCondition(list_item.Select(x => x.productid).ToList());
+                    var list_product_mongo = await _productDetailMongoAccess.ListByProducts(list_item.Select(x => x.productid).ToList());
                    // LogHelper.InsertLogTelegram("ListingByType -1-  count=" + (list_product_mongo == null ? "NULL" : list_product_mongo.Count.ToString()));
 
                     foreach (var item in list_item)

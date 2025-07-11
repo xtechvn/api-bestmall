@@ -301,7 +301,6 @@ namespace HuloToys_Service.Controllers
                         });
                     }
                     var list_products = await productDetailService.GetFlashSaleProductByProductIds(list);
-                    LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], "ListingByType Count="+ list_products==null ?"NULL":list_products.Count.ToString());
 
                     return Ok(new
                     {

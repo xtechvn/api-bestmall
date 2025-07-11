@@ -491,6 +491,8 @@ namespace HuloToys_Service.MongoDb
             }
             catch (Exception ex)
             {
+                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], ("ListByProducts Mongo count=" +ex.ToString()));
+
                 return new List<ProductMongoDbModel>();
             }
         }

@@ -119,7 +119,7 @@ namespace HuloToys_Service.Controllers.Client.Business
                         .Replace("{client_name}", client.ClientName)
                         .Replace("{username}", account.UserName)
                         .Replace("{change_password_url}", forgot_password_token.Replace("+", "-").Replace("/", "_"))
-                        .Replace("/tai-khoan/doi-mat-khau/", "/account/change-password")
+                        .Replace("/tai-khoan/doi-mat-khau/", "/account/change-password/")
                         ;
                     message.Body = body_fixed;
                     message.IsBodyHtml = true;

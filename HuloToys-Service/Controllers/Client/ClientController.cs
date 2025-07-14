@@ -885,5 +885,190 @@ namespace HuloToys_Service.Controllers
             });
 
         }
+
+        [HttpPost("change-password-sendemail-validate")]
+        public async Task<ActionResult> SendEmailChangePasswordValidate([FromBody] APIRequestGenericModel input)
+        {
+            var model_input = new
+            {
+                token= "F08nOlAVBi8vLwxaDGMgagRjYX97aVlkfFt7AmJnTlpFXyNQYmNiUgBpXnt3Q1BJUlZ0WE5BcCxNFysoPCdLQhRzZWoEfmR2Y2hRBHlQcABqbFxBSQZqRm15alppZRI=",
+                uuid= "1a2b3c4d-5e6f-7890-1234-567890abcdef"
+            };
+            input = new APIRequestGenericModel()
+            {
+                token = CommonHelper.Encode(JsonConvert.SerializeObject(model_input), configuration["KEY:private_key"])
+            };
+
+            try
+            {
+
+                JArray objParr = null;
+                if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, configuration["KEY:private_key"]))
+                {
+                    var request = JsonConvert.DeserializeObject<ClientChangePasswordValidateRequestModel>(objParr[0].ToString());
+                    if (request == null
+                        || request.token == null || request.token.Trim() == ""
+                        || request.uuid == null || request.uuid.Trim() == "")
+                    {
+
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+                    long account_client_id = await clientServices.GetAccountClientIdFromToken(request.token);
+                    if (account_client_id <= 0)
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+                    var account_client = accountClientESService.GetById(account_client_id);
+                    if (account_client == null || account_client.ClientId == null)
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+                    var client = clientESService.GetById((long)account_client.ClientId);
+                    if (client == null || client.Id <=0)
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+                    ClientChangePasswordValidateTokenModel token_model = new ClientChangePasswordValidateTokenModel()
+                    {
+                        account_client_id=account_client_id,
+                        client_id= (long)account_client.ClientId,
+                        exprire_date=DateTime.Now.AddMinutes(15),
+                        uuid=request.uuid
+                    };
+                    string token = CommonHelper.Encode(JsonConvert.SerializeObject(token_model), configuration["KEY:private_key"]);
+                    _emailService.SendEmailChangePasswordValidate(token, account_client, client);
+                    return Ok(new
+                    {
+                        status = (int)ResponseType.SUCCESS,
+                        token=token,
+                        msg = "Success"
+                    });
+                }
+
+            }
+            catch (Exception ex)
+            {
+                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
+            }
+            return Ok(new
+            {
+                status = (int)ResponseType.FAILED,
+                msg = ResponseMessages.DataInvalid
+            });
+
+        }
+        [HttpPost("change-password-validate-token")]
+        public async Task<ActionResult> ValidateChangePasswordToken([FromBody] APIRequestGenericModel input)
+        {
+            var model_input = new
+            {
+                user_token = "F08nOlAVBi8vLwxaDGMgagRjYX97aVlkfFt7AmJnTlpFXyNQYmNiUgBpXnt3Q1BJUlZ0WE5BcCxNFysoPCdLQhRzZWoEfmR2Y2hRBHlQcABqbFxBSQZqRm15alppZRI=",
+                token="",
+                uuid = "1a2b3c4d-5e6f-7890-1234-567890abcdef"
+            };
+            input = new APIRequestGenericModel()
+            {
+                token = CommonHelper.Encode(JsonConvert.SerializeObject(model_input), configuration["KEY:private_key"])
+            };
+            try
+            {
+
+                JArray objParr = null;
+                if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, configuration["KEY:private_key"]))
+                {
+                    var request = JsonConvert.DeserializeObject<ClientChangePasswordValidateTokenRequestModel>(objParr[0].ToString());
+                    if (request == null
+                        || request.token == null || request.token.Trim() == ""
+                        || request.user_token == null || request.user_token.Trim() == ""
+                        || request.uuid == null || request.uuid.Trim() == "")
+                    {
+
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+                    long account_client_id = await clientServices.GetAccountClientIdFromToken(request.token);
+                    if (account_client_id <= 0)
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+                    var account_client = accountClientESService.GetById(account_client_id);
+                    if (account_client == null || account_client.ClientId == null)
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+
+                    string json = CommonHelper.Decode(request.token, configuration["KEY:private_key"]);
+                    if (json == null || json.Trim() =="")
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+                    try
+                    {
+                        var token_model = JsonConvert.DeserializeObject<ClientChangePasswordValidateTokenModel>(json);
+                        if(token_model!=null 
+                            && token_model.account_client_id==account_client_id 
+                            && token_model.client_id == (long)account_client.ClientId
+                            && token_model.uuid == request.uuid
+                            && token_model.exprire_date >= DateTime.Now)
+                        {
+                            return Ok(new
+                            {
+                                status = (int)ResponseType.SUCCESS,
+                                msg = "Correct Token"
+                            });
+                        }
+                    }
+                    catch
+                    {
+                      
+                    }
+                    
+                }
+               
+            }
+            catch (Exception ex)
+            {
+                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
+            }
+            return Ok(new
+            {
+                status = (int)ResponseType.FAILED,
+                msg = "Incorrect Token"
+            });
+
+        }
     }
 }

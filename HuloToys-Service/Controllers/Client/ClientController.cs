@@ -881,15 +881,15 @@ namespace HuloToys_Service.Controllers
         [HttpPost("change-password-sendemail-validate")]
         public async Task<ActionResult> SendEmailChangePasswordValidate([FromBody] APIRequestGenericModel input)
         {
-            var model_input = new
-            {
-                token= "F08nOlAVBi8vLwxaDGMgagRjYX97aVlkfFt7AmJnTlpFXyNQYmNiUgBpXnt3Q1BJUlZ0WE5BcCxNFysoPCdLQhRzZWoEfmR2Y2hRBHlQcABqbFxBSQZqRm15alppZRI=",
-                uuid= "1a2b3c4d-5e6f-7890-1234-567890abcdef"
-            };
-            input = new APIRequestGenericModel()
-            {
-                token = CommonHelper.Encode(JsonConvert.SerializeObject(model_input), configuration["KEY:private_key"])
-            };
+            //var model_input = new
+            //{
+            //    token= "F08nOlAVBi8vLwxaDGMgagRjYX97aVlkfFt7AmJnTlpFXyNQYmNiUgBpXnt3Q1BJUlZ0WE5BcCxNFysoPCdLQhRzZWoEfmR2Y2hRBHlQcABqbFxBSQZqRm15alppZRI=",
+            //    uuid= "1a2b3c4d-5e6f-7890-1234-567890abcdef"
+            //};
+            //input = new APIRequestGenericModel()
+            //{
+            //    token = CommonHelper.Encode(JsonConvert.SerializeObject(model_input), configuration["KEY:private_key"])
+            //};
 
             try
             {
@@ -948,7 +948,7 @@ namespace HuloToys_Service.Controllers
                     return Ok(new
                     {
                         status = (int)ResponseType.SUCCESS,
-                        token=token,
+                        //token=token,
                         msg = "Success"
                     });
                 }
@@ -969,16 +969,16 @@ namespace HuloToys_Service.Controllers
         [HttpPost("change-password-validate-token")]
         public async Task<ActionResult> ValidateChangePasswordToken([FromBody] APIRequestGenericModel input)
         {
-            var model_input = new
-            {
-                user_token = "F08nOlAVBi8vLwxaDGMgagRjYX97aVlkfFt7AmJnTlpFXyNQYmNiUgBpXnt3Q1BJUlZ0WE5BcCxNFysoPCdLQhRzZWoEfmR2Y2hRBHlQcABqbFxBSQZqRm15alppZRI=",
-                token="",
-                uuid = "1a2b3c4d-5e6f-7890-1234-567890abcdef"
-            };
-            input = new APIRequestGenericModel()
-            {
-                token = CommonHelper.Encode(JsonConvert.SerializeObject(model_input), configuration["KEY:private_key"])
-            };
+            //var model_input = new
+            //{
+            //    user_token = "F08nOlAVBi8vLwxaDGMgagRjYX97aVlkfFt7AmJnTlpFXyNQYmNiUgBpXnt3Q1BJUlZ0WE5BcCxNFysoPCdLQhRzZWoEfmR2Y2hRBHlQcABqbFxBSQZqRm15alppZRI=",
+            //    token = "F08zKlYILC86HQoUXyQ7LG46MGx0aVlle0RoUT4/CRgTaToWentiUgN+WWFmGBcRAFp7Q10MYCsGBG0lY3cMTlBsYmAIY3l/fGtcfXxefQprZg0UBFI2FHptcQdLNx0kNgg9HAUMJENWT2B5B1J0cXlvWExicGNiA2Buenx2Wmd4W38FZ31cQV0GY1Al",
+            //    uuid = "1a2b3c4d-5e6f-7890-1234-567890abcdef"
+            //};
+            //input = new APIRequestGenericModel()
+            //{
+            //    token = CommonHelper.Encode(JsonConvert.SerializeObject(model_input), configuration["KEY:private_key"])
+            //};
             try
             {
 

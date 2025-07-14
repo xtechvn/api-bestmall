@@ -998,7 +998,7 @@ namespace HuloToys_Service.Controllers
                             msg = ResponseMessages.DataInvalid
                         });
                     }
-                    long account_client_id = await clientServices.GetAccountClientIdFromToken(request.token);
+                    long account_client_id = await clientServices.GetAccountClientIdFromToken(request.user_token);
                     if (account_client_id <= 0)
                     {
                         return Ok(new

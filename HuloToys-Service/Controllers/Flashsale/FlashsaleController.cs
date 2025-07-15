@@ -301,13 +301,15 @@ namespace HuloToys_Service.Controllers
                         });
                     }
                     var list_products = await productDetailService.GetFlashSaleProductByProductIds(list);
+                    var total_count = await flashSaleProductESRepository.CountListFlashSaleProductByType(list_id, request.type, request.group_id);
+
 
                     return Ok(new
                     {
                         status = (int)ResponseType.SUCCESS,
                         msg = ResponseMessages.Success,
                         data = list_products,
-                        count = await flashSaleProductESRepository.CountListFlashSaleProductByType(list_id, request.type, request.group_id)
+                        count = total_count
 
                     });
                 }

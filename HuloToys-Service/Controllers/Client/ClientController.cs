@@ -547,7 +547,7 @@ namespace HuloToys_Service.Controllers
                 {
                     var request = JsonConvert.DeserializeObject<ClientChangePasswordRequestModel>(objParr[0].ToString());
                     if (request == null
-                        || request.old_password == null || request.old_password.Trim() == ""
+                        
                         || request.password == null || request.password.Trim() == ""
                         || request.token == null || request.token.Trim() == ""
                         || request.confirm_password == null || request.confirm_password.Trim() == "")
@@ -573,15 +573,6 @@ namespace HuloToys_Service.Controllers
                     {
                         string new_password = CommonHelper.MD5Hash(request.password);
                         //Generate new Forgot password token:
-                        string old_password = CommonHelper.MD5Hash(request.old_password);
-                        if (old_password != client.Password)
-                        {
-                            return Ok(new
-                            {
-                                status = (int)ResponseType.FAILED,
-                                msg = "Mật khẩu cũ không chính xác"
-                            });
-                        }
 
 
                         AccountClientViewModel model = new AccountClientViewModel()

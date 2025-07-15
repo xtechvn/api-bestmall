@@ -173,7 +173,8 @@ namespace WEB.CMS.Controllers
                             x.exists_flashsale_name,
                             x.amount_after_flashsale,
                             x.flash_sale_fromdate,
-                            x.flash_sale_todate
+                            x.flash_sale_todate,
+                            x.flashsale_badge_type
                         });
                         return Ok(new
                         {
@@ -367,7 +368,8 @@ namespace WEB.CMS.Controllers
                                 exists_flashsale_name=x.exists_flashsale_name,
                                 amount_after_flashsale= x.amount_after_flashsale,
                                 flash_sale_fromdate= x.flash_sale_fromdate,
-                                flash_sale_todate=x.flash_sale_todate
+                                flash_sale_todate=x.flash_sale_todate,
+                                flashsale_badge_type=x.flashsale_badge_type
                             }).ToList();
                         }
                     }
@@ -635,7 +637,7 @@ namespace WEB.CMS.Controllers
         [HttpPost("raiting")]
         public async Task<IActionResult> ProductRaiting([FromBody] APIRequestGenericModel input)
         {
-            //var model_input = new { id= "684c0ce2c3484670291378eb" };
+            //var model_input = new { id = "684c451c5f4484629df83786" };
             //input = new APIRequestGenericModel()
             //{
             //    token = CommonHelper.Encode(JsonConvert.SerializeObject(model_input), _configuration["KEY:private_key"])
@@ -842,7 +844,8 @@ namespace WEB.CMS.Controllers
                                 x.exists_flashsale_name,
                                 x.amount_after_flashsale,
                                 x.flash_sale_fromdate,
-                                x.flash_sale_todate
+                                x.flash_sale_todate,
+                                x.flashsale_badge_type
                             });
                             return Ok(new
                             {
@@ -1408,7 +1411,9 @@ namespace WEB.CMS.Controllers
                             x.exists_flashsale_name,
                             x.amount_after_flashsale,
                             x.flash_sale_fromdate,
-                            x.flash_sale_todate
+                            x.flash_sale_todate,
+                            x.flashsale_badge_type
+
                         });
                         return Ok(new
                         {

@@ -7,6 +7,7 @@ namespace HuloToys_Service.Models.Flashsale
     {
         
        public int id { get; set; }
+       public int? type { get; set; }
 
     }
 }

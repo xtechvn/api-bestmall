@@ -8,49 +8,27 @@ namespace Utilities.Contants
         /// <summary>
         /// Mặc định trạng thái đơn khi được khởi tạo
         /// </summary>
-        [Description("Tạo mới")]
+        [Description("Chờ thanh toán")]
         CREATED_ORDER = 0,
-        /// <summary>
-        /// Sau khi tạo đơn thành công, Sale sẽ vào nhận chăm sóc đơn tại nút "Nhận xử lý" trong chi tiết đơn hàng  Sẽ chuyển đơn hàng status này
-        /// </summary>
-        [Description("Nhận triển khai")]
-        CONFIRMED_SALE = 1,
 
-        /// <summary>
-        /// Sau khi tạo phiếu thu đủ số tiền cho đơn hàng có Status =1, Sẽ chuyển đơn hàng Status này
-        /// </summary>
-        [Description("Chờ điều hành duyệt")]
-        WAITING_FOR_OPERATOR = 2,
+        [Description("Đã thanh toán")]
+        PAID = 6,
 
-        /// <summary>
-        /// Điều hành từ chối vì bất kỳ lý do gì Sẽ chuyển đơn hàng Stauts này
-        /// </summary>
-        [Description("Điều hành từ chối")]
-        OPERATOR_DECLINE = 3,
+        [Description("Đang xử lý")]
+        PROCESSING = 1,
 
-        /// <summary>
-        /// Sau khi điều hành nhận xử lý nghiệp vụ,trả code, tạo yêu cầu chi ... Khi nhấn vào nút quyết toán, Sẽ chuyển đơn hàng Stauts này
-        /// </summary>
-        [Description("Chờ kế toán duyệt")]
-        WAITING_FOR_ACCOUNTANT = 4,
-        /// <summary>
-        /// Kế toán từ chối vì bất kỳ lý do gì, thì đổi Status này
-        /// </summary>
-        [Description("Kế toán từ chối")]
-        ACCOUNTANT_DECLINE = 5,
-        /// <summary>
-        /// Kế toán tiến hành nghiệp vụ, quyết toán thành công , thu hồi công nợ đủ số tiền ... Sẽ chuyển đơn hàng về status này
-        /// </summary>
+
+        [Description("Đang giao hàng")]
+        DELIVERY = 2,
+
+        [Description("Giao thành công")]
+        FINISHED_DELIVERY = 5,
+
         [Description("Hoàn thành")]
-        FINISHED = 6,
-        /// <summary>
-        /// Với trường hợp đơn bị hủy / Nhấn vào nút "Hủy đơn hàng" tại phần chi tiết đơn , Sẽ chuyển đơn hàng về status này
-        /// </summary>
-        [Description("Hủy")]
-        CANCEL = 7,
-       
-        [Description("Đơn rác")]
-        DonRac = 8,
+        FINISHED = 3,
+
+        [Description("Đã hủy")]
+        CANCEL = 4,
     }
 
     // Trạng thái đơn
@@ -66,6 +44,18 @@ namespace Utilities.Contants
         /// </summary>
         [Description("Gạch nợ chưa đủ")]
         PAID_NOT_ENOUGH = 2,
+
+    }
+    public enum ProductFlashSaleBadgeStatus
+    {
+        NORMAL = -1,
+        FEATURED_PRODUCT = 1,
+        FEATURED_BRAND = 2,
+        BESTCHOICE = 3,
+        FAVOURITES = 4,
+        PREMIUM = 5,
+        SUPERSALE = 6,
+        MOSTLY_SOLD = 7
 
     }
 }

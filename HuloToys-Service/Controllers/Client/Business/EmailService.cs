@@ -36,13 +36,13 @@ namespace HuloToys_Service.Controllers.Client.Business
             bool ressult = true;
             try
             {
-                //--Re-initialization Email:
                 MailMessage message = new MailMessage();
                 SmtpClient smtp = new SmtpClient();
                 InitilizationEmail(message, smtp);
                 message = new MailMessage();
                 message.From = new MailAddress(_configuration["Email:UserName"]);
                 message.To.Add(client.Email);
+                message.Subject = "BestMall - Đổi mật khẩu tài khoản";
                 smtp = new SmtpClient(_configuration["Email:HOST"],
                     Convert.ToInt32(_configuration["Email:PORT"]));
                 smtp.EnableSsl = true;
@@ -60,6 +60,7 @@ namespace HuloToys_Service.Controllers.Client.Business
                 {
                     message.Bcc.Add(bcc);
                 }
+
                 var body = System.IO.File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "Template", "email", "forgot-password.html"));
                 if(body!=null && body.Trim() != "")
                 {
@@ -70,6 +71,58 @@ namespace HuloToys_Service.Controllers.Client.Business
                         .Replace("{change_password_url}", forgot_password_token.Replace("+", "-").Replace("/", "_"))
                         ;
                     message.Body = body_fixed;
+                    message.IsBodyHtml = true;
+                    smtp.Send(message);
+                }
+            }
+            catch (Exception ex)
+            {
+                ressult = false;
+            }
+            return ressult;
+        }
+        public bool SendEmailChangePasswordValidate(string forgot_password_token, AccountESModel account, ClientESModel client)
+        {
+            bool ressult = true;
+            try
+            {
+                MailMessage message = new MailMessage();
+                SmtpClient smtp = new SmtpClient();
+                InitilizationEmail(message, smtp);
+                message = new MailMessage();
+                message.From = new MailAddress(_configuration["Email:UserName"]);
+                message.To.Add(client.Email);
+                message.Subject = "BestMall - Xác nhận đổi mật khẩu tài khoản";
+                smtp = new SmtpClient(_configuration["Email:HOST"],
+                    Convert.ToInt32(_configuration["Email:PORT"]));
+                smtp.EnableSsl = true;
+                smtp.DeliveryMethod = SmtpDeliveryMethod.Network;
+                smtp.Credentials = new NetworkCredential(_configuration["Email:UserName"], _configuration["Email:Password"]);
+                smtp.Timeout = 20000;
+                //-- Body
+                var cc = _configuration["Email:CC"];
+                if (cc != null && cc.Trim() != "")
+                {
+                    message.CC.Add(cc);
+                }
+                var bcc = _configuration["Email:BCC"];
+                if (bcc != null && bcc.Trim() != "")
+                {
+                    message.Bcc.Add(bcc);
+                }
+
+                var body = System.IO.File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "Template", "email", "forgot-password.html"));
+                if (body != null && body.Trim() != "")
+                {
+                    var body_fixed = body
+                        .Replace("{domain}", _configuration["Email:Domain"])
+                        .Replace("{client_name}", client.ClientName)
+                        .Replace("{username}", account.UserName)
+                        .Replace("{change_password_url}", forgot_password_token.Replace("+", "-").Replace("/", "_"))
+                        .Replace("/tai-khoan/doi-mat-khau/", "/account/change-password/")
+                        ;
+                    message.Body = body_fixed;
+                    message.IsBodyHtml = true;
                     smtp.Send(message);
                 }
             }

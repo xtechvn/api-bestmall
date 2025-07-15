@@ -217,7 +217,9 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                 if (active_flashsale != null && active_flashsale.Count > 0)
                 {
                     list_item = await flashSaleProductESRepository.GetByListFlashsaleId(active_flashsale.Select(x => x.flashsale_id).ToList());
-                    UpdateProductItem(item, active_flashsale, list_item);
+                    var group_type = groupProductESService.GetListGroupProductByParentId(109);
+
+                    UpdateProductItem(item, active_flashsale, list_item, group_type);
                 }
 
             }
@@ -236,7 +238,19 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             {
                 products=JsonConvert.DeserializeObject<List<ProductMongoDbModelFEResponse>>(JsonConvert.SerializeObject(products_original));
                 if (products == null || products.Count <= 0) return products;
-                products=await UpdateProductDetail(products);
+				var active_flashsale = await flashSaleESRepository.SearchActiveFlashSales();
+                List<FlashSaleProductESModel> list_item = new List<FlashSaleProductESModel>();
+                if (active_flashsale != null && active_flashsale.Count > 0)
+                {
+                    list_item = await flashSaleProductESRepository.GetByListFlashsaleId(active_flashsale.Select(x => x.flashsale_id).ToList());
+                }
+                List<ProductMongoDbModelFEResponse> output=new List<ProductMongoDbModelFEResponse>();
+                var group_type = groupProductESService.GetListGroupProductByParentId(109);
+
+                foreach (var item in products)
+                {
+                    UpdateProductItem(item, active_flashsale, list_item, group_type);
+                }
             }
             catch (Exception ex)
             {
@@ -256,10 +270,12 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                 {
                     list_item = await flashSaleProductESRepository.GetByListFlashsaleId(active_flashsale.Select(x => x.flashsale_id).ToList());
                 }
+                var group_type = groupProductESService.GetListGroupProductByParentId(109);
+
                 List<ProductMongoDbModelFEResponse> output = new List<ProductMongoDbModelFEResponse>();
                 foreach (var item in products)
                 {
-                    UpdateProductItem(item, active_flashsale, list_item);
+                    UpdateProductItem(item, active_flashsale, list_item, group_type );
                 }
             }
             catch (Exception ex)
@@ -289,11 +305,15 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             {
                 if (list_item != null && list_item.Count > 0)
                 {
-                    var list_product_mongo = await _productDetailMongoAccess.ListByProducts(list_item.Select(x => x.productid).ToList());
+                    var list_product_mongo = await _productDetailMongoAccess.ListByProductIgnoreCondition(list_item.Select(x => x.productid).ToList());
                     foreach (var item in list_item)
                     {
                         var selected = list_product_mongo.FirstOrDefault(x => x._id == item.productid);
-                        if (selected == null || selected._id == null) continue;
+                        if (selected == null || selected._id == null || selected.status!=1 || selected.supplier_status!=1)
+                        {
+                           // LogHelper.InsertLogTelegram("GetFlashSaleProductByProductIds Ignore [ID=" + (selected == null ? "NULL" : selected._id) +"] [supplier_id="+ (selected == null ? "NULL" : selected.supplier_id) + "][status="+ (selected == null ? "NULL" : selected.status) + "][supplier_status="+ (selected == null ? "NULL" : selected.supplier_status) + "]");
+                            continue;
+                        }
                         var amount_product = selected.amount;
                         if (selected.amount <= 0 && selected.amount_min != null && selected.amount_min > 0)
                         {
@@ -333,7 +353,9 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                             code = selected.code,
                             rating = selected.rating,
                             review_count = selected.review_count,
-                            total_sold = selected.total_sold
+							total_sold = selected.total_sold,
+                            super_sale=item.supersale,
+                            badge_type=item.badgetype
                         });
                     }
                 }
@@ -342,10 +364,29 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
                 LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
+                LogHelper.InsertLogTelegram("GetFlashSaleProductByProductIds -1-  err=" + ex.ToString());
+
             }
             return result;
         }
-        private bool UpdateProductItem(ProductMongoDbModelFEResponse item, List<FlashSaleESModel> active_flashsale, List<FlashSaleProductESModel> list_item, bool ignore_raiting = false, bool ignore_total_sold = false)
+        public async Task<long> CountFlashSaleProductByProductIds(List<FlashSaleProductESModel> list_item)
+        {
+            long count = 0;
+            try
+            {
+                if (list_item != null && list_item.Count > 0)
+                {
+                    count = await _productDetailMongoAccess.CountListByProducts(list_item.Select(x => x.productid).ToList());
+                }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram("CountFlashSaleProductByProductIds -1-  err=" + ex.ToString());
+
+            }
+            return count;
+        }
+        private bool UpdateProductItem(ProductMongoDbModelFEResponse item, List<FlashSaleESModel> active_flashsale, List<FlashSaleProductESModel> list_item, List<GroupProductESModel> group_types, bool ignore_raiting = false, bool ignore_total_sold = false)
         {
             try
             {
@@ -361,7 +402,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                 }
                 if (active_flashsale != null && active_flashsale.Count > 0 && list_item != null && list_item.Count > 0)
                 {
-                    UpdateProductFlashsale(item, active_flashsale, list_item);
+                    UpdateProductFlashsale(item, active_flashsale, list_item, group_types);
                 }
             }
             catch (Exception ex)
@@ -425,11 +466,12 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             }
             return true;
         }
-        private bool UpdateProductFlashsale(ProductMongoDbModelFEResponse item, List<FlashSaleESModel> active_flashsale, List<FlashSaleProductESModel> list_item)
+        private bool UpdateProductFlashsale(ProductMongoDbModelFEResponse item, List<FlashSaleESModel> active_flashsale, List<FlashSaleProductESModel> list_item,List<GroupProductESModel> group_types)
         {
             try
             {
                 if (item == null || item._id == null) return false;
+                bool has_badge=false;
                 if (active_flashsale != null && active_flashsale.Count > 0 && list_item != null && list_item.Count > 0)
                 {
                     var exists_flash_sale_product = list_item.FirstOrDefault(x => x.productid == (item.parent_product_id != null && item.parent_product_id.Trim() != "" ? item.parent_product_id : item._id));
@@ -445,11 +487,11 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                             amount_product = (double)item.amount_min;
 
                         }
-                        double old_price = item.old_price == null || item.old_price <= 0 ? amount_product : (double)item.old_price;
-                        if (old_price <= 0)
-                        {
-                            old_price = amount_product;
-                        }
+                        //double old_price = item.old_price == null || item.old_price <= 0 ? amount_product : (double)item.old_price;
+                        //if (old_price <= 0)
+                        //{
+                        //    old_price = amount_product;
+                        //}
                         switch (exists_flash_sale_product.valuetype)
                         {
                             case 1:
@@ -480,12 +522,25 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                             item.amount_max = NumberHelpers.RoundUpToHundredsDouble((double)item.amount_max);
 
                         }
-                        item.discount = Math.Round(((old_price - (double)item.amount_after_flashsale) / old_price * 100), 0);
+                        item.discount = Math.Round(((amount_product - (double)item.amount_after_flashsale) / amount_product * 100), 0);
                         item.discount = item.discount <= 0 ? 0 : item.discount;
-                        //item.price = amount_product- item.profit;
-                        item.old_price = old_price;
+                        item.price = amount_product- item.profit;
+                        item.old_price = amount_product;
                         item.amount_after_flashsale = NumberHelpers.RoundUpToHundredsDouble((double)item.amount_after_flashsale);
                         item.profit = NumberHelpers.RoundUpToHundredsDouble((double)item.profit);
+                        item.flashsale_badge_type = exists_flash_sale_product.badgetype;
+                        has_badge = true;
+                    }
+                }
+                if (!has_badge) {
+                    if (group_types != null && group_types.Count>0 && item.group_product_id!=null && item.group_product_id.Trim()!="" ) {
+                        try
+                        {
+                            var exists = group_types.FirstOrDefault(x => x.Id == Convert.ToInt32(item.group_product_id.Trim().Split(",")[0]));
+                            if (exists != null && exists.Id>0) { item.flashsale_badge_type = exists.Id; }
+                        }
+                        catch { }
+                    
                     }
                 }
             }
@@ -497,7 +552,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             }
             return true;
         }
-        public List<ProductMongoDbModelFEResponse> FilterProducts(List<ProductMongoDbModelFEResponse> products, double? price_from,
+      public List<ProductMongoDbModelFEResponse> FilterProducts(List<ProductMongoDbModelFEResponse> products, double? price_from,
       double? price_to,
       int page_index,
       int page_size)

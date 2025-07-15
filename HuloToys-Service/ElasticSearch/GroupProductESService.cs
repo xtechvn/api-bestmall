@@ -244,5 +244,39 @@ namespace HuloToys_Service.ElasticSearch
             }
             return null;
         }
+        public List<GroupProductESModel> GetFlashSaleGroupProduct(int parent_id)
+        {
+            try
+            {
+                var nodes = new Uri[] { new Uri(_ElasticHost) };
+                var connectionPool = new StaticConnectionPool(nodes);
+                var connectionSettings = new ConnectionSettings(connectionPool)
+                    .DisableDirectStreaming()
+                    .DefaultIndex(index);
+
+                var elasticClient = new ElasticClient(connectionSettings);
+
+                var query = elasticClient.Search<GroupProductESModel>(sd => sd
+                    .Size(4000)
+                    .Query(q =>
+                        q.Bool(b => b.Must(
+                            m => m.Term(f => f.Field("IsFlashSale").Value(true)),
+                            m => m.Term(f => f.Field(p => p.ParentId).Value(parent_id)) // Added filter for ParentId
+                        ))
+                    ));
+
+                if (query.IsValid)
+                {
+                    var data = query.Documents.ToList();
+                    return data;
+                }
+            }
+            catch (Exception ex)
+            {
+                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
+            }
+            return null;
+        }
     }
 }

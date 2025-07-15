@@ -17,5 +17,7 @@ public class FlashSaleProductESModel
 
     public int? position { get; set; }
     public bool? supersale { get; set; }
+    public int? badgetype { get; set; }
+    public string group_id { get; set; }
 
 }

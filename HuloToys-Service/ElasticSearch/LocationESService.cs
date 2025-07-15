@@ -15,6 +15,7 @@ namespace Caching.Elasticsearch
         public string index_wards = "wards_store";
         private readonly IConfiguration configuration;
         private static string _ElasticHost;
+        private static ElasticClient elasticClient;
 
         public LocationESService(string Host, IConfiguration _configuration) : base(Host, _configuration)
         {
@@ -23,17 +24,16 @@ namespace Caching.Elasticsearch
             index_province = _configuration["DataBaseConfig:Elastic:Index:Provinces"];
             index_district = _configuration["DataBaseConfig:Elastic:Index:Districts"];
             index_wards = _configuration["DataBaseConfig:Elastic:Index:Wards"];
-
+            var nodes = new Uri[] { new Uri(_ElasticHost) };
+            var connectionPool = new StaticConnectionPool(nodes);
+            var connectionSettings = new ConnectionSettings(connectionPool).DisableDirectStreaming().DefaultIndex("people");
+            elasticClient = new ElasticClient(connectionSettings);
         }
         public List<Province> GetAllProvinces()
         {
             List<Province> result = new List<Province>();
             try
             {
-                var nodes = new Uri[] { new Uri(_ElasticHost) };
-                var connectionPool = new StaticConnectionPool(nodes);
-                var connectionSettings = new ConnectionSettings(connectionPool).DisableDirectStreaming().DefaultIndex("people");
-                var elasticClient = new ElasticClient(connectionSettings);
                 var query = elasticClient.Search<Province>(sd => sd
                             .Index(index_province)
                             .Size(4000)
@@ -64,21 +64,30 @@ namespace Caching.Elasticsearch
             List<Province> result = new List<Province>();
             try
             {
-                var nodes = new Uri[] { new Uri(_ElasticHost) };
-                var connectionPool = new StaticConnectionPool(nodes);
-                var connectionSettings = new ConnectionSettings(connectionPool).DisableDirectStreaming().DefaultIndex("people");
-                var elasticClient = new ElasticClient(connectionSettings);
+              
+                ////var query = elasticClient.Search<Province>(sd => sd
+                ////            .Index(index_province)
+                ////            .Size(4000)
+                ////           .Query(q => q.Bool(
+                ////               qb => qb.Must(
+                ////                  q => q.Match(m => m.Field("ProvinceId").Query(provinces_id)
+                ////                   )
+
+                ////                )))
+                ////            );
                 var query = elasticClient.Search<Province>(sd => sd
-                            .Index(index_province)
-                            .Size(4000)
-                           .Query(q => q.Bool(
-                               qb => qb.Must(
-                                  q => q.Match(m => m.Field("ProvinceId").Query(provinces_id)
-                                   )
-
-                                )))
-                            );
-
+                    .Index(index_province)
+                    .Query(q => q
+                        .Bool(b => b
+                            .Must(m => m
+                                .Match(match => match
+                                    .Field("ProvinceId") 
+                                    .Query(provinces_id)       
+                                )
+                            )
+                        )
+                    )
+                );
                 if (!query.IsValid)
                 {
                     return null;
@@ -101,10 +110,6 @@ namespace Caching.Elasticsearch
             List<District> result = new List<District>();
             try
             {
-                var nodes = new Uri[] { new Uri(_ElasticHost) };
-                var connectionPool = new StaticConnectionPool(nodes);
-                var connectionSettings = new ConnectionSettings(connectionPool).DisableDirectStreaming().DefaultIndex("people");
-                var elasticClient = new ElasticClient(connectionSettings);
                 var query = elasticClient.Search<District>(sd => sd
                             .Index(index_district)
                              .Size(4000)
@@ -135,16 +140,12 @@ namespace Caching.Elasticsearch
             List<District> result = new List<District>();
             try
             {
-                var nodes = new Uri[] { new Uri(_ElasticHost) };
-                var connectionPool = new StaticConnectionPool(nodes);
-                var connectionSettings = new ConnectionSettings(connectionPool).DisableDirectStreaming().DefaultIndex("people");
-                var elasticClient = new ElasticClient(connectionSettings);
                 var query = elasticClient.Search<District>(sd => sd
                             .Index(index_district)
                             .Size(4000)
                             .Query(q => q.Bool(
                                qb => qb.Must(
-                                  q => q.Match(m => m.Field("ProvinceId").Query(provinces_id)
+                                  q => q.Match(m => m.Field(y => y.ProvinceId).Query(provinces_id)
                                    )
 
                                 )))
@@ -173,22 +174,30 @@ namespace Caching.Elasticsearch
             List<District> result = new List<District>();
             try
             {
-                var nodes = new Uri[] { new Uri(_ElasticHost) };
-                var connectionPool = new StaticConnectionPool(nodes);
-                var connectionSettings = new ConnectionSettings(connectionPool).DisableDirectStreaming().DefaultIndex("people");
-                var elasticClient = new ElasticClient(connectionSettings);
-                var query = elasticClient.Search<District> (sd => sd
-                            .Index(index_district)
-                            .Size(4000)
-                           .Query(q => q.Bool(
-                               qb => qb.Must(
-                                  q => q.Match(m => m.Field("DistrictId").Query(district_id)
-                                   )
+                //var query = elasticClient.Search<District> (sd => sd
+                //            .Index(index_district)
+                //            .Size(4000)
+                //           .Query(q => q.Bool(
+                //               qb => qb.Must(
+                //                  q => q.Match(m => m.Field("DistrictId").Query(district_id)
+                //                   )
 
-                                ))
-                                )
-                            );
-
+                //                ))
+                //                )
+                //            );
+                var query = elasticClient.Search<District>(sd => sd
+                    .Index(index_district)
+                  .Query(q => q
+                      .Bool(b => b
+                          .Must(m => m
+                              .Match(match => match
+                                  .Field("DistrictId")
+                                  .Query(district_id.Trim())
+                              )
+                          )
+                      )
+                  )
+              );
                 if (!query.IsValid)
                 {
                     return null;
@@ -212,10 +221,6 @@ namespace Caching.Elasticsearch
             List<Ward> result = new List<Ward>();
             try
             {
-                var nodes = new Uri[] { new Uri(_ElasticHost) };
-                var connectionPool = new StaticConnectionPool(nodes);
-                var connectionSettings = new ConnectionSettings(connectionPool).DisableDirectStreaming().DefaultIndex("people");
-                var elasticClient = new ElasticClient(connectionSettings);
                 var query = elasticClient.Search<Ward>(sd => sd
                             .Index(index_wards)
                             .Size(4000)
@@ -247,16 +252,12 @@ namespace Caching.Elasticsearch
             List<Ward> result = new List<Ward>();
             try
             {
-                var nodes = new Uri[] { new Uri(_ElasticHost) };
-                var connectionPool = new StaticConnectionPool(nodes);
-                var connectionSettings = new ConnectionSettings(connectionPool).DisableDirectStreaming().DefaultIndex("people");
-                var elasticClient = new ElasticClient(connectionSettings);
                 var query = elasticClient.Search<Ward>(sd => sd
                             .Index(index_wards)
                             .Size(4000)
                             .Query(q => q.Bool(
                                qb => qb.Must(
-                                  q => q.Match(m => m.Field("DistrictId").Query(district_id)
+                                  q => q.Match(m => m.Field(y => y.DistrictId).Query(district_id)
                                    )
 
                                 ))
@@ -286,22 +287,30 @@ namespace Caching.Elasticsearch
             List<Ward> result = new List<Ward>();
             try
             {
-                var nodes = new Uri[] { new Uri(_ElasticHost) };
-                var connectionPool = new StaticConnectionPool(nodes);
-                var connectionSettings = new ConnectionSettings(connectionPool).DisableDirectStreaming().DefaultIndex("people");
-                var elasticClient = new ElasticClient(connectionSettings);
+                //var query = elasticClient.Search<Ward>(sd => sd
+                //            .Index(index_wards)
+                //            .Size(4000)
+                //            .Query(q => q.Bool(
+                //               qb => qb.Must(
+                //                  q => q.Match(m => m.Field(y=>y.WardId).Query(ward_id)
+                //                   )
+
+                //                ))
+                //                )
+                //            );
                 var query = elasticClient.Search<Ward>(sd => sd
                             .Index(index_wards)
-                            .Size(4000)
-                            .Query(q => q.Bool(
-                               qb => qb.Must(
-                                  q => q.Match(m => m.Field("WardId").Query(ward_id)
-                                   )
-
-                                ))
-                                )
-                            );
-
+                 .Query(q => q
+                     .Bool(b => b
+                         .Must(m => m
+                             .Match(match => match
+                                 .Field("WardId")
+                                 .Query(ward_id.Trim())
+                             )
+                         )
+                     )
+                 )
+                );
                 if (!query.IsValid)
                 {
                     return null;

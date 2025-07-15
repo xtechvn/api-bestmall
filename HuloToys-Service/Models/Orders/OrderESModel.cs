@@ -113,5 +113,15 @@ namespace HuloToys_Service.Models.Orders
         [PropertyName("PackageWeight")]
 
         public double? PackageWeight { get; set; }
+        [PropertyName("RefundStatus")]
+
+        public int? RefundStatus { get; set; }
+        [PropertyName("RefundReason")]
+
+        public string RefundReason { get; set; }
+        [PropertyName("RefundDate")]
+
+        public DateTime? RefundDate { get; set; }
+
     }
 }

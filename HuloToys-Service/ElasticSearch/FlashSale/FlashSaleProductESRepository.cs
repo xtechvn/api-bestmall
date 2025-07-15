@@ -1,5 +1,6 @@
 ﻿using HuloToys_Service.Elasticsearch;
 using Nest;
+using System.Drawing.Printing;
 using Utilities;
 
 namespace Caching.Elasticsearch.FlashSale
@@ -225,6 +226,115 @@ namespace Caching.Elasticsearch.FlashSale
             {
 
                 return 0;
+            }
+        }
+        public async Task<List<FlashSaleProductESModel>> GetListFlashSaleProductByType(List<int> flashsale_ids,int? group_id, int page_index = 1, int page_size = 10, int? type = null)
+        {
+            var now = DateTime.Now;
+
+            // Calculate 'from' (skip) based on page_index and page_size
+            var from = (page_index - 1) * page_size;
+
+            var response = await _client.SearchAsync<FlashSaleProductESModel>(s => s
+                .Query(q => q
+                    .Bool(b =>
+                    {
+                        var mustQueries = new List<Func<QueryContainerDescriptor<FlashSaleProductESModel>, QueryContainer>>
+                        {
+                            m => m.Term(t => t
+                                .Field(f => f.status)
+                                .Value(1)
+                            ),
+
+                            m => m.Terms(t => t
+                                .Field(f => f.flashsale_id)
+                                .Terms(flashsale_ids)
+                            )
+                        };
+
+                        if (type!=null && type>0)
+                        {
+                            mustQueries.Add(m => m.Term(t => t
+                                .Field(f => f.badgetype)
+                                .Value(type)
+                            ));
+                        }
+                        if (group_id!=null &&group_id > 0)
+                        {
+  
+                            mustQueries.Add(f => f.QueryString(qs => qs.Fields(fs => fs.Field("group_id")).Query("*"+ ((int)group_id).ToString()+ "*")));
+
+                        }
+                        b.Must(mustQueries.ToArray());
+                        return b;
+                    })
+                )
+                .From(from) 
+                .Size(page_size)
+            );
+
+            if (response.IsValid)
+            {
+                return response.Documents.ToList();
+            }
+            else
+            {
+                // Log the error for debugging purposes if needed
+                // Console.WriteLine($"Elasticsearch search failed: {response.DebugInformation}");
+                return new List<FlashSaleProductESModel>();
+            }
+        }
+        public async Task<List<FlashSaleProductESModel>> GetAllFlashSaleProductByType(List<int> flashsale_ids, int? type = null, int? group_id=-1)
+        {
+            var now = DateTime.Now;
+
+
+            var response = await _client.SearchAsync<FlashSaleProductESModel>(s => s
+              .Query(q => q
+                  .Bool(b =>
+                  {
+                      var mustQueries = new List<Func<QueryContainerDescriptor<FlashSaleProductESModel>, QueryContainer>>
+                      {
+                            m => m.Term(t => t
+                                .Field(f => f.status)
+                                .Value(1)
+                            ),
+
+                            m => m.Terms(t => t
+                                .Field(f => f.flashsale_id)
+                                .Terms(flashsale_ids)
+                            )
+                      };
+
+                      if (type != null && type > 0)
+                      {
+                          mustQueries.Add(m => m.Term(t => t
+                              .Field(f => f.badgetype)
+                              .Value(type)
+                          ));
+                      }
+                      if (group_id != null && group_id > 0)
+                      {
+
+                          mustQueries.Add(f => f.QueryString(qs => qs.Fields(fs => fs.Field("group_id")).Query("*" + ((int)group_id).ToString() + "*")));
+
+                      }
+                      b.Must(mustQueries.ToArray());
+                      return b;
+                  })
+              )
+              .Size(4000)
+            );
+
+            if (response.IsValid)
+            {
+                return response.Documents.ToList();
+            }
+            else
+            {
+                // Log the error for debugging purposes if needed
+                // Console.WriteLine($"Elasticsearch search failed: {response.DebugInformation}");
+                return new List<FlashSaleProductESModel>();
             }
         }
     }

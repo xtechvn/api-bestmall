@@ -306,14 +306,12 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                 if (list_item != null && list_item.Count > 0)
                 {
                     var list_product_mongo = await _productDetailMongoAccess.ListByProductIgnoreCondition(list_item.Select(x => x.productid).ToList());
-                   // LogHelper.InsertLogTelegram("ListingByType -1-  count=" + (list_product_mongo == null ? "NULL" : list_product_mongo.Count.ToString()));
-
                     foreach (var item in list_item)
                     {
                         var selected = list_product_mongo.FirstOrDefault(x => x._id == item.productid);
                         if (selected == null || selected._id == null || selected.status!=1 || selected.supplier_status!=1)
                         {
-                            LogHelper.InsertLogTelegram("GetFlashSaleProductByProductIds Ignore [ID=" + (selected == null ? "NULL" : selected._id) +"] [supplier_id="+ (selected == null ? "NULL" : selected.supplier_id) + "][status="+ (selected == null ? "NULL" : selected.status) + "][supplier_status="+ (selected == null ? "NULL" : selected.supplier_status) + "]");
+                           // LogHelper.InsertLogTelegram("GetFlashSaleProductByProductIds Ignore [ID=" + (selected == null ? "NULL" : selected._id) +"] [supplier_id="+ (selected == null ? "NULL" : selected.supplier_id) + "][status="+ (selected == null ? "NULL" : selected.status) + "][supplier_status="+ (selected == null ? "NULL" : selected.supplier_status) + "]");
                             continue;
                         }
                         var amount_product = selected.amount;
@@ -370,6 +368,23 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
 
             }
             return result;
+        }
+        public async Task<long> CountFlashSaleProductByProductIds(List<FlashSaleProductESModel> list_item)
+        {
+            long count = 0;
+            try
+            {
+                if (list_item != null && list_item.Count > 0)
+                {
+                    count = await _productDetailMongoAccess.CountListByProducts(list_item.Select(x => x.productid).ToList());
+                }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram("CountFlashSaleProductByProductIds -1-  err=" + ex.ToString());
+
+            }
+            return count;
         }
         private bool UpdateProductItem(ProductMongoDbModelFEResponse item, List<FlashSaleESModel> active_flashsale, List<FlashSaleProductESModel> list_item, List<GroupProductESModel> group_types, bool ignore_raiting = false, bool ignore_total_sold = false)
         {

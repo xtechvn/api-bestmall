@@ -473,7 +473,7 @@ namespace HuloToys_Service.Controllers
             });
 
         }
-       
+
         [HttpPost("change-password")]
         public async Task<ActionResult> ChangePassword([FromBody] APIRequestGenericModel input)
         {
@@ -504,52 +504,43 @@ namespace HuloToys_Service.Controllers
                             msg = ResponseMessages.DataInvalid
                         });
                     }
-                        var client = accountClientESService.GetById((long)account_client);
-                        if (client != null && client.Id > 0)
-                        {
-                            string new_password = CommonHelper.MD5Hash(request.password);
+                    var client = accountClientESService.GetById((long)account_client);
+                    if (client != null && client.Id > 0)
+                    {
+                        string new_password = CommonHelper.MD5Hash(request.password);
                         //Generate new Forgot password token:
-                        string old_password = CommonHelper.MD5Hash(request.old_password);
-                        if (old_password != client.Password)
-                        {
-                            return Ok(new
-                            {
-                                status = (int)ResponseType.FAILED,
-                                msg = "Mật khẩu cũ không chính xác"
-                            });
-                        }
 
 
                         AccountClientViewModel model = new AccountClientViewModel()
+                        {
+                            ClientId = client.Id,
+                            ClientType = 0,
+                            Email = null,
+                            Id = (int)account_client,
+                            isReceiverInfoEmail = null,
+                            Name = null,
+                            Password = new_password,
+                            Phone = null,
+                            Status = 0,
+                            UserName = null,
+                            ForgotPasswordToken = ""
+                        };
+                        var queue_model = new ClientConsumerQueueModel()
+                        {
+                            data_push = JsonConvert.SerializeObject(model),
+                            type = QueueType.UPDATE_USER
+                        };
+                        bool result = workQueueClient.InsertQueueSimple(JsonConvert.SerializeObject(queue_model), QueueName.queue_app_push);
+                        if (result)
+                        {
+                            return Ok(new
                             {
-                                ClientId = client.Id,
-                                ClientType = 0,
-                                Email = null,
-                                Id = (int)account_client,
-                                isReceiverInfoEmail = null,
-                                Name = null,
-                                Password = new_password,
-                                Phone = null,
-                                Status = 0,
-                                UserName = null,
-                                ForgotPasswordToken = ""
-                            };
-                            var queue_model = new ClientConsumerQueueModel()
-                            {
-                                data_push = JsonConvert.SerializeObject(model),
-                                type = QueueType.UPDATE_USER
-                            };
-                            bool result = workQueueClient.InsertQueueSimple( JsonConvert.SerializeObject(queue_model), QueueName.queue_app_push);
-                            if (result)
-                            {
-                                return Ok(new
-                                {
-                                    status = (int)ResponseType.SUCCESS,
-                                    msg = "Success"
-                                });
-                            }
+                                status = (int)ResponseType.SUCCESS,
+                                msg = "Success"
+                            });
                         }
-                   
+                    }
+
                 }
 
             }

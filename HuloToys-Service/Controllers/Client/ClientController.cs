@@ -1014,7 +1014,7 @@ namespace HuloToys_Service.Controllers
                         });
                     }
 
-                    string json = CommonHelper.Decode(request.token, configuration["KEY:private_key"]);
+                    string json = CommonHelper.Decode(request.token.Replace("-", "+").Replace("_", "/"), configuration["KEY:private_key"]);
                     if (json == null || json.Trim() =="")
                     {
                         return Ok(new

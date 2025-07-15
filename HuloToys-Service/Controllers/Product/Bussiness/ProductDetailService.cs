@@ -305,13 +305,17 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             {
                 if (list_item != null && list_item.Count > 0)
                 {
-                    var list_product_mongo = await _productDetailMongoAccess.ListByProducts(list_item.Select(x => x.productid).ToList());
+                    var list_product_mongo = await _productDetailMongoAccess.ListByProductIgnoreCondition(list_item.Select(x => x.productid).ToList());
                    // LogHelper.InsertLogTelegram("ListingByType -1-  count=" + (list_product_mongo == null ? "NULL" : list_product_mongo.Count.ToString()));
 
                     foreach (var item in list_item)
                     {
                         var selected = list_product_mongo.FirstOrDefault(x => x._id == item.productid);
-                        if (selected == null || selected._id == null) continue;
+                        if (selected == null || selected._id == null || selected.status!=1 || selected.supplier_status!=1)
+                        {
+                            LogHelper.InsertLogTelegram("GetFlashSaleProductByProductIds Ignore [" + (selected == null ? "NULL" : selected._id) +"] ["+ (selected == null ? "NULL" : selected.status) + "]["+ (selected == null ? "NULL" : selected.supplier_status) + "]");
+                            continue;
+                        }
                         var amount_product = selected.amount;
                         if (selected.amount <= 0 && selected.amount_min != null && selected.amount_min > 0)
                         {

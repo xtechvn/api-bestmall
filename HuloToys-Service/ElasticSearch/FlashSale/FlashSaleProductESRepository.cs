@@ -290,43 +290,40 @@ namespace Caching.Elasticsearch.FlashSale
 
 
             var response = await _client.CountAsync<FlashSaleProductESModel>(s => s
-                 .Query(q => q
-                     .Bool(b =>
-                     {
-                         var mustQueries = new List<Func<QueryContainerDescriptor<FlashSaleProductESModel>, QueryContainer>>();
+                .Query(q => q
+                    .Bool(b =>
+                    {
+                        var mustQueries = new List<Func<QueryContainerDescriptor<FlashSaleProductESModel>, QueryContainer>>
+                        {
+                            m => m.Term(t => t
+                                .Field(f => f.status)
+                                .Value(1)
+                            ),
 
-                         // Condition: status = 1
-                         mustQueries.Add(m => m.Term(t => t
-                             .Field(f => f.status)
-                             .Value(1)
-                         ));
+                            m => m.Terms(t => t
+                                .Field(f => f.flashsale_id)
+                                .Terms(flashsale_ids)
+                            )
+                        };
 
-                         // Condition: flashsale_id in flashsale_ids
-                         mustQueries.Add(m => m.Terms(t => t
-                             .Field(f => f.flashsale_id)
-                             .Terms(flashsale_ids)
-                         ));
+                        if (type != null && type > 0)
+                        {
+                            mustQueries.Add(m => m.Term(t => t
+                                .Field(f => f.badgetype)
+                                .Value(type)
+                            ));
+                        }
+                        if (group_id != null && group_id > 0)
+                        {
 
-                         // If type is not null, add badgetype filter
-                         if (type.HasValue && type > 0)
-                         {
-                             mustQueries.Add(m => m.Term(t => t
-                                 .Field(f => f.badgetype) // Filter by badgetype
-                                 .Value(type.Value)
-                             ));
-                         }
-                         if (group_id != null && group_id > 0)
-                         {
-                             mustQueries.Add(m => m.QueryString(qs => qs
-                                 .Fields(f => f.Field(ff => ff.group_id))
-                                 .Query($"*{group_id}*")
-                             ));
-                         }
-                         b.Must(mustQueries.ToArray());
-                         return b;
-                     })
-                 )
-             );
+                            mustQueries.Add(f => f.QueryString(qs => qs.Fields(fs => fs.Field("group_id")).Query("*" + ((int)group_id).ToString() + "*")));
+
+                        }
+                        b.Must(mustQueries.ToArray());
+                        return b;
+                    })
+                )
+            );
 
             if (response.IsValid)
             {

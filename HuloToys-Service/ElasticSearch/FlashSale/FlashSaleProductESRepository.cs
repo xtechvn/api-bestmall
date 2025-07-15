@@ -252,11 +252,11 @@ namespace Caching.Elasticsearch.FlashSale
                             )
                         };
 
-                        if (type.HasValue && type>0)
+                        if (type!=null && type>0)
                         {
                             mustQueries.Add(m => m.Term(t => t
                                 .Field(f => f.badgetype)
-                                .Value(type.Value)
+                                .Value(type)
                             ));
                         }
                         if (group_id!=null &&group_id > 0)

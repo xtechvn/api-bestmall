@@ -972,7 +972,7 @@ namespace HuloToys_Service.Controllers
             //var model_input = new
             //{
             //    user_token = "F08nOlAVBi8vLwxaDGMgagRjYX97aVlkfFt7AmJnTlpFXyNQYmNiUgBpXnt3Q1BJUlZ0WE5BcCxNFysoPCdLQhRzZWoEfmR2Y2hRBHlQcABqbFxBSQZqRm15alppZRI=",
-            //    token = "F08zKlYILC86HQoUXyQ7LG46MGx0aVlle0RoUT4/CRgTaToWentiUgN+WWFmGBcRAFp7Q10MYCsGBG0lY3cMTlBsYmAIY3l/fGtcfXxefQprZg0UBFI2FHptcQdLNx0kNgg9HAUMJENWT2B5B1J0cXlvWExicGNiA2Buenx2Wmd4W38FZ31cQV0GY1Al",
+            //    token = "F08zKlYILC86HQoUXyQ7LG46MGx0aVlle0RoUT4/CRgTaToWentiUgN+WWFmGBcRAFp7Q10MYCsGBG0lY3cMTlBsYmAIY3l/fGtcfXxefQprZg0UBFI2FHptcQdLNx0kNgg9HAUMJENWT2B5B1J0cXlvWExicGNiAmVuenl2UGl8W30EZH1cQV0GY1Al",
             //    uuid = "1a2b3c4d-5e6f-7890-1234-567890abcdef"
             //};
             //input = new APIRequestGenericModel()

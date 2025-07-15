@@ -384,6 +384,61 @@ namespace HuloToys_Service.Controllers
 
         }
 
+        [HttpPost("register-validate-email")]
+        public async Task<ActionResult> ValidateEmailRegister([FromBody] APIRequestGenericModel input)
+        {
+            try
+            {
+                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                JArray objParr = null;
+                if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, configuration["KEY:private_key"]))
+                {
+                    var request = JsonConvert.DeserializeObject<ClientRegisterRequestModel>(objParr[0].ToString());
+                    if (request == null
+                        || request.email == null || request.email.Trim() == "")
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                        });
+                    }
+                    var email_part = request.user_name.Split("@")[0].Trim();
+                    var clients = clientESService.GetByEmail(email_part);
+                    if (clients != null && clients.Count > 0)
+                    {
+                        clients = clients.Where(x => x.Email.Trim().ToLower() == request.user_name.Trim().ToLower()).ToList();
+                        if (clients != null && clients.Count > 0)
+                        {
+                            return Ok(new
+                            {
+                                status = (int)ResponseType.FAILED,
+                            });
+                        }
+                    }
+                    return Ok(new
+                    {
+                        status = (int)ResponseType.SUCCESS,
+                    });
+
+                }
+
+            }
+            catch (Exception ex)
+            {
+                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
+                return Ok(new
+                {
+                    status = (int)ResponseType.FAILED,
+                });
+            }
+            return Ok(new
+            {
+                status = (int)ResponseType.FAILED,
+            });
+
+        }
+
         [HttpPost("forgot-password")]
         public async Task<ActionResult> ForgotPassword([FromBody] APIRequestGenericModel input)
         {

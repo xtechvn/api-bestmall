@@ -402,11 +402,11 @@ namespace HuloToys_Service.Controllers
                             status = (int)ResponseType.FAILED,
                         });
                     }
-                    var email_part = request.user_name.Split("@")[0].Trim();
+                    var email_part = request.email.Split("@")[0].Trim();
                     var clients = clientESService.GetByEmail(email_part);
                     if (clients != null && clients.Count > 0)
                     {
-                        clients = clients.Where(x => x.Email.Trim().ToLower() == request.user_name.Trim().ToLower()).ToList();
+                        clients = clients.Where(x => x.Email.Trim().ToLower() == request.email.Trim().ToLower()).ToList();
                         if (clients != null && clients.Count > 0)
                         {
                             return Ok(new
@@ -547,7 +547,6 @@ namespace HuloToys_Service.Controllers
                 {
                     var request = JsonConvert.DeserializeObject<ClientChangePasswordRequestModel>(objParr[0].ToString());
                     if (request == null
-                        
                         || request.password == null || request.password.Trim() == ""
                         || request.token == null || request.token.Trim() == ""
                         || request.confirm_password == null || request.confirm_password.Trim() == "")

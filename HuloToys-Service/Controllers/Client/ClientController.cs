@@ -24,6 +24,7 @@ using Nest;
 using HuloToys_Service.IRepositories;
 using Repositories.IRepositories;
 using HuloToys_Service.Models.Models;
+using System;
 
 namespace HuloToys_Service.Controllers
 {
@@ -476,6 +477,9 @@ namespace HuloToys_Service.Controllers
                                 exprire_time = DateTime.Now.AddMinutes(30)
                             };
                             string forgot_password_token = CommonHelper.Encode(JsonConvert.SerializeObject(forgot_password_object), configuration["KEY:private_key"]);
+                            string uuid = Guid.NewGuid().ToString();
+                             _redisService.Set("FORGOTPASSWORD_" + uuid, forgot_password_token,DateTime.Now.AddMinutes(15), Convert.ToInt32(configuration["Redis:Database:db_search_result"]));
+
                             if (forgot_password_token != null && forgot_password_token.Trim() != "")
                             {
                                 //Generate new Forgot password token:
@@ -499,7 +503,7 @@ namespace HuloToys_Service.Controllers
                                     type = QueueType.UPDATE_USER
                                 };
                                 bool result = workQueueClient.InsertQueueSimple(JsonConvert.SerializeObject(queue_model), QueueName.queue_app_push);
-                                _emailService.SendEmailChangePassword(forgot_password_token, account_client, client);
+                                _emailService.SendEmailChangePassword(uuid, account_client, client);
                                 if (result)
                                 {
                                     return Ok(new
@@ -648,8 +652,18 @@ namespace HuloToys_Service.Controllers
                             code = 2
                         });
                     }
-                    string forgot = CommonHelper.Decode(request.name.Replace("-", "+").Replace("_", "/"), configuration["KEY:private_key"]);
-                    if (forgot == null || forgot.Trim() == "")
+                    var forgot_token= await _redisService.GetAsync("FORGOTPASSWORD_" + request.name, Convert.ToInt32(configuration["Redis:Database:db_search_result"]));
+                    if (string.IsNullOrEmpty(forgot_token) || forgot_token.Trim() == "")
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid,
+                            code = 8
+                        });
+                    }
+                    string json = CommonHelper.Decode(forgot_token.Replace("-", "+").Replace("_", "/"), configuration["KEY:private_key"]);
+                    if (json == null || json.Trim() == "")
                     {
                         return Ok(new
                         {
@@ -658,7 +672,7 @@ namespace HuloToys_Service.Controllers
                             code = 3
                         });
                     }
-                    var model = JsonConvert.DeserializeObject<ClientForgotPasswordTokenModel>(forgot);
+                    var model = JsonConvert.DeserializeObject<ClientForgotPasswordTokenModel>(json);
                     if (model == null || model.account_client_id <= 0 || model.exprire_time < DateTime.Now || model.created_time > DateTime.Now)
                     {
                         return Ok(new
@@ -678,14 +692,17 @@ namespace HuloToys_Service.Controllers
                             code = 7
                         });
                     }
-                    LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "Forgot Check [" + account.Id + "][" + account.ForgotPasswordToken + "]" +
-                        "Compare to[" + account.ForgotPasswordToken.Trim() + "]");
+                   // LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "Forgot Check [" + account.Id + "][" + account.ForgotPasswordToken + "]" +
+                    //    "Compare to[" + account.ForgotPasswordToken.Trim() + "]");
 
-                    if (account != null && request.name.Replace("-", "+").Replace("_", "/").Trim() == account.ForgotPasswordToken.Trim())
+                    if (account != null && forgot_token.Replace("-", "+").Replace("_", "/").Trim() == account.ForgotPasswordToken.Trim())
                     {
+                        _redisService.clear("FORGOTPASSWORD_" + request.name, Convert.ToInt32(configuration["Redis:Database:db_search_result"]));
                         return Ok(new
                         {
                             status = (int)ResponseType.SUCCESS,
+                            data= account.ForgotPasswordToken.Trim(),
+                            code=0
                         });
                     }
                 }

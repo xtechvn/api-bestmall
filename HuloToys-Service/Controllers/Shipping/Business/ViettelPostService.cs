@@ -31,12 +31,13 @@ namespace HuloToys_Service.Controllers.Shipping.Business
         public ViettelPostService(IConfiguration configuration)
         {
             _configuration = configuration;
+            _httpClient = new HttpClient();
+
             var result = GetTemporaryToken().Result;
             if (result)
             {
                 result = GetOwnerConnectToken().Result;
             }
-            _httpClient = new HttpClient();
 
         }
         public async Task<bool> GetTemporaryToken()

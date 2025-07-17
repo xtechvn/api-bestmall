@@ -34,10 +34,10 @@ namespace HuloToys_Service.Controllers.Shipping.Business
             _httpClient = new HttpClient();
 
             var result = GetTemporaryToken().Result;
-            if (result)
-            {
-                result = GetOwnerConnectToken().Result;
-            }
+            //if (result)
+            //{
+            //    result = GetOwnerConnectToken().Result;
+            //}
 
         }
         public async Task<bool> GetTemporaryToken()
@@ -121,7 +121,6 @@ namespace HuloToys_Service.Controllers.Shipping.Business
                     await GetTemporaryToken();
                 }
                 var request = new HttpRequestMessage(HttpMethod.Post, DOMAIN + API_GETPRICEALL);
-                request.Headers.Add("Content-Type", "application/json");
                 request.Headers.Add("Token", token_temporary);
                 request.Headers.Add("Cookie", "SERVERID=A");
                 string jsonContent = JsonConvert.SerializeObject(requestData);
@@ -131,8 +130,7 @@ namespace HuloToys_Service.Controllers.Shipping.Business
                 response.EnsureSuccessStatusCode();
 
                 string responseBody = await response.Content.ReadAsStringAsync();
-                JObject json = JObject.Parse(responseBody);
-                List<VTPGetPriceAllResponse> shippingServices = JsonConvert.DeserializeObject<List<VTPGetPriceAllResponse>>(json["data"].ToString());
+                List<VTPGetPriceAllResponse> shippingServices = JsonConvert.DeserializeObject<List<VTPGetPriceAllResponse>>(responseBody);
 
                 return shippingServices;
             }
@@ -158,7 +156,6 @@ namespace HuloToys_Service.Controllers.Shipping.Business
             try
             {
                 var request = new HttpRequestMessage(HttpMethod.Post, DOMAIN + API_GETPRICE);
-                request.Headers.Add("Content-Type", "application/json");
                 request.Headers.Add("Token", token_temporary);
                 request.Headers.Add("Cookie", "SERVERID=A");
                 string jsonContent = JsonConvert.SerializeObject(requestData);

@@ -1,4 +1,5 @@
-﻿using Entities.ViewModels.Products;
+﻿using Caching.Elasticsearch.FlashSale;
+using Entities.ViewModels.Products;
 using HuloToys_Service.Controllers.Product.Bussiness;
 using HuloToys_Service.MongoDb;
 using HuloToys_Service.RedisWorker;
@@ -15,12 +16,14 @@ namespace HuloToys_Service.Controllers.Cart.Business
         private readonly IConfiguration _configuration;
         private readonly CartMongodbService _cartMongodbService;
         private readonly ProductDetailService productDetailService;
-        public CartService(IConfiguration configuration,ProductDetailService _productDetailService, CartMongodbService cartMongodbService)
+        private readonly SupplierESRepository _supplierESRepository;
+        public CartService(IConfiguration configuration,ProductDetailService _productDetailService, CartMongodbService cartMongodbService, SupplierESRepository supplierESRepository)
         {
             _configuration = configuration;
 
             _cartMongodbService = cartMongodbService;
             productDetailService = _productDetailService;
+            _supplierESRepository = supplierESRepository;
         }
         public async Task<List<CartItemMongoDbModel>> GetList(long account_client_id)
         {

@@ -1,20 +1,22 @@
-﻿using Models.MongoDb;
+﻿using Caching.Elasticsearch.FlashSale;
+using Entities.ViewModels.ElasticSearch;
+using HuloToys_Front_End.Models.Products;
+using HuloToys_Service.Controllers.Cart.Business;
+using HuloToys_Service.Controllers.Client.Business;
+using HuloToys_Service.Controllers.Product.Bussiness;
+using HuloToys_Service.Models.APIRequest;
+using HuloToys_Service.Models.Cart;
 using HuloToys_Service.MongoDb;
 using HuloToys_Service.RabitMQ;
 using HuloToys_Service.Utilities.Lib;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Models.MongoDb;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Reflection;
 using Utilities;
 using Utilities.Contants;
-using HuloToys_Front_End.Models.Products;
-using HuloToys_Service.Models.Cart;
-using HuloToys_Service.Models.APIRequest;
-using HuloToys_Service.Controllers.Cart.Business;
-using HuloToys_Service.Controllers.Client.Business;
-using HuloToys_Service.Controllers.Product.Bussiness;
 
 namespace HuloToys_Service.Controllers
 {
@@ -31,9 +33,10 @@ namespace HuloToys_Service.Controllers
         private readonly OrderMongodbService orderMongodbService;
         private readonly ClientServices clientServices;
         private readonly ProductDetailService productDetailService;
+        private readonly SupplierESRepository _supplierESRepository;
 
         public CartController(IConfiguration configuration,/* ProductDetailMongoAccess productDetailMongoAccess,*/ ProductDetailService _productDetailService
-            , CartMongodbService cartMongodbService, OrderMongodbService _orderMongodbService)
+            , CartMongodbService cartMongodbService, OrderMongodbService _orderMongodbService, SupplierESRepository supplierESRepository)
         {
             _configuration  = configuration;
             orderMongodbService = _orderMongodbService;
@@ -42,7 +45,8 @@ namespace HuloToys_Service.Controllers
            // _productDetailMongoAccess = productDetailMongoAccess;
             clientServices = new ClientServices(configuration);
             productDetailService = _productDetailService;
-            _cartService = new CartService(configuration, _productDetailService, cartMongodbService);
+            _supplierESRepository=supplierESRepository;
+            _cartService = new CartService(configuration, _productDetailService, cartMongodbService, _supplierESRepository);
 
         }
         [HttpPost("add")]
@@ -264,12 +268,23 @@ namespace HuloToys_Service.Controllers
                     }
                     //var data = await _cartMongodbService.GetList(request.account_client_id);
                     var data = await _cartService.GetList(account_client_id);
-
+                    List<SupplierESModel> list = new List<SupplierESModel>();
+                    if(data != null && data.Count > 0)
+                    {
+                        var list_supplier = _supplierESRepository.GetByIds(data.Select(x => x.product.supplier_id).ToList());
+                        if (list_supplier != null && list_supplier.Count > 0) list = list_supplier;
+                    }
                     return Ok(new
                     {
                         status = (int)ResponseType.SUCCESS,
                         msg = ResponseMessages.Success,
-                        data = data
+                        data = data,
+                        supplier=list.Select(x=>new
+                        {
+                            x.supplierid,
+                            x.suppliercode,
+                            x.fullname
+                        })
                     });
                 }
 

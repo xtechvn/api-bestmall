@@ -1,7 +1,9 @@
+using Caching.Elasticsearch.FlashSale;
 using Entities.ConfigModels;
 using HuloToys_Service.Controllers.IRepositories;
 using HuloToys_Service.Controllers.Product.Bussiness;
 using HuloToys_Service.Controllers.Repositories;
+using HuloToys_Service.Controllers.Shipping.Business;
 using HuloToys_Service.IRepositories;
 using HuloToys_Service.Models.Article;
 using HuloToys_Service.Models.Models;
@@ -71,6 +73,8 @@ internal class Program
         builder.Services.AddSingleton<ProductSpecificationMongoAccess>();
         builder.Services.AddSingleton<NewsMongoService>();
         builder.Services.AddSingleton<ClientContactMongodbService>();
+        builder.Services.AddSingleton<ViettelPostService>();
+        builder.Services.AddSingleton<SupplierESRepository>();
 
 
         builder.Services.AddSingleton<RedisConn>();

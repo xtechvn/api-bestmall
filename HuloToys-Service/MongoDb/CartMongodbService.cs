@@ -179,5 +179,30 @@ namespace HuloToys_Service.MongoDb
             }
             return false;
         }
+        public async Task<List<CartItemMongoDbModel>> GetByIds(List<string> cart_ids)
+        {
+            try
+            {
+
+                var filter = Builders<CartItemMongoDbModel>.Filter;
+                var filterDefinition = filter.Empty;
+                filterDefinition &= Builders<CartItemMongoDbModel>.Filter.In(x => x._id, cart_ids);
+
+
+                var model = await bookingCollection.Find(filterDefinition)
+                    .ToListAsync();
+                if (model != null)
+                {
+                    return model;
+                }
+
+            }
+            catch (Exception ex)
+            {
+                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
+                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
+            }
+            return null;
+        }
     }
 }

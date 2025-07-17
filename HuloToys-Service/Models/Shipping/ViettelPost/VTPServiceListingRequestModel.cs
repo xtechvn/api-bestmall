@@ -17,6 +17,8 @@ namespace HuloToys_Service.Models.Shipping.ViettelPost
     public class VTPServiceListingResponseModel
     {
         public int supplier_id { get; set; }
+        public string supplier_name { get; set; }
+        public List<string> cart_ids { get; set; }
         public  List<VTPServiceListingResponseMethod> services { get; set; }
     }
     public class VTPServiceListingResponseMethod { 

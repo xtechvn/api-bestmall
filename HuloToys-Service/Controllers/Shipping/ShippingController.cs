@@ -160,7 +160,9 @@ namespace HuloToys_Service.Controllers.Shipping
                                 response.Add(new VTPServiceListingResponseModel()
                                 {
                                     supplier_id = supplier,
-                                    services=response_item.Select(x=> new VTPServiceListingResponseMethod()
+                                    supplier_name= detail_supplier.fullname,
+                                    cart_ids= carts.Select(x=>x._id).ToList(),
+                                    services =response_item.Select(x=> new VTPServiceListingResponseMethod()
                                     {
                                         name=x.TenDichVu,
                                         service_code=x.MaDvChinh,

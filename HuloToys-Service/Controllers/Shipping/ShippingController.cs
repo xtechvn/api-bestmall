@@ -90,21 +90,21 @@ namespace HuloToys_Service.Controllers.Shipping
 
         public async Task<IActionResult> GetVTPServiceListing([FromBody] APIRequestGenericModel input)
         {
-            var json_input = new VTPServiceListingRequestModel()
-            {
-                carts = new List<VTPServiceListingRequestCart>()
-                        {
-                            new VTPServiceListingRequestCart(){quanity=1, _id="6877b3ef81052c9b6afcc58c"},
-                            new VTPServiceListingRequestCart(){quanity=1, _id="6877b3f381052c9b6afcc58e"},
-                            new VTPServiceListingRequestCart(){quanity=1, _id="6877b3f181052c9b6afcc58d"},
-                        },
-                receiver_district_id = 39,
-                receiver_provinces_id = 02
-            };
-            input = new APIRequestGenericModel()
-            {
-                token = CommonHelper.Encode(JsonConvert.SerializeObject(json_input), configuration["KEY:private_key"])
-            };
+            //var json_input = new VTPServiceListingRequestModel()
+            //{
+            //    carts = new List<VTPServiceListingRequestCart>()
+            //            {
+            //                new VTPServiceListingRequestCart(){quanity=1, _id="6877b3ef81052c9b6afcc58c"},
+            //                new VTPServiceListingRequestCart(){quanity=1, _id="6877b3f381052c9b6afcc58e"},
+            //                new VTPServiceListingRequestCart(){quanity=1, _id="6877b3f181052c9b6afcc58d"},
+            //            },
+            //    receiver_district_id = 39,
+            //    receiver_provinces_id = 02
+            //};
+            //input = new APIRequestGenericModel()
+            //{
+            //    token = CommonHelper.Encode(JsonConvert.SerializeObject(json_input), configuration["KEY:private_key"])
+            //};
             try
             {
                 JArray objParr = null;

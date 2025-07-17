@@ -63,16 +63,18 @@ namespace HuloToys_Service.Controllers.Shipping.Business
                 {
                     token_temporary = responseObject.data.token;
                     created_date = DateTime.Now;
+                    LogHelper.InsertLogTelegram("GetTemporaryToken - ViettelPostService: Token= [" + token_temporary + "] [" + created_date.ToString("dd/MM/yyyy HH:mm:ss") + "]");
+
                     return true;
                 }
                 else
                 {
-                    LogHelper.InsertLogTelegram("GetLongTimeToken - ViettelPostService: Token not found on API [" + (DOMAIN + API_LOGIN) + "] [" + json_content + "]");
+                    LogHelper.InsertLogTelegram("GetTemporaryToken - ViettelPostService: Token not found on API [" + (DOMAIN + API_LOGIN) + "] [" + json_content + "]");
                 }
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegram("GetLongTimeToken - ViettelPostService: error [" + (DOMAIN + API_LOGIN) + "] :" + ex.ToString());
+                LogHelper.InsertLogTelegram("GetTemporaryToken - ViettelPostService: error [" + (DOMAIN + API_LOGIN) + "] :" + ex.ToString());
             }
             return false;
         }

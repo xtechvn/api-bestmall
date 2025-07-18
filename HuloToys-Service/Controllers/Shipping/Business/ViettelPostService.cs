@@ -70,7 +70,7 @@ namespace HuloToys_Service.Controllers.Shipping.Business
                 if (responseObject != null && responseObject.data != null && responseObject.data.token != null)
                 {
                     token_temporary = responseObject.data.token;
-                    LogHelper.InsertLogTelegram("GetTemporaryToken - ViettelPostService: Token= [" + token_temporary + "] [" + created_date.ToString("dd/MM/yyyy HH:mm:ss") + "]");
+                    LogHelper.InsertLogTelegram("GetTemporaryToken - ViettelPostService: Token= [" + token_temporary + "] [" + DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss") + "]");
                     _redisService.Set("ViettelPostToken", responseObject.data.token,DateTime.Now.AddSeconds(exprire_time), Convert.ToInt32(_configuration["Redis:Database:db_common"]));
                     return true;
                 }

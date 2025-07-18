@@ -1,4 +1,5 @@
 ﻿using Azure.Core;
+using HuloToys_Service.RedisWorker;
 using HuloToys_Service.Utilities.Lib;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
@@ -25,10 +26,10 @@ namespace HuloToys_Service.Controllers.Shipping.Business
         private readonly string API_GETPRICEALL = "order/getPriceAll";
         private readonly string API_GETPRICE = "order/getPrice";
         private readonly HttpClient _httpClient;
-        private DateTime created_date= DateTime.Now;
+        private readonly RedisConn _redisService;
         private int exprire_time = 86400;
         private IConfiguration _configuration;
-        public ViettelPostService(IConfiguration configuration)
+        public ViettelPostService(RedisConn redisService, IConfiguration configuration)
         {
             _configuration = configuration;
             _httpClient = new HttpClient();
@@ -38,12 +39,19 @@ namespace HuloToys_Service.Controllers.Shipping.Business
             //{
             //    result = GetOwnerConnectToken().Result;
             //}
-
+            _redisService = new RedisConn(configuration);
+            _redisService.Connect();
         }
         public async Task<bool> GetTemporaryToken()
         {
             try
             {
+                var token = _redisService.Get("ViettelPostToken", Convert.ToInt32(_configuration["Redis:Database:db_common"]));
+                if (token != null && token.Trim()!="") {
+                    token_temporary=token.Trim();
+                    return true;
+                }
+            
                 HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, DOMAIN + API_LOGIN);
                 string json_content = "{\"USERNAME\":\"" + USERNAME + "\",\"PASSWORD\":\"" + PASSWORD + "\"}";
                 StringContent content = new StringContent(json_content, null, "application/json");
@@ -62,9 +70,8 @@ namespace HuloToys_Service.Controllers.Shipping.Business
                 if (responseObject != null && responseObject.data != null && responseObject.data.token != null)
                 {
                     token_temporary = responseObject.data.token;
-                    created_date = DateTime.Now;
                     LogHelper.InsertLogTelegram("GetTemporaryToken - ViettelPostService: Token= [" + token_temporary + "] [" + created_date.ToString("dd/MM/yyyy HH:mm:ss") + "]");
-
+                    _redisService.Set("ViettelPostToken", responseObject.data.token,DateTime.Now.AddSeconds(exprire_time), Convert.ToInt32(_configuration["Redis:Database:db_common"]));
                     return true;
                 }
                 else
@@ -118,7 +125,7 @@ namespace HuloToys_Service.Controllers.Shipping.Business
         {
             try
             {
-                if (DateTime.Now < created_date.AddSeconds(exprire_time))
+                if (token_temporary==null || token_temporary.Trim()=="")
                 {
                     await GetTemporaryToken();
                 }

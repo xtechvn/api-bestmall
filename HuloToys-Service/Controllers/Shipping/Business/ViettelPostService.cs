@@ -39,18 +39,30 @@ namespace HuloToys_Service.Controllers.Shipping.Business
             //{
             //    result = GetOwnerConnectToken().Result;
             //}
-            _redisService = new RedisConn(configuration);
-            _redisService.Connect();
+            _redisService = redisService;
+            try
+            {
+                _redisService.Connect();
+            }
+            catch
+            {
+
+            }
         }
         public async Task<bool> GetTemporaryToken()
         {
             try
             {
-                var token = _redisService.Get("ViettelPostToken", Convert.ToInt32(_configuration["Redis:Database:db_common"]));
-                if (token != null && token.Trim()!="") {
-                    token_temporary=token.Trim();
-                    return true;
+                try
+                {
+                    var token = _redisService.Get("ViettelPostToken", Convert.ToInt32(_configuration["Redis:Database:db_common"]));
+                    if (token != null && token.Trim() != "")
+                    {
+                        token_temporary = token.Trim();
+                        return true;
+                    }
                 }
+                catch {  }
             
                 HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, DOMAIN + API_LOGIN);
                 string json_content = "{\"USERNAME\":\"" + USERNAME + "\",\"PASSWORD\":\"" + PASSWORD + "\"}";
@@ -89,6 +101,10 @@ namespace HuloToys_Service.Controllers.Shipping.Business
         {
             try
             {
+                if (token_temporary == null || token_temporary.Trim() == "")
+                {
+                    await GetTemporaryToken();
+                }
                 var request = new HttpRequestMessage(HttpMethod.Post, DOMAIN + API_OWNERCONNECT);
                 request.Headers.Add("Token", token_temporary);
                 request.Headers.Add("Cookie", "SERVERID=A");

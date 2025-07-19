@@ -138,8 +138,8 @@ namespace HuloToys_Service.RabitMQ
             var factory_sync = new ConnectionFactory()
             {
                 HostName = configuration["Queue:Host"],
-                UserName = configuration["Queue:Username"],
-                Password = configuration["Queue:Password"],
+                UserName = configuration["Queue:Username_Sync"],
+                Password = configuration["Queue:Password_Sync"],
                 VirtualHost = configuration["Queue:V_Host_Sync"],
                 Port = Protocols.DefaultProtocol.DefaultPort
             };

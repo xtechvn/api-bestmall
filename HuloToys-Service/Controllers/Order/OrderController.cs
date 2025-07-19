@@ -557,7 +557,9 @@ namespace HuloToys_Service.Controllers
                         phone = request.address.Phone,
                         voucher_id = request.voucher_id,
                         voucher_code = request.voucher_code,
-                         shipping_fee=0
+                         shipping_fee=0,
+                         
+                         
                     };
                     var list_cart=new List<CartItemMongoDbModel>();
                     foreach (var item in request.carts)
@@ -578,17 +580,20 @@ namespace HuloToys_Service.Controllers
                             list_cart.Add(cart);
 
                             cart.product = await productDetailService.GetByID(cart.product._id);
-                            var amount_product = cart.product.amount;
-                            if (cart.product.flash_sale_todate != null && cart.product.flash_sale_todate >= DateTime.Now && cart.product.amount_after_flashsale != null && cart.product.amount_after_flashsale > 0)
+                            var amount = cart.product.amount;
+                            var price = cart.product.price;
+                            var profit = cart.product.profit;
+                            var discount = 0;
+                            if ( cart.product.amount_after_flashsale != null && cart.product.amount_after_flashsale > 0)
                             {
-                                amount_product = (double)cart.product.amount_after_flashsale;
-
+                                amount = (double)cart.product.amount_after_flashsale;
+                                profit = amount - price;
                             }
                             cart.quanity = item.quanity;
-                            cart.total_price = cart.product.price * item.quanity;
-                            cart.total_profit = cart.product.profit * item.quanity;
-                            cart.total_amount = amount_product * item.quanity;
-                            cart.total_discount = cart.product.discount * item.quanity;
+                            cart.total_price = price * item.quanity;
+                            cart.total_profit = profit * item.quanity;
+                            cart.total_amount = amount * item.quanity;
+                            cart.total_discount = discount * item.quanity;
                             model.total_price += cart.total_price;
                             model.total_profit += cart.total_profit;
                             model.total_amount += cart.total_amount;

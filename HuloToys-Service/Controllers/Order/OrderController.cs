@@ -558,6 +558,10 @@ namespace HuloToys_Service.Controllers
                         voucher_id = request.voucher_id,
                         voucher_code = request.voucher_code,
                          shipping_fee=0,
+                         total_discount=0,
+                         total_price=0,
+                         total_profit=0,
+                         delivery_type=request.delivery_detail.shipping_type
                          
                          
                     };
@@ -580,9 +584,6 @@ namespace HuloToys_Service.Controllers
                             list_cart.Add(cart);
 
                             cart.product = await productDetailService.GetByID(cart.product._id);
-                            LogHelper.InsertLogTelegram("Order InsertMongodb - Product: "
-                     + QueueName.QUEUE_CHECKOUT
-                     + "[" + cart.product._id + "] [" + ((cart.product.amount_after_flashsale != null && cart.product.amount_after_flashsale > 0) ? ((double)cart.product.amount_after_flashsale).ToString("N0") :"") + "]");
                             var amount = cart.product.amount;
                             var price = cart.product.price;
                             var profit = cart.product.profit;
@@ -600,7 +601,6 @@ namespace HuloToys_Service.Controllers
                             model.total_price += cart.total_price;
                             model.total_profit += cart.total_profit;
                             model.total_amount += cart.total_amount;
-                            model.total_discount += cart.total_discount;
                             model.carts.Add(cart);
 
                             await _cartMongodbService.Delete(item.id);
@@ -628,7 +628,7 @@ namespace HuloToys_Service.Controllers
                             }
                             model.voucher_code = voucher_apply.Code;
                             model.voucher_id = voucher_apply.Id;
-                            model.total_discount += total_discount;
+                            model.total_discount = total_discount;
                             model.total_amount -= total_discount;
                             model.total_profit -= total_discount;
                         }
@@ -690,7 +690,7 @@ namespace HuloToys_Service.Controllers
                                             var selected_delivery = response_item.Where(x => x.MaDvChinh.Trim().ToUpper() == model.delivery_detail.shipping_service_code.Trim().ToUpper());
                                             if(selected_delivery!=null && selected_delivery.Count() > 0)
                                             {
-                                                model.shipping_fee += selected_delivery.Sum(x => x.GiaCuoc);
+                                                model.shipping_fee = selected_delivery.Sum(x => x.GiaCuoc);
                                                 model.total_amount += selected_delivery.Sum(x => x.GiaCuoc);
                                             }
                                         }
@@ -705,7 +705,7 @@ namespace HuloToys_Service.Controllers
                     var result = await orderMongodbService.Insert(model);
                     LogHelper.InsertLogTelegram( "Order InsertMongodb: "
                       + QueueName.QUEUE_CHECKOUT
-                      + "[" + JsonConvert.SerializeObject(model) + "] [" + model._id + "]");
+                      + "[" + JsonConvert.SerializeObject(model.carts) + "] [" + model._id + "]");
                     //-- Insert Queue:
                     var queue_model = new CheckoutQueueModel() { event_id = (int)CheckoutEventID.CREATE_ORDER, order_mongo_id = result };
 

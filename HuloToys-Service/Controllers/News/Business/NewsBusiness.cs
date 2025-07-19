@@ -925,7 +925,16 @@ namespace HuloToys_Service.Controllers.News.Business
                                 Path = item_child.Path,
                                 IsShowHeader = item_child.IsShowHeader,
                                 IsShowFooter = item_child.IsShowFooter,
-                                ProductCount=item_child.ProductCount
+                                ProductCount=item_child.ProductCount,
+                                OrderNo = item_child.OrderNo,
+                                PositionId = item_child.PositionId,
+                                Code = item_child.Code,
+                                CreatedOn = item_child.CreatedOn,
+                                Description = item_child.Description,
+                                IsFlashSale = item_child.IsFlashSale,
+                                ModifiedOn = item_child.ModifiedOn,
+                                Priority = item_child.Priority,
+                                Status = item_child.Status
                             };
                             obj_cate_child.Add(cate_child);
                         }
@@ -939,8 +948,17 @@ namespace HuloToys_Service.Controllers.News.Business
                         IsShowHeader = item.IsShowHeader,
                         IsShowFooter = item.IsShowFooter,
                         group_product_child = obj_cate_child,
-                        ProductCount = item.ProductCount
-
+                        ProductCount = item.ProductCount,
+                        OrderNo=item.OrderNo,
+                        PositionId=item.PositionId,
+                        Code=item.Code,
+                        CreatedOn=item.CreatedOn,
+                        Description=item.Description,
+                        IsFlashSale=item.IsFlashSale,
+                        ModifiedOn=item.ModifiedOn,
+                        ParentId=item.ParentId,
+                        Priority=item.Priority,
+                        Status=item.Status
                     };
                     obj_cate.Add(cate_parent);
                 }

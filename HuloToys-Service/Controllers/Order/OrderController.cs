@@ -696,17 +696,21 @@ namespace HuloToys_Service.Controllers
                                 break;
                         }
                     }
-                    
+
                     //-- Mongodb:
+                    
                     var result = await orderMongodbService.Insert(model);
+                    LogHelper.InsertLogTelegram(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "Order InsertMongodb: "
+                      + QueueName.QUEUE_CHECKOUT
+                      + "[" + JsonConvert.SerializeObject(model) + "] [" + model._id + "]");
                     //-- Insert Queue:
                     var queue_model = new CheckoutQueueModel() { event_id = (int)CheckoutEventID.CREATE_ORDER, order_mongo_id = result };
 
 
                     var pushed_queue = work_queue.InsertQueueSimpleDurable(JsonConvert.SerializeObject(queue_model), QueueName.QUEUE_CHECKOUT);
-                    LogHelper.InsertLogTelegram(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "Push Queue: "
-                       + QueueName.QUEUE_CHECKOUT
-                       + "[" + JsonConvert.SerializeObject(queue_model) + "] [" + pushed_queue + "]");
+                    //LogHelper.InsertLogTelegram(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "Push Queue: "
+                    //   + QueueName.QUEUE_CHECKOUT
+                    //   + "[" + JsonConvert.SerializeObject(queue_model) + "] [" + pushed_queue + "]");
 
                     return Ok(new
                     {

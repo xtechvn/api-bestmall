@@ -559,7 +559,7 @@ namespace HuloToys_Service.Controllers
                         voucher_code = request.voucher_code,
                          shipping_fee=0
                     };
-                  
+                    var list_cart=new List<CartItemMongoDbModel>();
                     foreach (var item in request.carts)
                     {
                         var cart = await _cartMongodbService.FindById(item.id);
@@ -575,7 +575,8 @@ namespace HuloToys_Service.Controllers
                         }
                         else
                         {
-                           
+                            list_cart.Add(cart);
+
                             cart.product = await productDetailService.GetByID(cart.product._id);
                             var amount_product = cart.product.amount;
                             if (cart.product.flash_sale_todate != null && cart.product.flash_sale_todate >= DateTime.Now && cart.product.amount_after_flashsale != null && cart.product.amount_after_flashsale > 0)
@@ -623,7 +624,74 @@ namespace HuloToys_Service.Controllers
                             model.total_amount -= total_discount;
                             model.total_profit -= total_discount;
                         }
-                    }                   
+                    }
+                    if(model.delivery_detail.carrier_id>1)
+                    {
+                        switch (model.delivery_detail.carrier_id) {
+                            case 1:
+                                {
+
+                                }break;
+                            case 2:
+                                {
+
+                                }
+                                break;
+                            case 3:
+                                {
+                                    if (model.delivery_detail.shipping_service_code == null || model.delivery_detail.shipping_service_code.Trim() == "")
+                                    {
+                                        break;
+                                    }
+                                    var list_supplier = list_cart.Select(x => x.product.supplier_id).Distinct();
+                                    foreach (var supplier in list_supplier)
+                                    {
+                                        var cart_belong_to_supplier = list_cart.Where(x => x.product.supplier_id == supplier);
+                                        var detail_supplier = await _supplierESRepository.GetByIdAsync(supplier);
+                                        int package_weight = 0;
+                                        int package_width = 0;
+                                        int package_height = 0;
+                                        int package_depth = 0;
+                                        double amount = 0;
+                                        foreach (var c in cart_belong_to_supplier)
+                                        {
+                                            var selected = list_cart.First(x => x._id == c._id);
+                                            package_weight += Convert.ToInt32(((c.product.weight <= 0 ? 0 : c.product.weight) * selected.quanity));
+                                            package_width += Convert.ToInt32(((c.product.package_width <= 0 ? 0 : c.product.package_width) * selected.quanity));
+                                            package_height += Convert.ToInt32(((c.product.package_height <= 0 ? 0 : c.product.package_height) * selected.quanity));
+                                            package_depth += Convert.ToInt32(((c.product.package_depth <= 0 ? 0 : c.product.package_depth) * selected.quanity));
+                                            amount += Convert.ToInt32(((c.product.amount_after_flashsale == null ? c.product.amount : c.product.amount_after_flashsale) * selected.quanity));
+                                        }
+                                        var response_item = await _viettelPostService.GetShippingMethods(new VTPGetPriceAllRequest()
+                                        {
+                                            MoneyCollection = 0,
+                                            ProductHeight = package_height,
+                                            ProductLength = package_depth,
+                                            ProductPrice = Convert.ToInt64(amount),
+                                            ProductType = "HH",
+                                            ProductWeight = package_weight,
+                                            ProductWidth = package_width,
+                                            SenderDistrict = detail_supplier.districtid == null ? 4 : (int)detail_supplier.districtid,
+                                            SenderProvince = (int)detail_supplier.provinceid == null ? 1 : (int)detail_supplier.provinceid,
+                                            ReceiverDistrict = Convert.ToInt32(request.address.DistrictId),
+                                            ReceiverProvince = Convert.ToInt32(request.address.ProvinceId),
+                                            Type = 1
+                                        });
+                                        if (response_item != null && response_item.Count > 0)
+                                        {
+                                            var selected_delivery = response_item.Where(x => x.MaDvChinh.Trim().ToUpper() == model.delivery_detail.shipping_service_code.Trim().ToUpper());
+                                            if(selected_delivery!=null && selected_delivery.Count() > 0)
+                                            {
+                                                model.shipping_fee += selected_delivery.Sum(x => x.GiaCuoc);
+                                                model.total_amount += selected_delivery.Sum(x => x.GiaCuoc);
+                                            }
+                                        }
+                                    }
+                                }
+                                break;
+                        }
+                    }
+                    
                     //-- Mongodb:
                     var result = await orderMongodbService.Insert(model);
                     //-- Insert Queue:

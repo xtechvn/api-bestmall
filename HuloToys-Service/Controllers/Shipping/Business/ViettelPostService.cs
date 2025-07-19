@@ -78,7 +78,12 @@ namespace HuloToys_Service.Controllers.Shipping.Business
                 {
                     token_temporary = responseObject.data.token;
                     LogHelper.InsertLogTelegram("GetTemporaryToken - ViettelPostService: Token= [" + token_temporary + "] [" + DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss") + "]");
-                    _redisService.Set("ViettelPostToken", responseObject.data.token,DateTime.Now.AddSeconds(exprire_time), Convert.ToInt32(_configuration["Redis:Database:db_common"]));
+                    try
+                    {
+                        _redisService.Set("ViettelPostToken", responseObject.data.token, DateTime.Now.AddSeconds(exprire_time), Convert.ToInt32(_configuration["Redis:Database:db_common"]));
+
+                    }
+                    catch { }
                     return true;
                 }
                 else

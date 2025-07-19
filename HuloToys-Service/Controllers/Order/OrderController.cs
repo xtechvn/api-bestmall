@@ -580,6 +580,9 @@ namespace HuloToys_Service.Controllers
                             list_cart.Add(cart);
 
                             cart.product = await productDetailService.GetByID(cart.product._id);
+                            LogHelper.InsertLogTelegram("Order InsertMongodb - Product: "
+                     + QueueName.QUEUE_CHECKOUT
+                     + "[" + cart.product._id + "] [" + ((cart.product.amount_after_flashsale != null && cart.product.amount_after_flashsale > 0) ? ((double)cart.product.amount_after_flashsale).ToString("N0") :"") + "]");
                             var amount = cart.product.amount;
                             var price = cart.product.price;
                             var profit = cart.product.profit;
@@ -700,7 +703,7 @@ namespace HuloToys_Service.Controllers
                     //-- Mongodb:
                     
                     var result = await orderMongodbService.Insert(model);
-                    LogHelper.InsertLogTelegram(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "Order InsertMongodb: "
+                    LogHelper.InsertLogTelegram( "Order InsertMongodb: "
                       + QueueName.QUEUE_CHECKOUT
                       + "[" + JsonConvert.SerializeObject(model) + "] [" + model._id + "]");
                     //-- Insert Queue:

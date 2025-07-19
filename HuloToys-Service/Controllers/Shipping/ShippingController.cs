@@ -125,13 +125,14 @@ namespace HuloToys_Service.Controllers.Shipping
                         var list_supplier = carts.Select(x => x.product.supplier_id).Distinct();
                         foreach(var supplier in list_supplier)
                         {
+                            var cart_belong_to_supplier = carts.Where(x => x.product.supplier_id == supplier);
                             var detail_supplier = await _supplierESRepository.GetByIdAsync(supplier);
                             int package_weight = 0;
                             int package_width = 0;
                             int package_height = 0;
                             int package_depth = 0;
                             double amount = 0;
-                            foreach (var c in carts)
+                            foreach (var c in cart_belong_to_supplier)
                             {
                                 var selected = request.carts.First(x => x._id == c._id);
                                 package_weight += Convert.ToInt32(((c.product.weight <= 0 ? 0 : c.product.weight) * selected.quanity));
@@ -161,7 +162,7 @@ namespace HuloToys_Service.Controllers.Shipping
                                 {
                                     supplier_id = supplier,
                                     supplier_name= detail_supplier.fullname,
-                                    cart_ids= carts.Select(x=>x._id).ToList(),
+                                    cart_ids= cart_belong_to_supplier.Select(x=>x._id).ToList(),
                                     services =response_item.Select(x=> new VTPServiceListingResponseMethod()
                                     {
                                         name=x.TenDichVu,

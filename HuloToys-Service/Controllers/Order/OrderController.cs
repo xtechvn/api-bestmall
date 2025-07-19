@@ -1,34 +1,37 @@
-﻿using Caching.Elasticsearch;
-using Models.APIRequest;
+﻿using App_Push_Consummer.Model.Comments;
+using Azure;
+using Caching.Elasticsearch;
+using Caching.Elasticsearch.FlashSale;
+using Entities.Models;
+using HuloToys_Service.Controllers.Client.Business;
+using HuloToys_Service.Controllers.Order.Business;
+using HuloToys_Service.Controllers.Product.Bussiness;
+using HuloToys_Service.Controllers.Shipping.Business;
+using HuloToys_Service.ElasticSearch;
+using HuloToys_Service.Models.APIRequest;
+using HuloToys_Service.Models.APP;
+using HuloToys_Service.Models.Models;
+using HuloToys_Service.Models.Orders;
+using HuloToys_Service.Models.Shipping.ViettelPost;
+using HuloToys_Service.MongoDb;
 using HuloToys_Service.RabitMQ;
+using HuloToys_Service.RedisWorker;
+using HuloToys_Service.Utilities.constants.APP;
 using HuloToys_Service.Utilities.Lib;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Models.APIRequest;
+using Models.MongoDb;
+using Nest;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using REPOSITORIES.IRepositories;
+using StackExchange.Redis;
+using System.Data;
+using System.Drawing.Printing;
 using System.Reflection;
 using Utilities;
 using Utilities.Contants;
-using HuloToys_Service.MongoDb;
-using Models.MongoDb;
-using HuloToys_Service.Models.APP;
-using HuloToys_Service.Utilities.constants.APP;
-using HuloToys_Service.Controllers.Order.Business;
-using HuloToys_Service.RedisWorker;
-using HuloToys_Service.Models.Orders;
-using HuloToys_Service.Models.APIRequest;
-using HuloToys_Service.Controllers.Client.Business;
-using App_Push_Consummer.Model.Comments;
-using HuloToys_Service.ElasticSearch;
-using HuloToys_Service.Controllers.Shipping.Business;
-using Entities.Models;
-using HuloToys_Service.Models.Models;
-using System.Data;
-using Nest;
-using System.Drawing.Printing;
-using REPOSITORIES.IRepositories;
-using HuloToys_Service.Controllers.Product.Bussiness;
-using StackExchange.Redis;
 
 namespace HuloToys_Service.Controllers
 {
@@ -54,9 +57,11 @@ namespace HuloToys_Service.Controllers
         private readonly ProductDetailService productDetailService;
         private readonly IVoucherRepository _voucherRepository;
         private readonly LocationESService locationESService;
+        private readonly ViettelPostService _viettelPostService;
+        private readonly SupplierESRepository _supplierESRepository;
 
-        public OrderController(IConfiguration _configuration, RedisConn redisService, IVoucherRepository voucherRepository, /*ProductDetailMongoAccess productDetailMongoAccess,*/
-            ProductDetailService _productDetailService, CartMongodbService cartMongodbService, OrderMongodbService _orderMongodbService)
+        public OrderController(IConfiguration _configuration, RedisConn redisService, IVoucherRepository voucherRepository, ViettelPostService viettelPostService,
+            ProductDetailService _productDetailService, CartMongodbService cartMongodbService, OrderMongodbService _orderMongodbService, SupplierESRepository supplierESRepository)
         {
             configuration = _configuration;
 
@@ -66,7 +71,7 @@ namespace HuloToys_Service.Controllers
             locationESService = new LocationESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
             accountClientESService = new AccountClientESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
             orderMongodbService = _orderMongodbService;
-            //_productDetailMongoAccess = productDetailMongoAccess;
+            _viettelPostService = viettelPostService;
             work_queue = new WorkQueueClient(configuration);
             identiferService = new IdentiferService(_configuration);
             _redisService = new RedisConn(configuration);
@@ -77,6 +82,7 @@ namespace HuloToys_Service.Controllers
             _voucherRepository = voucherRepository;
             productDetailService = _productDetailService;
             _cartMongodbService = cartMongodbService;
+            _supplierESRepository = supplierESRepository;
         }
 
         [HttpPost("history")]
@@ -550,9 +556,10 @@ namespace HuloToys_Service.Controllers
                         receivername = request.address.ReceiverName,
                         phone = request.address.Phone,
                         voucher_id = request.voucher_id,
-                        voucher_code = request.voucher_code
+                        voucher_code = request.voucher_code,
+                         shipping_fee=0
                     };
-
+                  
                     foreach (var item in request.carts)
                     {
                         var cart = await _cartMongodbService.FindById(item.id);
@@ -568,6 +575,7 @@ namespace HuloToys_Service.Controllers
                         }
                         else
                         {
+                           
                             cart.product = await productDetailService.GetByID(cart.product._id);
                             var amount_product = cart.product.amount;
                             if (cart.product.flash_sale_todate != null && cart.product.flash_sale_todate >= DateTime.Now && cart.product.amount_after_flashsale != null && cart.product.amount_after_flashsale > 0)
@@ -587,8 +595,9 @@ namespace HuloToys_Service.Controllers
                             model.carts.Add(cart);
 
                             await _cartMongodbService.Delete(item.id);
-                        }
+                            
 
+                        }
                     }
                     if (model.voucher_code != null && model.voucher_code.Trim() != "")
                     {
@@ -614,14 +623,7 @@ namespace HuloToys_Service.Controllers
                             model.total_amount -= total_discount;
                             model.total_profit -= total_discount;
                         }
-                    }
-                    //-- Shipping fee
-                    //var shipping_fee = await shippingBussinessSerice.GetShippingFeeResponse(request.delivery_detail);
-                    //shipping_fee ??= new Models.NinjaVan.ShippingFeeResponseModel();
-                    //if (shipping_fee.total_shipping_fee <= 0) shipping_fee.total_shipping_fee = 0;
-                    //model.shipping_fee = shipping_fee.total_shipping_fee;
-                    //model.total_amount += shipping_fee.total_shipping_fee;
-                    model.shipping_fee = 0;
+                    }                   
                     //-- Mongodb:
                     var result = await orderMongodbService.Insert(model);
                     //-- Insert Queue:

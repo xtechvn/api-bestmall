@@ -39,7 +39,7 @@ namespace HuloToys_Service.Controllers.Shipping.Business
             //{
             //    result = GetOwnerConnectToken().Result;
             //}
-            _redisService = redisService;
+			_redisService = redisService;
             try
             {
                 _redisService.Connect();

@@ -39,8 +39,15 @@ namespace HuloToys_Service.Controllers.Shipping.Business
             //{
             //    result = GetOwnerConnectToken().Result;
             //}
-            _redisService = new RedisConn(configuration);
-            _redisService.Connect();
+			_redisService = redisService;
+            try
+            {
+                _redisService.Connect();
+            }
+            catch
+            {
+
+            }
         }
         public async Task<bool> GetTemporaryToken()
         {

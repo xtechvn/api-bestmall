@@ -133,11 +133,11 @@ namespace HuloToys_Service.Controllers.Shipping
                         {
                             var cart_belong_to_supplier = carts.Where(x => x.product.supplier_id == supplier);
                             var detail_supplier = await _supplierESRepository.GetByIdAsync(supplier);
-                            LogHelper.InsertLogTelegram(
-                                  "GetVTPServiceListing "
-                                  + " detail_supplier " + (detail_supplier == null ? "NULL" : detail_supplier.supplierid)
+                            //LogHelper.InsertLogTelegram(
+                            //      "GetVTPServiceListing "
+                            //      + " detail_supplier " + (detail_supplier == null ? "NULL" : detail_supplier.supplierid)
 
-                                  );
+                            //      );
                             int package_weight = 0;
                             int package_width = 0;
                             int package_height = 0;
@@ -152,11 +152,11 @@ namespace HuloToys_Service.Controllers.Shipping
                                 package_depth += Convert.ToInt32(((c.product.package_depth <= 0 ? 0 : c.product.package_depth) * selected.quanity));
                                 amount += Convert.ToInt32(((c.product.amount_after_flashsale == null ? c.product.amount : c.product.amount_after_flashsale) * selected.quanity));
                             }
-                            LogHelper.InsertLogTelegram(
-                                    "GetVTPServiceListing "
-                                    + " _viettelPostService " + (_viettelPostService == null ? "NULL" : "_viettelPostService")
+                            //LogHelper.InsertLogTelegram(
+                            //        "GetVTPServiceListing "
+                            //        + " _viettelPostService " + (_viettelPostService == null ? "NULL" : "_viettelPostService")
 
-                                    );
+                            //        );
                             var response_item = await _viettelPostService.GetShippingMethods(new VTPGetPriceAllRequest()
                             {
                                 MoneyCollection = 0,

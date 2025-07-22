@@ -90,19 +90,19 @@ namespace HuloToys_Service.Controllers.Shipping
 
         public async Task<IActionResult> GetVTPServiceListing([FromBody] APIRequestGenericModel input)
         {
-            //var json_input = new VTPServiceListingRequestModel()
-            //{
-            //    carts = new List<VTPServiceListingRequestCart>()
-            //            {
-            //                new VTPServiceListingRequestCart(){quanity=1, _id="6878cdd4267e3067800c2f74"},
-            //            },
-            //    receiver_district_id = 39,
-            //    receiver_provinces_id = 02
-            //};
-            //input = new APIRequestGenericModel()
-            //{
-            //    token = CommonHelper.Encode(JsonConvert.SerializeObject(json_input), configuration["KEY:private_key"])
-            //};
+            var json_input = new VTPServiceListingRequestModel()
+            {
+                carts = new List<VTPServiceListingRequestCart>()
+                        {
+                            new VTPServiceListingRequestCart(){quanity=2, _id="687eea8a9d710f807ef3adda"},
+                        },
+                receiver_district_id = 39,
+                receiver_provinces_id = 02
+            };
+            input = new APIRequestGenericModel()
+            {
+                token = CommonHelper.Encode(JsonConvert.SerializeObject(json_input), configuration["KEY:private_key"])
+            };
             try
             {
                 JArray objParr = null;

@@ -29,16 +29,11 @@ namespace HuloToys_Service.Controllers.Shipping.Business
         private readonly RedisConn _redisService;
         private int exprire_time = 86400;
         private IConfiguration _configuration;
-        public ViettelPostService(RedisConn redisService, IConfiguration configuration)
+        public ViettelPostService(IConfiguration configuration, RedisConn redisService)
         {
             _configuration = configuration;
             _httpClient = new HttpClient();
 
-            var result = GetTemporaryToken().Result;
-            //if (result)
-            //{
-            //    result = GetOwnerConnectToken().Result;
-            //}
 			_redisService = redisService;
             try
             {
@@ -48,6 +43,8 @@ namespace HuloToys_Service.Controllers.Shipping.Business
             {
 
             }
+            var result = GetTemporaryToken().Result;
+
         }
         public async Task<bool> GetTemporaryToken()
         {

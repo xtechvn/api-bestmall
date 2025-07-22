@@ -303,17 +303,20 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             List<FlashSaleProductResposeModel> result = new List<FlashSaleProductResposeModel>();
             try
             {
+
                 if (list_item != null && list_item.Count > 0)
                 {
                     var list_product_mongo = await _productDetailMongoAccess.ListByProducts(list_item.Select(x => x.productid).ToList());
-                    foreach (var item in list_item)
+
+                    foreach (var selected in list_product_mongo)
                     {
-                        var selected = list_product_mongo.FirstOrDefault(x => x._id == item.productid);
-                        if (selected == null || selected._id == null || selected.status!=1 || selected.supplier_status!=1)
-                        {
-                           // LogHelper.InsertLogTelegram("GetFlashSaleProductByProductIds Ignore [ID=" + (selected == null ? "NULL" : selected._id) +"] [supplier_id="+ (selected == null ? "NULL" : selected.supplier_id) + "][status="+ (selected == null ? "NULL" : selected.status) + "][supplier_status="+ (selected == null ? "NULL" : selected.supplier_status) + "]");
-                            continue;
-                        }
+                        // var selected = list_product_mongo.FirstOrDefault(x => x._id == item.productid);
+                        //if (selected == null || selected._id == null || selected.status!=1 || selected.supplier_status!=1)
+                        //{
+                        //   // LogHelper.InsertLogTelegram("GetFlashSaleProductByProductIds Ignore [ID=" + (selected == null ? "NULL" : selected._id) +"] [supplier_id="+ (selected == null ? "NULL" : selected.supplier_id) + "][status="+ (selected == null ? "NULL" : selected.status) + "][supplier_status="+ (selected == null ? "NULL" : selected.supplier_status) + "]");
+                        //    continue;
+                        //}
+                        var item = list_item.First(x => x.productid.Trim()==selected._id.Trim());
                         var amount_product = selected.amount;
                         if (selected.amount <= 0 && selected.amount_min != null && selected.amount_min > 0)
                         {

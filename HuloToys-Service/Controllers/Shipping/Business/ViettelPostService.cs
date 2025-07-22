@@ -145,6 +145,9 @@ namespace HuloToys_Service.Controllers.Shipping.Business
             {
                 if (token_temporary==null || token_temporary.Trim()=="")
                 {
+                    LogHelper.InsertLogTelegram(
+                       "Viettelpost GetTemporaryToken: "
+                       );
                     await GetTemporaryToken();
                 }
                 var request = new HttpRequestMessage(HttpMethod.Post, DOMAIN + API_GETPRICEALL);
@@ -157,6 +160,11 @@ namespace HuloToys_Service.Controllers.Shipping.Business
                 response.EnsureSuccessStatusCode();
 
                 string responseBody = await response.Content.ReadAsStringAsync();
+                LogHelper.InsertLogTelegram(
+                        "Viettelpost GetShippingMethods: "
+                        + " list_supplier count=" + (responseBody == null ? "NULL" : responseBody)
+
+                        );
                 List<VTPGetPriceAllResponse> shippingServices = JsonConvert.DeserializeObject<List<VTPGetPriceAllResponse>>(responseBody);
 
                 return shippingServices;

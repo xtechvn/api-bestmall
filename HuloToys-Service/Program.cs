@@ -73,11 +73,11 @@ internal class Program
         builder.Services.AddSingleton<ProductSpecificationMongoAccess>();
         builder.Services.AddSingleton<NewsMongoService>();
         builder.Services.AddSingleton<ClientContactMongodbService>();
-        builder.Services.AddSingleton<ViettelPostService>();
         builder.Services.AddSingleton<SupplierESRepository>();
 
 
         builder.Services.AddSingleton<RedisConn>();
+        builder.Services.AddSingleton<ViettelPostService>();
 
         var app = builder.Build();
 

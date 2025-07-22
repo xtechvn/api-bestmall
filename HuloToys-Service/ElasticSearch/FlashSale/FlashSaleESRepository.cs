@@ -70,6 +70,10 @@ namespace Caching.Elasticsearch.FlashSale
                                 .Field(f => f.todate)
                                 .GreaterThanOrEquals(now)
                             ),
+                            bs => bs.DateRange(r => r
+                                .Field(f => f.fromdate)
+                                .LessThanOrEquals(now)
+                            ),
                             bs => bs.Term(t => t
                                 .Field(f => f.status)
                                 .Value(1)

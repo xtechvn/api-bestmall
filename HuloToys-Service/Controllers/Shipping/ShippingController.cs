@@ -128,16 +128,16 @@ namespace HuloToys_Service.Controllers.Shipping
                     if (carts!=null && carts.Count > 0)
                     {
                         var list_supplier = carts.Select(x => x.product.supplier_id).Distinct();
-                        //LogHelper.InsertLogTelegram(
-                        //        "GetVTPServiceListing "
-                        //        + " list_supplier count=" + (list_supplier == null ? "NULL" : list_supplier.Count().ToString())
-
-                        //        );
+                      
                         foreach (var supplier in list_supplier)
                         {
                             var cart_belong_to_supplier = carts.Where(x => x.product.supplier_id == supplier);
                             var detail_supplier = await _supplierESRepository.GetByIdAsync(supplier);
-                            
+                            LogHelper.InsertLogTelegram(
+                                  "GetVTPServiceListing "
+                                  + " detail_supplier " + (detail_supplier == null ? "NULL" : detail_supplier.supplierid)
+
+                                  );
                             int package_weight = 0;
                             int package_width = 0;
                             int package_height = 0;
@@ -152,6 +152,11 @@ namespace HuloToys_Service.Controllers.Shipping
                                 package_depth += Convert.ToInt32(((c.product.package_depth <= 0 ? 0 : c.product.package_depth) * selected.quanity));
                                 amount += Convert.ToInt32(((c.product.amount_after_flashsale == null ? c.product.amount : c.product.amount_after_flashsale) * selected.quanity));
                             }
+                            LogHelper.InsertLogTelegram(
+                                    "GetVTPServiceListing "
+                                    + " _viettelPostService " + (_viettelPostService == null ? "NULL" : "_viettelPostService")
+
+                                    );
                             var response_item = await _viettelPostService.GetShippingMethods(new VTPGetPriceAllRequest()
                             {
                                 MoneyCollection = 0,
@@ -162,7 +167,7 @@ namespace HuloToys_Service.Controllers.Shipping
                                 ProductWeight = package_weight,
                                 ProductWidth = package_width,
                                 SenderDistrict   = detail_supplier.districtid==null? 4: (int)detail_supplier.districtid,
-                                SenderProvince = (int)detail_supplier.provinceid == null ? 1: (int)detail_supplier.provinceid,
+                                SenderProvince = detail_supplier.provinceid == null ? 1: (int)detail_supplier.provinceid,
                                 ReceiverDistrict = request.receiver_district_id,
                                 ReceiverProvince = request.receiver_provinces_id,
                                  Type=1

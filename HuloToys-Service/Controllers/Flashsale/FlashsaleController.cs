@@ -301,8 +301,8 @@ namespace HuloToys_Service.Controllers
                         });
                     }
                     var list_products = await productDetailService.GetFlashSaleProductByProductIds(list);
-                    var all = await flashSaleProductESRepository.GetAllFlashSaleProductByType(list_id, request.type, request.group_id);
-                    var total_count = await productDetailService.CountFlashSaleProductByProductIds(all);
+                   // var all = await flashSaleProductESRepository.GetAllFlashSaleProductByType(list_id, request.type, request.group_id);
+                    var total_count = await productDetailService.CountFlashSaleProductByProductIds(list);
                    /* LogHelper.InsertLogTelegram(
                         "ListingByType -2- list count=" + (list == null ? "NULL" : list.Count.ToString())
                         + " list_products count="+(list_products == null ? "NULL" : list_products.Count.ToString())

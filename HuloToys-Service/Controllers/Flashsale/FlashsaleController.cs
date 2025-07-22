@@ -307,6 +307,7 @@ namespace HuloToys_Service.Controllers
                     LogHelper.InsertLogTelegram(
                         "ListingByType -2- list count=" + (list == null ? "NULL" : list.Count.ToString())
                         + " list_products count=" + (list_products == null ? "NULL" : list_products.Count.ToString())
+                        + " list_fl count=" + (list_fl == null ? "NULL" : list_fl.Count.ToString())
                         + "total count= " + total_count
                         );
 

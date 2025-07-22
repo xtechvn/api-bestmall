@@ -540,5 +540,24 @@ namespace HuloToys_Service.MongoDb
             }
             return 0;
         }
+        public async Task<long> CountListByProductIgnoreCondition(List<string> ids)
+        {
+            try
+            {
+                var filter = Builders<ProductMongoDbModel>.Filter;
+                var filterDefinition = filter.Empty;
+                filterDefinition &= Builders<ProductMongoDbModel>.Filter.In(x => x._id, ids);
+
+                var model = _productDetailCollection.CountDocumentsAsync(filterDefinition);
+                var result = await model;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram("CountListByProducts err=" + ex.ToString());
+
+            }
+            return 0;
+        }
     }
 }

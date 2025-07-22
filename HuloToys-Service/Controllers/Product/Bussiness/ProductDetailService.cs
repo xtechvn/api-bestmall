@@ -306,7 +306,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
 
                 if (list_item != null && list_item.Count > 0)
                 {
-                    var list_product_mongo = await _productDetailMongoAccess.ListByProducts(list_item.Select(x => x.productid).ToList());
+                    var list_product_mongo = await _productDetailMongoAccess.ListByProductIgnoreCondition(list_item.Select(x => x.productid).ToList());
 
                     foreach (var selected in list_product_mongo)
                     {
@@ -379,7 +379,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             {
                 if (list_item != null && list_item.Count > 0)
                 {
-                    count = await _productDetailMongoAccess.CountListByProducts(list_item.Select(x => x.productid).ToList());
+                    count = await _productDetailMongoAccess.CountListByProductIgnoreCondition(list_item.Select(x => x.productid).ToList());
                 }
             }
             catch (Exception ex)

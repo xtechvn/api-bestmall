@@ -120,13 +120,23 @@ namespace HuloToys_Service.Controllers.Shipping
                     }
                     List<VTPServiceListingResponseModel> response = new List<VTPServiceListingResponseModel>();
                     var carts = await _cartMongodbService.GetByIds(request.carts.Select(x => x._id).ToList());
-                    if(carts!=null && carts.Count > 0)
+                    LogHelper.InsertLogTelegram(
+                        "GetVTPServiceListing "
+                        + " carts count=" + (carts == null ? "NULL" : carts.Count.ToString())
+
+                        );
+                    if (carts!=null && carts.Count > 0)
                     {
                         var list_supplier = carts.Select(x => x.product.supplier_id).Distinct();
                         foreach(var supplier in list_supplier)
                         {
                             var cart_belong_to_supplier = carts.Where(x => x.product.supplier_id == supplier);
                             var detail_supplier = await _supplierESRepository.GetByIdAsync(supplier);
+                            LogHelper.InsertLogTelegram(
+                                "GetVTPServiceListing "
+                                + " detail_supplier count=" + (detail_supplier == null ? "NULL" : detail_supplier.Count.ToString())
+
+                                );
                             int package_weight = 0;
                             int package_width = 0;
                             int package_height = 0;

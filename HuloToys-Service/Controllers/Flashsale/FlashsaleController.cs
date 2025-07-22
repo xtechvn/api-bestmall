@@ -304,13 +304,13 @@ namespace HuloToys_Service.Controllers
                     var list_products = await productDetailService.GetFlashSaleProductByProductIds(list);
                    // var all = await flashSaleProductESRepository.GetAllFlashSaleProductByType(list_id, request.type, request.group_id);
                     var total_count = await productDetailService.CountFlashSaleProductByProductIds(list);
-                    LogHelper.InsertLogTelegram(
-                        "ListingByType -2- " 
-                        +" list_fl count=" + (list_fl == null ? "NULL" : list_fl.Count.ToString())
-                        +  "list_fl_product_es count=" + (list == null ? "NULL" : list.Count.ToString())
-                        + " list_products count=" + (list_products == null ? "NULL" : list_products.Count.ToString())
-                        + "total count= " + total_count
-                        );
+                    //LogHelper.InsertLogTelegram(
+                    //    "ListingByType -2- " 
+                    //    +" list_fl count=" + (list_fl == null ? "NULL" : list_fl.Count.ToString())
+                    //    +  "list_fl_product_es count=" + (list == null ? "NULL" : list.Count.ToString())
+                    //    + " list_products count=" + (list_products == null ? "NULL" : list_products.Count.ToString())
+                    //    + "total count= " + total_count
+                    //    );
 
                     return Ok(new
                     {

@@ -1,14 +1,7 @@
-﻿using Azure.Core;
-using HuloToys_Service.RedisWorker;
+﻿using HuloToys_Service.RedisWorker;
 using HuloToys_Service.Utilities.Lib;
-using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Json;
 using System.Text;
-using Utilities.Contants;
 
 namespace HuloToys_Service.Controllers.Shipping.Business
 {
@@ -25,6 +18,7 @@ namespace HuloToys_Service.Controllers.Shipping.Business
         private readonly string API_OWNERCONNECT = "user/ownerconnect";
         private readonly string API_GETPRICEALL = "order/getPriceAll";
         private readonly string API_GETPRICE = "order/getPrice";
+        private readonly string API_CREATEORDER = "order/createOrder";
         private readonly HttpClient _httpClient;
         private readonly RedisConn _redisService;
         private int exprire_time = 86400;
@@ -34,12 +28,7 @@ namespace HuloToys_Service.Controllers.Shipping.Business
             _configuration = configuration;
             _httpClient = new HttpClient();
 
-            var result = GetTemporaryToken().Result;
-            //if (result)
-            //{
-            //    result = GetOwnerConnectToken().Result;
-            //}
-			_redisService = redisService;
+            _redisService = redisService;
             try
             {
                 _redisService.Connect();
@@ -137,7 +126,7 @@ namespace HuloToys_Service.Controllers.Shipping.Business
         {
             try
             {
-                if (token_temporary==null || token_temporary.Trim()=="")
+                if (token_temporary == null || token_temporary.Trim() == "")
                 {
                     await GetTemporaryToken();
                 }
@@ -172,7 +161,7 @@ namespace HuloToys_Service.Controllers.Shipping.Business
                 return null;
             }
         }
-        public async Task<VTPGetPriceResponse> CalculateShippingPrice( VTPGetPriceRequest requestData)
+        public async Task<VTPGetPriceResponse> CalculateShippingPrice(VTPGetPriceRequest requestData)
         {
             try
             {
@@ -206,6 +195,43 @@ namespace HuloToys_Service.Controllers.Shipping.Business
             catch (Exception e)
             {
                 LogHelper.InsertLogTelegram("GetOwnerConnectToken - CalculateShippingPrice: error [" + (DOMAIN + API_GETPRICEALL) + "] [" + e.Message + "]");
+                return null;
+            }
+        }
+        public async Task<VTPOrderResponseModel> CreateVTPOrder(VTPOrderRequestModel requestData)
+        {
+            try
+            {
+                var request = new HttpRequestMessage(HttpMethod.Post, DOMAIN + API_CREATEORDER);
+                request.Headers.Add("Token", token_temporary);
+                request.Headers.Add("Cookie", "SERVERID=A");
+                string jsonContent = JsonConvert.SerializeObject(requestData);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                request.Content = content;
+
+                var response = await _httpClient.SendAsync(request);
+                response.EnsureSuccessStatusCode();
+
+                string responseBody = await response.Content.ReadAsStringAsync();
+
+                VTPOrderResponseModel shippingServices = JsonConvert.DeserializeObject<VTPOrderResponseModel>(responseBody);
+
+                return shippingServices;
+            }
+            catch (HttpRequestException e)
+            {
+                LogHelper.InsertLogTelegram("CreateVTPOrder - CalculateShippingPrice: HttpCall error [" + (DOMAIN + API_CREATEORDER) + "] [" + e.StatusCode + "][" + e.Message + "]");
+
+                return null;
+            }
+            catch (JsonException e)
+            {
+                LogHelper.InsertLogTelegram("CreateVTPOrder - CalculateShippingPrice: JSON parse error [" + (DOMAIN + API_CREATEORDER) + "] [" + e.Message + "]");
+                return null;
+            }
+            catch (Exception e)
+            {
+                LogHelper.InsertLogTelegram("CreateVTPOrder - CalculateShippingPrice: error [" + (DOMAIN + API_CREATEORDER) + "] [" + e.Message + "]");
                 return null;
             }
         }
@@ -373,5 +399,80 @@ namespace HuloToys_Service.Controllers.Shipping.Business
 
         [JsonProperty("data")]
         public VTPGetPriceData Data { get; set; }
+    }
+    public class VTPOrderRequestListItem
+    {
+        public string PRODUCT_NAME { get; set; }
+        public int PRODUCT_PRICE { get; set; }
+        public int PRODUCT_WEIGHT { get; set; }
+        public int PRODUCT_QUANTITY { get; set; }
+    }
+
+    public class VTPOrderRequestModel
+    {
+        public string ORDER_NUMBER { get; set; }
+        public int GROUPADDRESS_ID { get; set; }
+        public int CUS_ID { get; set; }
+        public string DELIVERY_DATE { get; set; }
+        public string SENDER_FULLNAME { get; set; }
+        public string SENDER_ADDRESS { get; set; }
+        public string SENDER_PHONE { get; set; }
+        public string SENDER_EMAIL { get; set; }
+        public int SENDER_WARD { get; set; }
+        public int SENDER_DISTRICT { get; set; }
+        public int SENDER_PROVINCE { get; set; }
+        public int SENDER_LATITUDE { get; set; }
+        public int SENDER_LONGITUDE { get; set; }
+        public string RECEIVER_FULLNAME { get; set; }
+        public string RECEIVER_ADDRESS { get; set; }
+        public string RECEIVER_PHONE { get; set; }
+        public string RECEIVER_EMAIL { get; set; }
+        public int RECEIVER_WARD { get; set; }
+        public int RECEIVER_DISTRICT { get; set; }
+        public int RECEIVER_PROVINCE { get; set; }
+        public int RECEIVER_LATITUDE { get; set; }
+        public int RECEIVER_LONGITUDE { get; set; }
+        public string PRODUCT_NAME { get; set; }
+        public string PRODUCT_DESCRIPTION { get; set; }
+        public int PRODUCT_QUANTITY { get; set; }
+        public int PRODUCT_PRICE { get; set; }
+        public int PRODUCT_WEIGHT { get; set; }
+        public int PRODUCT_LENGTH { get; set; }
+        public int PRODUCT_WIDTH { get; set; }
+        public int PRODUCT_HEIGHT { get; set; }
+        public string PRODUCT_TYPE { get; set; }
+        public int ORDER_PAYMENT { get; set; }
+        public string ORDER_SERVICE { get; set; }
+        public string ORDER_SERVICE_ADD { get; set; }
+        public string ORDER_VOUCHER { get; set; }
+        public string ORDER_NOTE { get; set; }
+        public int MONEY_COLLECTION { get; set; }
+        public int EXTRA_MONEY { get; set; }
+        public bool CHECK_UNIQUE { get; set; }
+        public List<VTPOrderRequestListItem> LIST_ITEM { get; set; }
+    }
+    public class VTPOrderResponseData
+    {
+        public string ORDER_NUMBER { get; set; }
+        public int MONEY_COLLECTION { get; set; }
+        public int EXCHANGE_WEIGHT { get; set; }
+        public int MONEY_TOTAL { get; set; }
+        public int MONEY_TOTAL_FEE { get; set; }
+        public int MONEY_FEE { get; set; }
+        public int MONEY_COLLECTION_FEE { get; set; }
+        public int MONEY_OTHER_FEE { get; set; }
+        public int MONEY_VAS { get; set; }
+        public int MONEY_VAT { get; set; }
+        public double KPI_HT { get; set; }
+        public int RECEIVER_PROVINCE { get; set; }
+        public int RECEIVER_DISTRICT { get; set; }
+        public int RECEIVER_WARDS { get; set; }
+    }
+    public class VTPOrderResponseModel
+    {
+        public int status { get; set; }
+        public bool error { get; set; }
+        public string message { get; set; }
+        public VTPOrderResponseData data { get; set; }
     }
 }

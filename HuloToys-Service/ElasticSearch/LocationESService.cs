@@ -81,7 +81,7 @@ namespace Caching.Elasticsearch
                         .Bool(b => b
                             .Must(m => m
                                 .Match(match => match
-                                    .Field("ProvinceId") 
+                                    .Field("Id") 
                                     .Query(provinces_id)       
                                 )
                             )
@@ -191,7 +191,7 @@ namespace Caching.Elasticsearch
                       .Bool(b => b
                           .Must(m => m
                               .Match(match => match
-                                  .Field("DistrictId")
+                                  .Field("Id")
                                   .Query(district_id.Trim())
                               )
                           )
@@ -304,7 +304,7 @@ namespace Caching.Elasticsearch
                      .Bool(b => b
                          .Must(m => m
                              .Match(match => match
-                                 .Field("WardId")
+                                 .Field("Id")
                                  .Query(ward_id.Trim())
                              )
                          )

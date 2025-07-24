@@ -70,7 +70,11 @@ namespace HuloToys_Service.Controllers.Home
                         main= slide==null ?new List<Models.Models.AllCode>(): slide,
                         sub= sub == null ? new List<Models.Models.AllCode>() : sub,
                     };
-                    _redisService.Set(cache_name, JsonConvert.SerializeObject(result), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
+                    if (slide != null && slide.Count > 0) {
+
+                        _redisService.Set(cache_name, JsonConvert.SerializeObject(result), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
+
+                    }
 
                     return Ok(new
                     {

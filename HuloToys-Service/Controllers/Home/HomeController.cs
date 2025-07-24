@@ -58,17 +58,20 @@ namespace HuloToys_Service.Controllers.Home
                                 status = (int)ResponseType.SUCCESS,
                                 msg = "Success",
                                 data = "",
-                                main_slide = result.main.Where(x=>x.Description!=null && x.Description.Trim()!="").Select(x => new { x.OrderNo, x.Description }),
-                                sub_banner = result.sub.Where(x => x.Description != null && x.Description.Trim() != "").Select(x => new { x.OrderNo, x.Description }),
+                                main_slide = result.main.Select(x => new { x.OrderNo, x.Description }),
+                                sub_banner = result.sub.Select(x => new { x.OrderNo, x.Description }),
                             });
                         }
                     }
                     var slide = _allCodeRepository.GetListByType("HOMEPAGE_SLIDE");
                     var sub = _allCodeRepository.GetListByType("HOMEPAGE_SUBBANNER");
+                    slide = slide == null ? new List<Models.Models.AllCode>() : slide.GroupBy(x => x.OrderNo).Select(x => x.First()).Where(x => x.Description != null && x.Description.Trim() != "").ToList();
+                    sub = sub == null ? new List<Models.Models.AllCode>() : sub.GroupBy(x => x.OrderNo).Select(x => x.First()).Where(x => x.Description != null && x.Description.Trim() != "").ToList();
+
                     result = new HomepageBannerModel()
                     {
-                        main = slide == null ? new List<Models.Models.AllCode>() : slide.Where(x => x.Description != null && x.Description.Trim() != "").ToList(),
-                        sub = sub == null ? new List<Models.Models.AllCode>() : sub.Where(x => x.Description != null && x.Description.Trim() != "").ToList(),
+                        main = slide ,
+                        sub = sub,
                     };
                     if (slide != null && slide.Count > 0) {
 

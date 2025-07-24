@@ -1014,6 +1014,7 @@ namespace WEB.CMS.Controllers
                     else
                     {
                         label = await _labelRepository.GetById((int)request.label_id);
+
                         if (label != null && label.Id > 0)
                         {
                             _redisService.Set(cache_name_label, JsonConvert.SerializeObject(label), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
@@ -1021,6 +1022,9 @@ namespace WEB.CMS.Controllers
                         }
                         else
                         {
+
+                            LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], "/api/product/list-by-label Cannot find LabelID=" + (int)request.label_id);
+
                             return Ok(new
                             {
                                 status = (int)ResponseType.FAILED,

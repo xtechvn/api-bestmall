@@ -972,7 +972,7 @@ namespace WEB.CMS.Controllers
             {
                 //var model_json = new
                 //{
-                //    label_id = 19,
+                //    label_id = 21,
                 //    page_size = 10,
                 //    page_index = 1
                 //};
@@ -1018,6 +1018,14 @@ namespace WEB.CMS.Controllers
                         {
                             _redisService.Set(cache_name_label, JsonConvert.SerializeObject(label), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
 
+                        }
+                        else
+                        {
+                            return Ok(new
+                            {
+                                status = (int)ResponseType.FAILED,
+                                msg = ResponseMessages.DataInvalid,
+                            });
                         }
                     }
                     // Nếu không lọc theo giá, sử dụng cache Redis

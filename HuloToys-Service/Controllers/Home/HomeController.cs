@@ -73,7 +73,17 @@ namespace HuloToys_Service.Controllers.Home
                     if (slide != null && slide.Count > 0) {
 
                         _redisService.Set(cache_name, JsonConvert.SerializeObject(result), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
+                        string static_url = _configuration["config_value:ImageStatic"];
 
+                        foreach (var item in slide) {
+                            if (item.Description == null) continue;
+                            item.Description = (!item.Description.Contains(static_url) && !item.Description.Contains("data:image") && !item.Description.Contains("http")) ? (static_url + item.Description) : item.Description;
+                        }
+                        foreach (var item in sub)
+                        {
+                            if (item.Description == null) continue;
+                            item.Description = (!item.Description.Contains(static_url) && !item.Description.Contains("data:image") && !item.Description.Contains("http")) ? (static_url + item.Description) : item.Description;
+                        }
                     }
 
                     return Ok(new

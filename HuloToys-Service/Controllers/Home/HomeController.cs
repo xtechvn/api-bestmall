@@ -51,7 +51,7 @@ namespace HuloToys_Service.Controllers.Home
                     if (j_data != null && j_data.Trim() != "")
                     {
                         result = JsonConvert.DeserializeObject<HomepageBannerModel>(j_data);
-                        if(result != null)
+                        if(result != null && result.main!=null && result.main.Count>0)
                         {
                             return Ok(new
                             {

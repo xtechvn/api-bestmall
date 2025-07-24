@@ -64,6 +64,7 @@ internal class Program
         builder.Services.AddSingleton<ILabelRepository, LabelRepository>();
         builder.Services.AddSingleton<IAddressClientRepository, AddressClientRepository>();
         builder.Services.AddSingleton<IVoucherRepository, VoucherRepository>();
+        builder.Services.AddSingleton<IAllCodeRepository, AllCodeRepository>();
         builder.Services.AddSingleton<ProductDetailService>();
         builder.Services.AddSingleton<ProductRaitingService>();
         builder.Services.AddSingleton<CartMongodbService>();

@@ -31,6 +31,7 @@
 
 
         public const string PRODUCT_FAVOURITES = "PRODUCT_FAVOURITES_";
+        public const string HOMEPAGE_SLIDE = "HOMEPAGE_SLIDE";
 
     }
 }

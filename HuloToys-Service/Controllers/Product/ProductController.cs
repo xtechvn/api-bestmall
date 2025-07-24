@@ -1068,7 +1068,9 @@ namespace WEB.CMS.Controllers
                                 label.Icon,
                                 label.Banner,
                                 label.Description,
-                                label.Avatar
+                                label.Avatar,
+                                label.BannerMain,
+                                label.BannerSub
 
                             }
                         }

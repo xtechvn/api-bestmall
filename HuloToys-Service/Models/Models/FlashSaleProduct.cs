@@ -20,4 +20,6 @@ public partial class FlashSaleProduct
     public int? Position { get; set; }
 
     public bool? SuperSale { get; set; }
+
+    public int? BadgeType { get; set; }
 }

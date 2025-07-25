@@ -36,7 +36,8 @@ public partial class Label
     public string? Banner { get; set; }
 
     public string? Avatar { get; set; }
-    public string BannerMain { get; set; }
 
-    public string BannerSub { get; set; }
+    public string? BannerMain { get; set; }
+
+    public string? BannerSub { get; set; }
 }

@@ -39,6 +39,16 @@ public partial class Article
 
     public short? Position { get; set; }
 
+    public byte? PlatForm { get; set; }
+
+    public byte? AimodelType { get; set; }
+
+    public string? CampaignName { get; set; }
+
+    public string? AiContent { get; set; }
+
+    public byte? IsPostedToFanpage { get; set; }
+
     public virtual ICollection<ArticleRelated> ArticleRelateds { get; set; } = new List<ArticleRelated>();
 
     public virtual ICollection<ArticleTag> ArticleTags { get; set; } = new List<ArticleTag>();

@@ -299,6 +299,9 @@ namespace Caching.Elasticsearch.FlashSale
                         return b;
                     })
                 )
+                .Sort(ss => ss
+                    .Field(f => f.id, SortOrder.Descending) // Sort by 'id' in descending order
+                )
                 .From(from) 
                 .Size(page_size)
             );

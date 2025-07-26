@@ -954,7 +954,6 @@ namespace HuloToys_Service.Controllers
             //var model_input = new
             //{
             //    token= "F08nOlAVBi8vLwxaDGMgagRjYX97aVlkfFt7AmJnTlpFXyNQYmNiUgBpXnt3Q1BJUlZ0WE5BcCxNFysoPCdLQhRzZWoEfmR2Y2hRBHlQcABqbFxBSQZqRm15alppZRI=",
-            //    uuid= "1a2b3c4d-5e6f-7890-1234-567890abcdef"
             //};
             //input = new APIRequestGenericModel()
             //{
@@ -969,8 +968,7 @@ namespace HuloToys_Service.Controllers
                 {
                     var request = JsonConvert.DeserializeObject<ClientChangePasswordValidateRequestModel>(objParr[0].ToString());
                     if (request == null
-                        || request.token == null || request.token.Trim() == ""
-                        || request.uuid == null || request.uuid.Trim() == "")
+                        || request.token == null || request.token.Trim() == "")
                     {
 
                         return Ok(new
@@ -1043,7 +1041,6 @@ namespace HuloToys_Service.Controllers
             //{
             //    user_token = "F08nOlAVBi8vLwxaDGMgagRjYX97aVlkfFt7AmJnTlpFXyNQYmNiUgBpXnt3Q1BJUlZ0WE5BcCxNFysoPCdLQhRzZWoEfmR2Y2hRBHlQcABqbFxBSQZqRm15alppZRI=",
             //    token = "F08zKlYILC86HQoUXyQ7LG46MGx0aVlle0RoUT4/CRgTaToWentiUgN+WWFmGBcRAFp7Q10MYCsGBG0lY3cMTlBsYmAIY3l/fGtcfXxefQprZg0UBFI2FHptcQdLNx0kNgg9HAUMJENWT2B5B1J0cXlvWExicGNiAmVuenl2UGl8W30EZH1cQV0GY1Al",
-            //    uuid = "1a2b3c4d-5e6f-7890-1234-567890abcdef"
             //};
             //input = new APIRequestGenericModel()
             //{
@@ -1059,7 +1056,7 @@ namespace HuloToys_Service.Controllers
                     if (request == null
                         || request.token == null || request.token.Trim() == ""
                         || request.user_token == null || request.user_token.Trim() == ""
-                        || request.uuid == null || request.uuid.Trim() == "")
+                        )
                     {
 
                         return Ok(new
@@ -1102,7 +1099,6 @@ namespace HuloToys_Service.Controllers
                         if(token_model!=null 
                             && token_model.account_client_id==account_client_id 
                             && token_model.client_id == (long)account_client.ClientId
-                            && token_model.uuid == request.uuid
                             && token_model.exprire_date >= DateTime.Now)
                         {
                             return Ok(new

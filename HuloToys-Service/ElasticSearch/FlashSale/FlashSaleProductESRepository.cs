@@ -1,4 +1,4 @@
-﻿using HuloToys_Service.Elasticsearch;
+using HuloToys_Service.Elasticsearch;
 using Nest;
 using System.Drawing.Printing;
 using Utilities;
@@ -235,6 +235,27 @@ namespace Caching.Elasticsearch.FlashSale
             // Calculate 'from' (skip) based on page_index and page_size
             var from = (page_index - 1) * page_size;
 
+                                    m => m.Terms(t => t
+                                        .Field(f => f.flashsale_id)
+                                        .Terms(flashsale_ids)
+                                    ))
+                       )
+                  )
+                  .Sort(ss => ss 
+                    .Field(f => f.id, SortOrder.Descending) // Sort by 'id' in descending order
+                )
+                  .From(from)
+                  .Size(page_size)
+                );
+                if (response_all.IsValid)
+                {
+                    return response_all.Documents.ToList();
+                }
+                else
+                {
+                    return new List<FlashSaleProductESModel>();
+                }
+            }
             var response = await _client.SearchAsync<FlashSaleProductESModel>(s => s
                 .Query(q => q
                     .Bool(b =>

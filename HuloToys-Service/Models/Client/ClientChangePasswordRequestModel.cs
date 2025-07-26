@@ -22,7 +22,6 @@ namespace HuloToys_Service.Models.Client
     }
     public class ClientChangePasswordValidateTokenRequestModel
     {
-        public string uuid { get; set; }
         public string user_token { get; set; }
         public string token { get; set; }
     }

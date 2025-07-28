@@ -177,8 +177,8 @@ namespace HuloToys_Service.Controllers
                 //OrdersVNPAYRequestModel json_input = new OrdersVNPAYRequestModel()
                 //{
                 //    client_ip = "42.113.119.131",
-                //    country="vn",
-                //    id= "687b0eb2f2064cab1d21b6cd"
+                //    country = "vn",
+                //    id = "687b0eb2f2064cab1d21b6cd"
                 //};
                 //input = new APIRequestGenericModel()
                 //{

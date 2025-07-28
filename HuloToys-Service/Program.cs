@@ -1,6 +1,7 @@
 using Caching.Elasticsearch.FlashSale;
 using Entities.ConfigModels;
 using HuloToys_Service.Controllers.IRepositories;
+using HuloToys_Service.Controllers.Payment.Bussiness;
 using HuloToys_Service.Controllers.Product.Bussiness;
 using HuloToys_Service.Controllers.Repositories;
 using HuloToys_Service.Controllers.Shipping.Business;
@@ -79,6 +80,8 @@ internal class Program
 
 
         builder.Services.AddSingleton<RedisConn>();
+        builder.Services.AddSingleton<VNPayService>();
+
 
         var app = builder.Build();
 

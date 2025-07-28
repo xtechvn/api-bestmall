@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Specialized;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -6,6 +7,7 @@ using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Web;
 using Utilities.ModelHelpers;
 
 
@@ -353,6 +355,35 @@ namespace Utilities
             }
 
             return stringBuilder.ToString().Normalize(NormalizationForm.FormC).ToLower();
+        }
+        public static Dictionary<string, string> GetQueryParams(string url)
+        {
+            Dictionary<string, string> queryParams = new Dictionary<string, string>();
+
+            // Phân tích URL để lấy ra phần query string
+            Uri uri = new Uri(url);
+            string queryString = uri.Query;
+
+            // Loại bỏ dấu '?' ở đầu query string nếu có
+            if (queryString.StartsWith("?"))
+            {
+                queryString = queryString.Substring(1);
+            }
+
+            // Sử dụng HttpUtility.ParseQueryString để phân tích chuỗi query
+            NameValueCollection qscollection = HttpUtility.ParseQueryString(queryString);
+
+            // Chuyển đổi NameValueCollection sang Dictionary<string, string>
+            foreach (string key in qscollection.AllKeys)
+            {
+                if (key != null) // Đảm bảo key không null
+                {
+                    // HttpUtility.ParseQueryString tự động decode URL cho các giá trị
+                    queryParams.Add(key, qscollection[key]);
+                }
+            }
+
+            return queryParams;
         }
     }
 }

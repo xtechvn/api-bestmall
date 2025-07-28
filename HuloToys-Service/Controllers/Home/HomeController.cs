@@ -58,8 +58,8 @@ namespace HuloToys_Service.Controllers.Home
                                 status = (int)ResponseType.SUCCESS,
                                 msg = "Success",
                                 data = "",
-                                main_slide = result.main.Select(x => new { x.OrderNo, x.Description }),
-                                sub_banner = result.sub.Select(x => new { x.OrderNo, x.Description }),
+                                main_slide = result.main.Select(x => new { x.Id, x.OrderNo, x.Description }),
+                                sub_banner = result.sub.Select(x => new { x.Id, x.OrderNo, x.Description }),
                             });
                         }
                     }
@@ -71,7 +71,7 @@ namespace HuloToys_Service.Controllers.Home
                     {
                         main = slide == null ? new List<Models.Models.AllCode>() : slide.Where(x => x.Description != null && x.Description.Trim() != "").ToList(),
                         sub = sub == null ? new List<Models.Models.AllCode>() : sub.Where(x => x.Description != null && x.Description.Trim() != "").ToList(),
-                        trending_main= trending_main == null ? new List<Models.Models.AllCode>() : trending_main.Where(x => x.Description != null && x.Description.Trim() != "").ToList(),
+                        trending_main = trending_main == null ? new List<Models.Models.AllCode>() : trending_main.Where(x => x.Description != null && x.Description.Trim() != "").ToList(),
                         trending_sub = trending_sub == null ? new List<Models.Models.AllCode>() : trending_sub.Where(x => x.Description != null && x.Description.Trim() != "").ToList(),
                     };
                     if (slide != null && slide.Count > 0) {
@@ -105,10 +105,10 @@ namespace HuloToys_Service.Controllers.Home
                         status = (int)ResponseType.SUCCESS,
                         msg = "Success",
                         data = "",
-                        main_slide = result.main.Where(x => x.Description != null && x.Description.Trim() != "").Select(x => new { x.OrderNo, x.Description }),
-                        sub_banner = result.sub.Where(x => x.Description != null && x.Description.Trim() != "").Select(x => new { x.OrderNo, x.Description }),
-                        trending_main = result.trending_main.Where(x => x.Description != null && x.Description.Trim() != "").Select(x => new { x.OrderNo, x.Description }),
-                        trending_sub = result.trending_sub.Where(x => x.Description != null && x.Description.Trim() != "").Select(x => new { x.OrderNo, x.Description }),
+                        main_slide = result.main.Where(x => x.Description != null && x.Description.Trim() != "").Select(x => new {x.Id, x.OrderNo, x.Description }),
+                        sub_banner = result.sub.Where(x => x.Description != null && x.Description.Trim() != "").Select(x => new { x.Id, x.OrderNo, x.Description }),
+                       // trending_main = result.trending_main.Where(x => x.Description != null && x.Description.Trim() != "").Select(x => new { x.Id, x.OrderNo, x.Description }),
+                       // trending_sub = result.trending_sub.Where(x => x.Description != null && x.Description.Trim() != "").Select(x => new { x.Id, x.OrderNo, x.Description }),
                     });
 
                 }

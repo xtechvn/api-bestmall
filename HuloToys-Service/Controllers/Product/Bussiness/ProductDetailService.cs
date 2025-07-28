@@ -377,11 +377,11 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                 {
                     UpdateProductRaiting(item);
                 }
-                if (!ignore_total_sold)
-                {
-                    UpdateProductTotalSold(item);
+                //if (!ignore_total_sold)
+                //{
+                //    UpdateProductTotalSold(item);
 
-                }
+                //}
                 if (active_flashsale != null && active_flashsale.Count > 0 && list_item != null && list_item.Count > 0)
                 {
                     UpdateProductFlashsale(item, active_flashsale, list_item, group_types);

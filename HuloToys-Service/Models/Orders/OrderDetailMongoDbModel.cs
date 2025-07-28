@@ -44,6 +44,7 @@ namespace HuloToys_Service.Models.Orders
         public long address_id { get; set; }
         public double? shipping_fee { get; set; } = 0;
         public ShippingFeeRequestModel delivery_detail { get; set; }
+        public int? flashsale_badge_type { get; set; }
 
     }
 }

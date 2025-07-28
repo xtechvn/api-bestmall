@@ -1,6 +1,7 @@
 using Caching.Elasticsearch.FlashSale;
 using Entities.ConfigModels;
 using HuloToys_Service.Controllers.IRepositories;
+using HuloToys_Service.Controllers.Payment.Bussiness;
 using HuloToys_Service.Controllers.Product.Bussiness;
 using HuloToys_Service.Controllers.Repositories;
 using HuloToys_Service.Controllers.Shipping.Business;
@@ -49,7 +50,7 @@ internal class Program
         builder.Services.Configure<DataBaseConfig>(Configuration.GetSection("DataBaseConfig"));
         builder.Services.Configure<MailConfig>(Configuration.GetSection("MailConfig"));
         builder.Services.Configure<DomainConfig>(Configuration.GetSection("DomainConfig"));
-        // ??ng ký ApplicationDbContext
+        // ??ng kï¿½ ApplicationDbContext
         var connectionString = builder.Configuration.GetSection("DataBaseConfig:SqlServer:ConnectionString").Value;
         builder.Services.AddDbContext<DataMSContext>(options =>
                 options.UseSqlServer(connectionString));
@@ -79,6 +80,7 @@ internal class Program
 
         builder.Services.AddSingleton<RedisConn>();
         builder.Services.AddSingleton<ViettelPostService>();
+        builder.Services.AddSingleton<VNPayService>();
 
         var app = builder.Build();
 

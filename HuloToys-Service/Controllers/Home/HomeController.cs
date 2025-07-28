@@ -65,24 +65,35 @@ namespace HuloToys_Service.Controllers.Home
                     }
                     var slide = _allCodeRepository.GetListByType("HOMEPAGE_SLIDE");
                     var sub = _allCodeRepository.GetListByType("HOMEPAGE_SUBBANNER");
-                    slide = slide == null ? new List<Models.Models.AllCode>() : slide.GroupBy(x => x.OrderNo).Select(x => x.First()).Where(x => x.Description != null && x.Description.Trim() != "").ToList();
-                    sub = sub == null ? new List<Models.Models.AllCode>() : sub.GroupBy(x => x.OrderNo).Select(x => x.First()).Where(x => x.Description != null && x.Description.Trim() != "").ToList();
-
+                    var trending_main = _allCodeRepository.GetListByType("HOMEPAGE_TRENDINGMAIN");
+                    var trending_sub = _allCodeRepository.GetListByType("HOMEPAGE_TRENDINGSUB");
                     result = new HomepageBannerModel()
                     {
-                        main = slide ,
-                        sub = sub,
+                        main = slide == null ? new List<Models.Models.AllCode>() : slide.Where(x => x.Description != null && x.Description.Trim() != "").ToList(),
+                        sub = sub == null ? new List<Models.Models.AllCode>() : sub.Where(x => x.Description != null && x.Description.Trim() != "").ToList(),
+                        trending_main= trending_main == null ? new List<Models.Models.AllCode>() : trending_main.Where(x => x.Description != null && x.Description.Trim() != "").ToList(),
+                        trending_sub = trending_sub == null ? new List<Models.Models.AllCode>() : trending_sub.Where(x => x.Description != null && x.Description.Trim() != "").ToList(),
                     };
                     if (slide != null && slide.Count > 0) {
 
                         _redisService.Set(cache_name, JsonConvert.SerializeObject(result), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
                         string static_url = _configuration["config_value:ImageStatic"];
 
-                        foreach (var item in slide) {
+                        foreach (var item in result.main) {
                             if (item.Description == null) continue;
                             item.Description = (!item.Description.Contains(static_url) && !item.Description.Contains("data:image") && !item.Description.Contains("http")) ? (static_url + item.Description) : item.Description;
                         }
-                        foreach (var item in sub)
+                        foreach (var item in result.sub)
+                        {
+                            if (item.Description == null) continue;
+                            item.Description = (!item.Description.Contains(static_url) && !item.Description.Contains("data:image") && !item.Description.Contains("http")) ? (static_url + item.Description) : item.Description;
+                        }
+                        foreach (var item in result.trending_main)
+                        {
+                            if (item.Description == null) continue;
+                            item.Description = (!item.Description.Contains(static_url) && !item.Description.Contains("data:image") && !item.Description.Contains("http")) ? (static_url + item.Description) : item.Description;
+                        }
+                        foreach (var item in result.trending_sub)
                         {
                             if (item.Description == null) continue;
                             item.Description = (!item.Description.Contains(static_url) && !item.Description.Contains("data:image") && !item.Description.Contains("http")) ? (static_url + item.Description) : item.Description;
@@ -96,6 +107,8 @@ namespace HuloToys_Service.Controllers.Home
                         data = "",
                         main_slide = result.main.Where(x => x.Description != null && x.Description.Trim() != "").Select(x => new { x.OrderNo, x.Description }),
                         sub_banner = result.sub.Where(x => x.Description != null && x.Description.Trim() != "").Select(x => new { x.OrderNo, x.Description }),
+                        trending_main = result.trending_main.Where(x => x.Description != null && x.Description.Trim() != "").Select(x => new { x.OrderNo, x.Description }),
+                        trending_sub = result.trending_sub.Where(x => x.Description != null && x.Description.Trim() != "").Select(x => new { x.OrderNo, x.Description }),
                     });
 
                 }

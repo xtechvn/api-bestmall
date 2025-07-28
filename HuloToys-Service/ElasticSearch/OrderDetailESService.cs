@@ -69,7 +69,7 @@ namespace Caching.Elasticsearch
                     var total_product_count = response.Aggregations.Filters("total_product_count");
                     return total_product_count.Buckets.First().DocCount; // Products with 'description' field
                 }
-              
+
             }
             catch (Exception ex)
             {
@@ -84,12 +84,24 @@ namespace Caching.Elasticsearch
             {
                 var searchRequest = new SearchRequest<OrderDetailESModel>
                 {
-                    Query = new TermsQuery
+                    Query = new BoolQuery // Use a BoolQuery to combine conditions
                     {
-                        Field = Infer.Field<OrderDetailESModel>(p => p.ParentProductId), // Field selector for ProductId
-                        Terms = product_id // The list of product IDs
+                        Should = new List<QueryContainer> // 'Should' means at least one condition must be true
+                    {
+                        new TermsQuery
+                        {
+                            Field = Infer.Field<OrderDetailESModel>(p => p.ParentProductId),
+                            Terms = product_id // Check ParentProductId
+                        },
+                        new TermsQuery
+                        {
+                            Field = Infer.Field<OrderDetailESModel>(p => p.ProductId), // Assuming ProductId also exists on OrderDetailESModel
+                            Terms = product_id // Check ProductId
+                        }
                     },
-                    Size = 0, // No hits needed, just aggregations
+                        MinimumShouldMatch = 1 // At least one of the 'Should' queries must match
+                    },
+                    Size = 0, // Still no hits needed
                     Aggregations = new AggregationDictionary
                     {
                         {

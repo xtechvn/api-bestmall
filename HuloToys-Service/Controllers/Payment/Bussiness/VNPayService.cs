@@ -45,7 +45,7 @@ namespace HuloToys_Service.Controllers.Payment.Bussiness
                 result_part += "vnp_ReturnUrl=" + RETURN_URL.Replace("{url}", order._id) + "&";
                 string vnp_SecureHash = HmacSHA512(SECRET_KEY, result_part);
                 result_part += "vnp_SecureHash=" + vnp_SecureHash;
-                return result + WebUtility.UrlEncode(result_part);
+                return result + result_part;
             }
             catch (Exception ex) {
                 LogHelper.InsertLogTelegram("BuildURL - VNPayService: error [" + (DOMAIN + API_PAY) + "] :" + ex.ToString());

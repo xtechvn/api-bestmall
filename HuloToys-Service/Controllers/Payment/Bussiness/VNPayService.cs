@@ -49,7 +49,7 @@ namespace HuloToys_Service.Controllers.Payment.Bussiness
                     totalAmount: Convert.ToDecimal(((double)order.total_amount * 100)),
                     ipClient: ip_client,
                     country: country,
-                    orderNo: order.order_no,
+                    orderNo: "Thanh toan don "+ order.order_no,
                     returnUrl: RETURN_URL.Replace("{url}", order._id)
                 );
 
@@ -101,7 +101,7 @@ namespace HuloToys_Service.Controllers.Payment.Bussiness
         public string vnp_Command { get; set; } = "pay";
         public string vnp_TmnCode { get; set; }
         public string vnp_Amount { get; set; }
-        //public string vnp_BankCode { get; set; } = "";
+        public string vnp_BankCode { get; set; } = "VNPAYQR";
         public string vnp_CreateDate { get; set; }
         public string vnp_CurrCode { get; set; } = "VND";
         public string vnp_IpAddr { get; set; }

@@ -107,8 +107,8 @@ namespace HuloToys_Service.Controllers.Home
                         data = "",
                         main_slide = result.main.Where(x => x.Description != null && x.Description.Trim() != "").Select(x => new { x.OrderNo, x.Description }),
                         sub_banner = result.sub.Where(x => x.Description != null && x.Description.Trim() != "").Select(x => new { x.OrderNo, x.Description }),
-                        trending_main = result.trending_main.Where(x => x.Description != null && x.Description.Trim() != "").Select(x => new { x.OrderNo, x.Description }),
-                        trending_sub = result.trending_sub.Where(x => x.Description != null && x.Description.Trim() != "").Select(x => new { x.OrderNo, x.Description }),
+                        //trending_main = result.trending_main.Where(x => x.Description != null && x.Description.Trim() != "").Select(x => new { x.OrderNo, x.Description }),
+                        //trending_sub = result.trending_sub.Where(x => x.Description != null && x.Description.Trim() != "").Select(x => new { x.OrderNo, x.Description }),
                     });
 
                 }

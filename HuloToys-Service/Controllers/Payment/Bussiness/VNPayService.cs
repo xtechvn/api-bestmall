@@ -50,7 +50,8 @@ namespace HuloToys_Service.Controllers.Payment.Bussiness
                     ipClient: ip_client,
                     country: country,
                     orderNo: order.order_no,
-                    returnUrl: RETURN_URL.Replace("{url}", order._id)
+                    returnUrl: RETURN_URL.Replace("{url}", order._id),
+                    order_id_mongo: order._id
                 );
 
                 result_part=paymentRequest.ToQueryString();
@@ -119,14 +120,16 @@ namespace HuloToys_Service.Controllers.Payment.Bussiness
             string ipClient,
             string country,
             string orderNo,
-            string returnUrl)
+            string returnUrl,
+            string order_id_mongo
+            )
         {
             vnp_TmnCode = tmnCode;
             vnp_Amount = (totalAmount * 100).ToString();
             vnp_CreateDate = DateTime.Now.ToString("yyyyMMddHHmmss");
             vnp_IpAddr = ipClient;
             vnp_Locale = country;
-            vnp_OrderInfo = orderNo;
+            vnp_OrderInfo = "thanh toan don hang "+orderNo+" ID "+ order_id_mongo;
             vnp_ExpireDate = DateTime.Now.AddHours(1).ToString("yyyyMMddHHmmss");
             vnp_TxnRef = orderNo;
             vnp_ReturnUrl = returnUrl;

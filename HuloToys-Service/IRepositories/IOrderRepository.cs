@@ -11,5 +11,6 @@ namespace Repositories.IRepositories
         Task<Order> CreateOrder(Order order);
         public long CountOrderInYear();
         Task<List<Order>> GetByCondition(Expression<Func<Order, bool>> expression);
+        Order GetByOrderNo(string orderNo);
     }
 }

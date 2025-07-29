@@ -321,6 +321,33 @@ namespace Caching.Elasticsearch.FlashSale
         {
             var now = DateTime.Now;
 
+            if (group_id < 0 && type < 0)
+            {
+                var response_all = await _client.CountAsync<FlashSaleProductESModel>(s => s
+                  .Query(q => q
+                      .Bool(b =>
+                       b.Must(m => m.Term(t => t
+                                        .Field(f => f.status)
+                                        .Value(1)
+                                    ),
+
+                                    m => m.Terms(t => t
+                                        .Field(f => f.flashsale_id)
+                                        .Terms(flashsale_ids)
+                                    ))
+                       )
+                  )
+                );
+                if (response_all.IsValid)
+                {
+                    return response_all.Count;
+                }
+                else
+                {
+
+                    return 0;
+                }
+            }
 
             var response = await _client.CountAsync<FlashSaleProductESModel>(s => s
                 .Query(q => q

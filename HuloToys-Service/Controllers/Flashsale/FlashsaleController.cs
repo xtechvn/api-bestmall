@@ -303,7 +303,7 @@ namespace HuloToys_Service.Controllers
                     
                     var list_products = await productDetailService.GetFlashSaleProductByProductIds(list);
                    // var all = await flashSaleProductESRepository.GetAllFlashSaleProductByType(list_id, request.type, request.group_id);
-                    var total_count = await productDetailService.CountFlashSaleProductByProductIds(list);
+                    var total_count = await flashSaleProductESRepository.CountListFlashSaleProductByType(list_id, request.type, request.group_id);
                     //LogHelper.InsertLogTelegram(
                     //    "ListingByType -2- " 
                     //    +" list_fl count=" + (list_fl == null ? "NULL" : list_fl.Count.ToString())

@@ -152,7 +152,7 @@ namespace Caching.Elasticsearch.FlashSale
             return true;
 
         }
-        public async Task<List<FlashSaleProductESModel>> GetListSuperSale(List<int> flashsale_ids, int page_index=1, int page_size=10)
+        public async Task<List<FlashSaleProductESModel>> GetListSuperSale(List<int> flashsale_ids, int page_index = 1, int page_size = 10)
         {
             var now = DateTime.Now;
 
@@ -188,7 +188,7 @@ namespace Caching.Elasticsearch.FlashSale
             }
             else
             {
-               
+
                 return new List<FlashSaleProductESModel>();
             }
         }
@@ -228,7 +228,7 @@ namespace Caching.Elasticsearch.FlashSale
                 return 0;
             }
         }
-        public async Task<List<FlashSaleProductESModel>> GetListFlashSaleProductByType(List<int> flashsale_ids,int? group_id, int page_index = 1, int page_size = 10, int? type = null)
+        public async Task<List<FlashSaleProductESModel>> GetListFlashSaleProductByType(List<int> flashsale_ids, int? group_id, int page_index = 1, int page_size = 10, int? type = null)
         {
             var now = DateTime.Now;
 
@@ -239,7 +239,7 @@ namespace Caching.Elasticsearch.FlashSale
                 var response_all = await _client.SearchAsync<FlashSaleProductESModel>(s => s
                   .Query(q => q
                       .Bool(b =>
-                       b.Must(m =>  m.Term(t => t
+                       b.Must(m => m.Term(t => t
                                         .Field(f => f.status)
                                         .Value(1)
                                     ),
@@ -250,7 +250,7 @@ namespace Caching.Elasticsearch.FlashSale
                                     ))
                        )
                   )
-                  .Sort(ss => ss 
+                  .Sort(ss => ss
                     .Field(f => f.id, SortOrder.Descending) // Sort by 'id' in descending order
                 )
                   .From(from)
@@ -282,17 +282,17 @@ namespace Caching.Elasticsearch.FlashSale
                             )
                         };
 
-                        if (type!=null && type>0)
+                        if (type != null && type > 0)
                         {
                             mustQueries.Add(m => m.Term(t => t
                                 .Field(f => f.badgetype)
                                 .Value(type)
                             ));
                         }
-                        if (group_id!=null &&group_id > 0)
+                        if (group_id != null && group_id > 0)
                         {
-  
-                            mustQueries.Add(f => f.QueryString(qs => qs.Fields(fs => fs.Field("group_id")).Query("*"+ ((int)group_id).ToString()+ "*")));
+
+                            mustQueries.Add(f => f.QueryString(qs => qs.Fields(fs => fs.Field("group_id")).Query("*" + ((int)group_id).ToString() + "*")));
 
                         }
                         b.Must(mustQueries.ToArray());
@@ -302,7 +302,7 @@ namespace Caching.Elasticsearch.FlashSale
                 .Sort(ss => ss
                     .Field(f => f.id, SortOrder.Descending) // Sort by 'id' in descending order
                 )
-                .From(from) 
+                .From(from)
                 .Size(page_size)
             );
 
@@ -317,7 +317,7 @@ namespace Caching.Elasticsearch.FlashSale
                 return new List<FlashSaleProductESModel>();
             }
         }
-        public async Task<List<FlashSaleProductESModel>> GetAllFlashSaleProductByType(List<int> flashsale_ids, int? type = null, int? group_id=-1)
+        public async Task<long> CountListFlashSaleProductByType(List<int> flashsale_ids, int? type = null, int? group_id = -1)
         {
             var now = DateTime.Now;
 
@@ -349,12 +349,12 @@ namespace Caching.Elasticsearch.FlashSale
                 }
             }
 
-            var response = await _client.SearchAsync<FlashSaleProductESModel>(s => s
-              .Query(q => q
-                  .Bool(b =>
-                  {
-                      var mustQueries = new List<Func<QueryContainerDescriptor<FlashSaleProductESModel>, QueryContainer>>
-                      {
+            var response = await _client.CountAsync<FlashSaleProductESModel>(s => s
+                .Query(q => q
+                    .Bool(b =>
+                    {
+                        var mustQueries = new List<Func<QueryContainerDescriptor<FlashSaleProductESModel>, QueryContainer>>
+                        {
                             m => m.Term(t => t
                                 .Field(f => f.status)
                                 .Value(1)
@@ -364,37 +364,35 @@ namespace Caching.Elasticsearch.FlashSale
                                 .Field(f => f.flashsale_id)
                                 .Terms(flashsale_ids)
                             )
-                      };
+                        };
 
-                      if (type != null && type > 0)
-                      {
-                          mustQueries.Add(m => m.Term(t => t
-                              .Field(f => f.badgetype)
-                              .Value(type)
-                          ));
-                      }
-                      if (group_id != null && group_id > 0)
-                      {
+                        if (type != null && type > 0)
+                        {
+                            mustQueries.Add(m => m.Term(t => t
+                                .Field(f => f.badgetype)
+                                .Value(type)
+                            ));
+                        }
+                        if (group_id != null && group_id > 0)
+                        {
 
-                          mustQueries.Add(f => f.QueryString(qs => qs.Fields(fs => fs.Field("group_id")).Query("*" + ((int)group_id).ToString() + "*")));
+                            mustQueries.Add(f => f.QueryString(qs => qs.Fields(fs => fs.Field("group_id")).Query("*" + ((int)group_id).ToString() + "*")));
 
-                      }
-                      b.Must(mustQueries.ToArray());
-                      return b;
-                  })
-              )
-              .Size(4000)
+                        }
+                        b.Must(mustQueries.ToArray());
+                        return b;
+                    })
+                )
             );
 
             if (response.IsValid)
             {
-                return response.Documents.ToList();
+                return response.Count;
             }
             else
             {
-                // Log the error for debugging purposes if needed
-                // Console.WriteLine($"Elasticsearch search failed: {response.DebugInformation}");
-                return new List<FlashSaleProductESModel>();
+
+                return 0;
             }
         }
     }

@@ -10,7 +10,8 @@ namespace Repositories.IRepositories
 {
     public interface ILabelRepository
     {
-        public Task<List<LabelListingModel>> Listing(int status = -1, string label_name = null,string label_code = null, int page_index = 1, int page_size = 100);
+        public Task<List<LabelListingModel>> Listing(int status = -1, string label_name = null,string label_code = null, int page_index = 1, int page_size = 10);
         Task<Label> GetById(int id);
+        Task<List<LabelListingModel>> ListingShopMall(int page_index = 1, int page_size = 10);
     }
 }

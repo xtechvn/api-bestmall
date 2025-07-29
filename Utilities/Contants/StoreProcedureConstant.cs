@@ -330,6 +330,9 @@ namespace Utilities.Contants
 
         public static string Report_TotalRevenueByOrder = "SP_Report_TotalRevenueByOrder";
         public static string Report_SumTotalRevenueByOrder = "SP_Report_SumTotalRevenueByOrder";
+
+        public static string SP_GetListShopMallLabels = "SP_GetListShopMallLabels";
+
         #endregion
 
         #region Tour product

@@ -27,6 +27,7 @@
         public const string DISTRICT = "DISTRICT";
         public const string WARD = "WARD";
         public const string LABEL = "LABEL_";
+        public const string LABEL_SHOPMALL = "LABEL_SHOPMALL_";
         public const string VOUCHER = "VOUCHER";
 
 

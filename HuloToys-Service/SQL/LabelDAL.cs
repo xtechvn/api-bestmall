@@ -135,5 +135,28 @@ namespace DAL
                 return null;
             }
         }
+
+        public async Task<List<LabelListingModel>> ListingShopMall( int page_index = -1, int page_size = 100)
+        {
+            try
+            {
+
+                SqlParameter[] objParam =
+                [
+                    new SqlParameter("@PageIndex", page_index<0?-1:page_index),
+                    new SqlParameter("@PageSize", page_size),
+                ];
+                DataTable dt = _DbWorker.GetDataTable(StoreProcedureConstant.SP_GetListShopMallLabels, objParam);
+                if (dt != null && dt.Rows.Count > 0)
+                {
+                    return dt.ToList<LabelListingModel>();
+                }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram("Listing - LabelDAL: " + ex);
+            }
+            return null;
+        }
     }
 }

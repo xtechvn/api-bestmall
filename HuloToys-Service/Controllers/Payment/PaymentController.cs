@@ -9,6 +9,7 @@ using HuloToys_Service.RabitMQ;
 using HuloToys_Service.Utilities.lib;
 using HuloToys_Service.Utilities.Lib;
 using Microsoft.AspNetCore.Mvc;
+using Nest;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Repositories.IRepositories;
@@ -31,12 +32,12 @@ namespace HuloToys_Service.Controllers
         private readonly WorkQueueClient workQueueClient;
         private readonly VietQRServices _vietQRServices;
         private readonly OrderMongodbService _orderMongodbService;
-        private readonly OrderRepository _orderRepository;
+        private readonly IOrderRepository _orderRepository;
         private readonly VNPayService _vNPayService;
         private readonly IContractPayRepository _contractPayRepository;
         private readonly IIdentifierServiceRepository identifierServiceRepository;
 
-        public PaymentController(IConfiguration _configuration, OrderMongodbService orderMongodbService, VNPayService vNPayService, OrderRepository orderRepository, IContractPayRepository contractPayRepository, IIdentifierServiceRepository identifierServiceRepository)
+        public PaymentController(IConfiguration _configuration, OrderMongodbService orderMongodbService, VNPayService vNPayService, IOrderRepository orderRepository, IContractPayRepository contractPayRepository, IIdentifierServiceRepository identifierServiceRepository)
         {
             configuration = _configuration;
             workQueueClient = new WorkQueueClient(configuration);
@@ -185,7 +186,7 @@ namespace HuloToys_Service.Controllers
                 //{
                 //    client_ip = "42.113.119.131",
                 //    country = "vn",
-                //    id = "687b0eb2f2064cab1d21b6cd"
+                //    id = "6879f240342fee95f056deec"
                 //};
                 //input = new APIRequestGenericModel()
                 //{
@@ -239,6 +240,12 @@ namespace HuloToys_Service.Controllers
         [HttpPost("vnpay/validate")]
         public async Task<ActionResult> VNPayValidateResponse([FromBody] APIRequestGenericModel input)
         {
+
+            //var model_con = new
+            //{
+            //    response_from_vnpay = "https://bestmall.com.vn/order/payment/6879f240342fee95f056deec?vnp_Amount=60100000&vnp_BankCode=NCB&vnp_BankTranNo=VNP15106591&vnp_CardType=ATM&vnp_OrderInfo=thanh+toan+don+hang+25071800611+ID+6879f240342fee95f056deec&vnp_PayDate=20250729232627&vnp_ResponseCode=00&vnp_TmnCode=BMTES1TT&vnp_TransactionNo=15106591&vnp_TransactionStatus=00&vnp_TxnRef=25071800611&vnp_SecureHash=3ea6b7f545638b30a0bb33ed816c9cb81301a96854e4240056774d5b70afca6a03a9a421b07507904b07344d04b5913a6014b2c9125f3c7516e88327c05bdaf9"
+            //};
+            //input.token = CommonHelper.Encode(JsonConvert.SerializeObject(model_con), configuration["KEY:private_key"]);
             try
             {
 
@@ -274,19 +281,25 @@ namespace HuloToys_Service.Controllers
                         request_input.Remove("vnp_SecureHash");
                     }
                     string url_part = "";
-                    foreach (KeyValuePair<string, string> kv in request_input)
+                    //foreach (KeyValuePair<string, string> kv in request_input)
+                    //{
+                    //    if (!string.IsNullOrEmpty(kv.Value))
+                    //    {
+                    //        url_part+= WebUtility.UrlEncode(kv.Key) + "=" + WebUtility.UrlEncode(kv.Value) + "&";
+                    //    }
+                    //}
+                    ////remove last '&'
+                    //if (url_part.Length > 0)
+                    //{
+                    //    url_part.Remove(url_part.Length - 1, 1);
+                    //}
+                    List<string> queryParams=new List<string>();
+                    foreach (var prop in request_input)
                     {
-                        if (!string.IsNullOrEmpty(kv.Value))
-                        {
-                            url_part+= WebUtility.UrlEncode(kv.Key) + "=" + WebUtility.UrlEncode(kv.Value) + "&";
-                        }
+                        var value = prop.Value;
+                        queryParams.Add($"{prop.Key}={WebUtility.UrlEncode(value)}");
                     }
-                    //remove last '&'
-                    if (url_part.Length > 0)
-                    {
-                        url_part.Remove(url_part.Length - 1, 1);
-                    }
-
+                    url_part= string.Join("&", queryParams);
                     var validate  =await _vNPayService.ValidateURL(url_part, vnp_SecureHash);
                     if (validate)
                     {
@@ -305,20 +318,63 @@ namespace HuloToys_Service.Controllers
                             string vnp_BankTranNo = parameters["vnp_BankTranNo"];
                             string vnp_BankCode = parameters["vnp_BankCode"];
                             string vnp_OrderInfo = parameters["vnp_OrderInfo"];
-                            string vnp_CreateDate = parameters["vnp_CreateDate"];
-                            DateTime vnp_CreateTime = DateTime.ParseExact(vnp_CreateDate, "yyyyMMddHHmmss", CultureInfo.InvariantCulture);
+                            string vnp_PayDate_str = parameters["vnp_PayDate"];
+                            DateTime vnp_PayDate = DateTime.ParseExact(vnp_PayDate_str, "yyyyMMddHHmmss", CultureInfo.InvariantCulture);
+                            //-- Check exists contractpay_detail
+                            var exists_contractpay_detail = _contractPayRepository.ContractPayDetailByServiceCode(vnpayTranId.Trim() + vnp_BankTranNo.Trim());
+                            if (exists_contractpay_detail != null && exists_contractpay_detail.Id > 0)
+                            {
+
+                                return Ok(new
+                                {
+                                    status = (int)ResponseType.SUCCESS,
+                                    msg = "Giao dịch đã tồn tại",
+                                    data = new
+                                    {
+                                        amount = vnp_Amount,
+                                        pay_id = exists_contractpay_detail.PayId,
+                                        created_date = vnp_PayDate.ToString("dd/MM/yyyy HH:mm:ss")
+                                    }
+                                });
+
+                            }
+                            //-- Check order
                             var order=_orderRepository.GetByOrderNo(order_no);
+                            if(order==null || order.OrderId <= 0)
+                            {
+                                return Ok(new
+                                {
+                                    status = (int)ResponseType.FAILED,
+                                    msg = "Thanh toán qua cổng VNPAY thất bại, vui lòng thử thanh toán lại hoặc liên hệ CSKH",
+                                    data = new
+                                    {
+                                        amount = 0,
+                                        pay_id = 0,
+                                        created_date = ""
+                                    }
+                                });
+                            }
+                            //-- create contract pay:
                             var contractpay_create = new ContractPayViewModel() {
                                 Type = 1,
                                 PayType = (int)CONTRACT_PAYMENT_TYPE.VNPAY,
                                 BankingAccountId = 1,
-                                Description = "Thu tiền thanh toán thông qua VNPAY cho đơn hàng "+order_no+". Ngày giao dịch: "+vnp_CreateTime.ToString("dd/MM/yyyy HH:mm:ss"),
+                                Description = "Thu tiền thanh toán thông qua VNPAY cho đơn hàng "+order_no,
 
-                                Note = "Thu tiền thanh toán thông qua VNPAY cho đơn hàng " + order_no + ". Ngày giao dịch: " + vnp_CreateTime.ToString("dd/MM/yyyy HH:mm:ss"),
+                                Note = "Ngày giao dịch: "+ vnp_PayDate.ToString("dd/MM/yyyy HH:mm:ss")
+                                + ". Mã giao dịch ngân hàng" + vnp_BankTranNo
+                                + ". Ngày giao dịch VNPAY: " + vnpayTranId
+                                + ". Ngày giao dịch: " + vnp_PayDate.ToString("dd/MM/yyyy HH:mm:ss")
+                                ,
                                 ClientId = (int)order.ClientId,
                                 SupplierId = null,
                                 ObjectType = 1,
                                 EmployeeId = 1,
+                                ExportDate= vnp_PayDate,
+                                CreatedDate=DateTime.Now,
+                                CreatedBy=1,
+                                UpdatedBy=1,
+                                UpdatedDate=DateTime.Now,
                                 Amount = vnp_Amount,
                                 ContractPayDetails = new List<ContractPayDetailViewModel>()
                                 {
@@ -330,8 +386,9 @@ namespace HuloToys_Service.Controllers
                                         OrderId=(int)order.OrderId,
                                         AmountOrder=(double)order.Amount,
                                         TotalNeedPayment=(double)order.Amount,
-                                        ServiceCode=vnpayTranId,
+                                        ServiceCode=vnpayTranId.Trim()+vnp_BankTranNo.Trim(),
                                         ServiceType=1,
+                                         
                                     }
                                 },
                             };
@@ -345,7 +402,7 @@ namespace HuloToys_Service.Controllers
                                 {
                                     amount=vnp_Amount,
                                     pay_id=contractPayId,
-                                    created_date= vnp_CreateTime.ToString("dd/MM/yyyy HH:mm:ss")
+                                    created_date= vnp_PayDate.ToString("dd/MM/yyyy HH:mm:ss")
                                 }
                             });
                         }

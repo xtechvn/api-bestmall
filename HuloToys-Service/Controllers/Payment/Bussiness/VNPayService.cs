@@ -46,7 +46,7 @@ namespace HuloToys_Service.Controllers.Payment.Bussiness
                 //result_part += "vnp_ReturnUrl=" + RETURN_URL.Replace("{url}", order._id);
                 VnpayPaymentRequest paymentRequest = new VnpayPaymentRequest(
                     tmnCode: TMN_CODE,
-                    totalAmount: Convert.ToDecimal(((double)order.total_amount * 100)),
+                    totalAmount: order.total_amount,
                     ipClient: ip_client,
                     country: country,
                     orderNo: order.order_no,
@@ -102,7 +102,8 @@ namespace HuloToys_Service.Controllers.Payment.Bussiness
         public string vnp_Command { get; set; } = "pay";
         public string vnp_TmnCode { get; set; }
         public string vnp_Amount { get; set; }
-        public string vnp_BankCode { get; set; } = "VNPAYQR";
+        //public string vnp_BankCode { get; set; } = "VNPAYQR";
+        public string vnp_BankCode { get; set; } = "VNBANK";
         public string vnp_CreateDate { get; set; }
         public string vnp_CurrCode { get; set; } = "VND";
         public string vnp_IpAddr { get; set; }
@@ -116,7 +117,7 @@ namespace HuloToys_Service.Controllers.Payment.Bussiness
         // Constructor to easily populate values
         public VnpayPaymentRequest(
             string tmnCode,
-            decimal totalAmount,
+            double totalAmount,
             string ipClient,
             string country,
             string orderNo,

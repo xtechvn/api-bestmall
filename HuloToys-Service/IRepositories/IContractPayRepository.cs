@@ -1,8 +1,5 @@
-﻿using Entities.Models;
-using Entities.ViewModels;
-using Entities.ViewModels.Funding;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using Entities.ViewModels;
+using HuloToys_Service.Models.Models;
 
 namespace Repositories.IRepositories
 {
@@ -10,6 +7,6 @@ namespace Repositories.IRepositories
     {
 
         int CreateContractPay(ContractPayViewModel model);
-       
+        ContractPayDetail ContractPayDetailByServiceCode(string service_code);
     }
 }

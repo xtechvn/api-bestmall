@@ -1091,6 +1091,7 @@ namespace HuloToys_Service.Controllers.News.Business
                     {
                         id = parent.Id,
                         parentid = parent.ParentId,
+                        description=parent.Description,
                         positionid = parent.PositionId,
                         name = parent.Name,
                         image_path = parent.ImagePath,

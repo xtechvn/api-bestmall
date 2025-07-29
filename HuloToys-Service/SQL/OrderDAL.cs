@@ -3,6 +3,7 @@ using DAL.StoreProcedure;
 using Entities.Models;
 using Entities.ViewModels;
 using HuloToys_Service.Models.Models;
+using HuloToys_Service.Models.Orders;
 using HuloToys_Service.Utilities.Lib;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -242,6 +243,27 @@ namespace DAL
             return null;
         }
 
+        public async Task<OrderDetailViewModel> GetDetailViewOrderByOrderId(long OrderId)
+        {
+            try
+            {
+
+                SqlParameter[] objParam = new SqlParameter[1];
+                objParam[0] = new SqlParameter("@OrderId", OrderId);
+
+                DataTable dt = _DbWorker.GetDataTable(ProcedureConstants.SP_GetDetailOrderByOrderId, objParam);
+                if (dt != null && dt.Rows.Count > 0)
+                {
+                    var data = dt.ToList<OrderDetailViewModel>();
+                    return data[0];
+                }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram("GetDetailOrderByOrderId - OrderDal: " + ex);
+            }
+            return null;
+        }
 
         public async Task<int> UpdateOrderStatus(long OrderId, long Status, long UpdatedBy, long UserVerify)
         {
@@ -276,6 +298,7 @@ namespace DAL
             }
             return null;
         }
+       
 
     }
 }

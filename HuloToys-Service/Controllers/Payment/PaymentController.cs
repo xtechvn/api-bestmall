@@ -1,22 +1,24 @@
-﻿using Amazon.Runtime.Internal.Endpoints.StandardLibrary;
+﻿using Entities.ViewModels;
 using HuloToys_Service.Controllers.Payment.Bussiness;
 using HuloToys_Service.Models.APIRequest;
+using HuloToys_Service.Models.Models;
 using HuloToys_Service.Models.Orders;
 using HuloToys_Service.Models.Payment;
 using HuloToys_Service.MongoDb;
 using HuloToys_Service.RabitMQ;
 using HuloToys_Service.Utilities.lib;
 using HuloToys_Service.Utilities.Lib;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System.Linq;
+using Repositories.IRepositories;
+using Repositories.Repositories;
+using System.Globalization;
 using System.Net;
 using System.Reflection;
 using Utilities;
 using Utilities.Contants;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using static Utilities.Contants.DepositHistoryConstant;
 
 namespace HuloToys_Service.Controllers
 {
@@ -29,16 +31,21 @@ namespace HuloToys_Service.Controllers
         private readonly WorkQueueClient workQueueClient;
         private readonly VietQRServices _vietQRServices;
         private readonly OrderMongodbService _orderMongodbService;
+        private readonly OrderRepository _orderRepository;
         private readonly VNPayService _vNPayService;
+        private readonly IContractPayRepository _contractPayRepository;
+        private readonly IIdentifierServiceRepository identifierServiceRepository;
 
-        public PaymentController(IConfiguration _configuration, OrderMongodbService orderMongodbService, VNPayService vNPayService)
+        public PaymentController(IConfiguration _configuration, OrderMongodbService orderMongodbService, VNPayService vNPayService, OrderRepository orderRepository, IContractPayRepository contractPayRepository, IIdentifierServiceRepository identifierServiceRepository)
         {
             configuration = _configuration;
             workQueueClient = new WorkQueueClient(configuration);
             _vietQRServices = new VietQRServices(configuration);
             _orderMongodbService = orderMongodbService;
-            _vNPayService=vNPayService;
-
+            _vNPayService = vNPayService;
+            _orderRepository = orderRepository;
+            _contractPayRepository = contractPayRepository;
+            this.identifierServiceRepository = identifierServiceRepository;
         }
         [HttpPost("qr-code")]
         public async Task<ActionResult> QrCode([FromBody] APIRequestGenericModel input)
@@ -279,12 +286,84 @@ namespace HuloToys_Service.Controllers
                     {
                         url_part.Remove(url_part.Length - 1, 1);
                     }
+
+                    var validate  =await _vNPayService.ValidateURL(url_part, vnp_SecureHash);
+                    if (validate)
+                    {
+                        if (
+                            parameters.ContainsKey("vnp_ResponseCode") && parameters["vnp_ResponseCode"].Trim()=="00"
+                           && parameters.ContainsKey("vnp_TransactionStatus") && parameters["vnp_TransactionStatus"].Trim()=="00"
+
+                            )
+                        {
+                            long vnp_Amount = Convert.ToInt64(parameters["vnp_Amount"]) / 100;
+                            string order_no = parameters["vnp_TxnRef"];
+                            string vnpayTranId = parameters["vnp_TransactionNo"];
+                            string vnp_ResponseCode = parameters["vnp_ResponseCode"];
+                            string vnp_TransactionStatus = parameters["vnp_TransactionStatus"];
+                            string vnp_CardType = parameters["vnp_CardType"];
+                            string vnp_BankTranNo = parameters["vnp_BankTranNo"];
+                            string vnp_BankCode = parameters["vnp_BankCode"];
+                            string vnp_OrderInfo = parameters["vnp_OrderInfo"];
+                            string vnp_CreateDate = parameters["vnp_CreateDate"];
+                            DateTime vnp_CreateTime = DateTime.ParseExact(vnp_CreateDate, "yyyyMMddHHmmss", CultureInfo.InvariantCulture);
+                            var order=_orderRepository.GetByOrderNo(order_no);
+                            var contractpay_create = new ContractPayViewModel() {
+                                Type = 1,
+                                PayType = (int)CONTRACT_PAYMENT_TYPE.VNPAY,
+                                BankingAccountId = 1,
+                                Description = "Thu tiền thanh toán thông qua VNPAY cho đơn hàng "+order_no+". Ngày giao dịch: "+vnp_CreateTime.ToString("dd/MM/yyyy HH:mm:ss"),
+
+                                Note = "Thu tiền thanh toán thông qua VNPAY cho đơn hàng " + order_no + ". Ngày giao dịch: " + vnp_CreateTime.ToString("dd/MM/yyyy HH:mm:ss"),
+                                ClientId = (int)order.ClientId,
+                                SupplierId = null,
+                                ObjectType = 1,
+                                EmployeeId = 1,
+                                Amount = vnp_Amount,
+                                ContractPayDetails = new List<ContractPayDetailViewModel>()
+                                {
+                                    new ContractPayDetailViewModel()
+                                    {
+                                        Amount = vnp_Amount,
+                                        CreatedBy=1,
+                                        ServiceId=1,
+                                        OrderId=(int)order.OrderId,
+                                        AmountOrder=(double)order.Amount,
+                                        TotalNeedPayment=(double)order.Amount,
+                                        ServiceCode=vnpayTranId,
+                                        ServiceType=1,
+                                    }
+                                },
+                            };
+                            contractpay_create.BillNo = await identifierServiceRepository.buildContractPay();
+                            var contractPayId = _contractPayRepository.CreateContractPay(contractpay_create);
+                            return Ok(new
+                            {
+                                status = (int)ResponseType.SUCCESS,
+                                msg = "Thanh toán qua cổng VNPAY thành công",
+                                data = new
+                                {
+                                    amount=vnp_Amount,
+                                    pay_id=contractPayId,
+                                    created_date= vnp_CreateTime.ToString("dd/MM/yyyy HH:mm:ss")
+                                }
+                            });
+                        }
+                      
+                           
+                    }
                     return Ok(new
                     {
-                        status = (int)ResponseType.SUCCESS,
-                        msg = ResponseMessages.Success,
-                        data = _vNPayService.ValidateURL(url_part, vnp_SecureHash)
+                        status = (int)ResponseType.FAILED,
+                        msg = "Thanh toán qua cổng VNPAY thất bại, vui lòng thử thanh toán lại hoặc liên hệ CSKH",
+                        data = new
+                        {
+                            amount = 0,
+                            pay_id = 0,
+                            created_date = ""
+                        }
                     });
+
                 }
 
             }

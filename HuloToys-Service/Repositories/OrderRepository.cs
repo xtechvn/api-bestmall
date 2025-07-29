@@ -65,5 +65,9 @@ namespace Repositories.Repositories
                 return null;
             }
         }
+        public Order GetByOrderNo(string orderNo)
+        {
+            return _OrderDal.GetByOrderNo(orderNo);
+        }
     }
 }

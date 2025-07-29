@@ -1,4 +1,5 @@
-﻿using Entities.ConfigModels;
+﻿using DAL;
+using Entities.ConfigModels;
 using HuloToys_Service.Controllers.SQL;
 using HuloToys_Service.Models.Models;
 using HuloToys_Service.Utilities.Lib;

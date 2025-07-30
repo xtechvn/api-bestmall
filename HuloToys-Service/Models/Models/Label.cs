@@ -7,19 +7,19 @@ public partial class Label
 {
     public int Id { get; set; }
 
-    public string LabelName { get; set; }
+    public string? LabelName { get; set; }
 
-    public string LabelCode { get; set; }
+    public string? LabelCode { get; set; }
 
     public int? SupplierId { get; set; }
 
-    public string Icon { get; set; }
+    public string? Icon { get; set; }
 
     public int? ParentId { get; set; }
 
     public int? Level { get; set; }
 
-    public string Description { get; set; }
+    public string? Description { get; set; }
 
     public int? UserSupplierId { get; set; }
 
@@ -33,13 +33,13 @@ public partial class Label
 
     public int? UpdatedBy { get; set; }
 
-    public string Banner { get; set; }
+    public string? Banner { get; set; }
 
-    public string Avatar { get; set; }
+    public string? Avatar { get; set; }
 
-    public string BannerMain { get; set; }
+    public string? BannerMain { get; set; }
 
-    public string BannerSub { get; set; }
+    public string? BannerSub { get; set; }
 
     public int? Position { get; set; }
 

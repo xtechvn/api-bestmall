@@ -970,16 +970,16 @@ namespace WEB.CMS.Controllers
         {
             try
             {
-                //var model_json = new
-                //{
-                //    label_id = 19,
-                //    page_size = 10,
-                //    page_index = 1
-                //};
-                //input = new APIRequestGenericModel()
-                //{
-                //    token = CommonHelper.Encode(JsonConvert.SerializeObject(model_json), _configuration["KEY:private_key"])
-                //};
+                var model_json = new
+                {
+                    label_id = 19,
+                    page_size = 10,
+                    page_index = 1
+                };
+                input = new APIRequestGenericModel()
+                {
+                    token = CommonHelper.Encode(JsonConvert.SerializeObject(model_json), _configuration["KEY:private_key"])
+                };
                 JArray objParr = null;
                 if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, _configuration["KEY:private_key"]))
                 {
@@ -1060,6 +1060,23 @@ namespace WEB.CMS.Controllers
 
                         }
                     }
+                    var banner_sub = (label.BannerSub != null && label.BannerSub.Trim().Contains("[") ? JsonConvert.DeserializeObject<List<string>>(label.BannerSub) : new List<string>());
+                    List<string> banner_sub_output = new List<string>();
+                    if(banner_sub!=null && banner_sub.Count > 0)
+                    {
+                        var static_url = _configuration["config_value:ImageStatic"];
+                        foreach (var item in banner_sub) {
+                            var url_fixed = item;
+                            if (!url_fixed.Contains(static_url)
+                            && !url_fixed.Contains("base64")
+                            && !url_fixed.Contains("data:video"))
+                            {
+                                url_fixed = static_url + item;
+                            }
+                            banner_sub_output.Add(url_fixed);
+
+                        }
+                    }
                     return Ok(new
                     {
                         status = (int)ResponseType.SUCCESS,
@@ -1078,7 +1095,7 @@ namespace WEB.CMS.Controllers
                                 label.Description,
                                 label.Avatar,
                                 label.BannerMain,
-                                BannerSub = (label.BannerSub!=null && label.BannerSub.Trim().Contains("[")?JsonConvert.DeserializeObject<List<string>>(label.BannerSub): new List<string>())
+                                BannerSub = JsonConvert.SerializeObject(banner_sub_output)
 
                             }
                         }

@@ -332,7 +332,7 @@ namespace HuloToys_Service.Controllers
                                     data = new
                                     {
                                         amount = vnp_Amount,
-                                        pay_id = exists_contractpay_detail.PayId,
+                                        order_no = order_no,
                                         created_date = vnp_PayDate.ToString("dd/MM/yyyy HH:mm:ss")
                                     }
                                 });
@@ -349,7 +349,7 @@ namespace HuloToys_Service.Controllers
                                     data = new
                                     {
                                         amount = 0,
-                                        pay_id = 0,
+                                        order_no = "",
                                         created_date = ""
                                     }
                                 });
@@ -401,7 +401,7 @@ namespace HuloToys_Service.Controllers
                                 data = new
                                 {
                                     amount=vnp_Amount,
-                                    pay_id=contractPayId,
+                                    order_no= order.OrderNo,
                                     created_date= vnp_PayDate.ToString("dd/MM/yyyy HH:mm:ss")
                                 }
                             });
@@ -416,7 +416,7 @@ namespace HuloToys_Service.Controllers
                         data = new
                         {
                             amount = 0,
-                            pay_id = 0,
+                            order_no = "",
                             created_date = ""
                         }
                     });

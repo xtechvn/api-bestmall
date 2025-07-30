@@ -970,16 +970,16 @@ namespace WEB.CMS.Controllers
         {
             try
             {
-                var model_json = new
-                {
-                    label_id = 19,
-                    page_size = 10,
-                    page_index = 1
-                };
-                input = new APIRequestGenericModel()
-                {
-                    token = CommonHelper.Encode(JsonConvert.SerializeObject(model_json), _configuration["KEY:private_key"])
-                };
+                //var model_json = new
+                //{
+                //    label_id = 19,
+                //    page_size = 10,
+                //    page_index = 1
+                //};
+                //input = new APIRequestGenericModel()
+                //{
+                //    token = CommonHelper.Encode(JsonConvert.SerializeObject(model_json), _configuration["KEY:private_key"])
+                //};
                 JArray objParr = null;
                 if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, _configuration["KEY:private_key"]))
                 {

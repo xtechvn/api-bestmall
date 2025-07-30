@@ -972,7 +972,7 @@ namespace WEB.CMS.Controllers
             {
                 //var model_json = new
                 //{
-                //    label_id = 21,
+                //    label_id = 19,
                 //    page_size = 10,
                 //    page_index = 1
                 //};
@@ -1078,7 +1078,7 @@ namespace WEB.CMS.Controllers
                                 label.Description,
                                 label.Avatar,
                                 label.BannerMain,
-                                label.BannerSub
+                                BannerSub = (label.BannerSub!=null && label.BannerSub.Trim().Contains("[")?JsonConvert.DeserializeObject<List<string>>(label.BannerSub): new List<string>())
 
                             }
                         }

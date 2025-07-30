@@ -128,28 +128,28 @@ namespace HuloToys_Service.Controllers.Shipping
                             var cart_belong_to_supplier = carts.Where(x => x.product.supplier_id == supplier);
                             var detail_supplier = await _supplierESRepository.GetByIdAsync(supplier);
                             int package_weight = 0;
-                            int package_width = 0;
-                            int package_height = 0;
-                            int package_depth = 0;
+                            //int package_width = 0;
+                            //int package_height = 0;
+                            //int package_depth = 0;
                             double amount = 0;
                             foreach (var c in cart_belong_to_supplier)
                             {
                                 var selected = request.carts.First(x => x._id == c._id);
                                 package_weight += Convert.ToInt32(((c.product.weight <= 0 ? 0 : c.product.weight) * selected.quanity));
-                                package_width += Convert.ToInt32(((c.product.package_width <= 0 ? 0 : c.product.package_width) * selected.quanity));
-                                package_height += Convert.ToInt32(((c.product.package_height <= 0 ? 0 : c.product.package_height) * selected.quanity));
-                                package_depth += Convert.ToInt32(((c.product.package_depth <= 0 ? 0 : c.product.package_depth) * selected.quanity));
+                                //package_width += Convert.ToInt32(((c.product.package_width <= 0 ? 0 : c.product.package_width) * selected.quanity));
+                                //package_height += Convert.ToInt32(((c.product.package_height <= 0 ? 0 : c.product.package_height) * selected.quanity));
+                                //package_depth += Convert.ToInt32(((c.product.package_depth <= 0 ? 0 : c.product.package_depth) * selected.quanity));
                                 amount += Convert.ToInt32(((c.product.amount_after_flashsale == null ? c.product.amount : c.product.amount_after_flashsale) * selected.quanity));
                             }
                             var response_item = await _viettelPostService.GetShippingMethods(new VTPGetPriceAllRequest()
                             {
                                 MoneyCollection = 0,
-                                ProductHeight = package_height,
-                                ProductLength = package_depth,
+                                ProductHeight = 0,
+                                ProductLength =0,
                                 ProductPrice = Convert.ToInt64(amount),
                                 ProductType = "HH",
                                 ProductWeight = package_weight,
-                                ProductWidth = package_width,
+                                ProductWidth = 0,
                                 SenderDistrict   = detail_supplier.districtid==null? 4: (int)detail_supplier.districtid,
                                 SenderProvince = (int)detail_supplier.provinceid == null ? 1: (int)detail_supplier.provinceid,
                                 ReceiverDistrict = request.receiver_district_id,

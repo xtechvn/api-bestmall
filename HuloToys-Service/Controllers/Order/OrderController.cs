@@ -648,8 +648,11 @@ namespace HuloToys_Service.Controllers
                             catch { }
                             
                         }
+                        if(voucher_apply==null|| voucher_apply.Id<=0)
+                        {
+                            voucher_apply = await _voucherRepository.getDetailVoucher(model.voucher_code);
 
-                        voucher_apply = await _voucherRepository.getDetailVoucher(model.voucher_code);
+                        }
                         if (voucher_apply != null && voucher_apply.Id > 0)
                         {
                             double total_discount = 0;

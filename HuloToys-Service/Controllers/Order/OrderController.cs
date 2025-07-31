@@ -3,6 +3,7 @@ using Azure;
 using Caching.Elasticsearch;
 using Caching.Elasticsearch.FlashSale;
 using Entities.Models;
+using ENTITIES.ViewModels.Voucher;
 using HuloToys_Service.Controllers.Client.Business;
 using HuloToys_Service.Controllers.Order.Business;
 using HuloToys_Service.Controllers.Product.Bussiness;
@@ -74,8 +75,12 @@ namespace HuloToys_Service.Controllers
             _viettelPostService = viettelPostService;
             work_queue = new WorkQueueClient(configuration);
             identiferService = new IdentiferService(_configuration);
-            _redisService = new RedisConn(configuration);
-            _redisService.Connect();
+            _redisService = redisService;
+            try
+            {
+                _redisService.Connect();
+            }
+            catch { }
             clientServices = new ClientServices(_configuration);
             clientESService = new ClientESService(_configuration["DataBaseConfig:Elastic:Host"], _configuration);
             shippingBussinessSerice = new ShippingBussinessSerice(_configuration);
@@ -501,6 +506,7 @@ namespace HuloToys_Service.Controllers
         [HttpPost("confirm")]
         public async Task<ActionResult> Confirm([FromBody] APIRequestGenericModel input)
         {
+           
             try
             {
 
@@ -603,14 +609,47 @@ namespace HuloToys_Service.Controllers
                             model.total_amount += cart.total_amount;
                             model.carts.Add(cart);
 
-                            await _cartMongodbService.Delete(item.id);
+                            //await _cartMongodbService.Delete(item.id);
                             
 
                         }
                     }
                     if (model.voucher_code != null && model.voucher_code.Trim() != "")
                     {
-                        var voucher_apply = await _voucherRepository.getDetailVoucher(model.voucher_code);
+                        Voucher voucher_apply = new Voucher();
+                        string cache_name = CacheType.VOUCHER + account_client_id;
+                        var str = _redisService.Get(cache_name, Convert.ToInt32(configuration["Redis:Database:db_search_result"]));
+                        if (str != null && str.Trim() != "")
+                        {
+                            try
+                            {
+                                List<VoucherFEModel> list = JsonConvert.DeserializeObject<List<VoucherFEModel>>(str);
+                                if(list!=null && list.Count > 0)
+                                {
+                                    var selected = list.FirstOrDefault(x => x.code.Trim().ToUpper() == model.voucher_code.Trim().ToUpper());
+                                    if(selected!=null && selected.Id > 0)
+                                    {
+                                        voucher_apply=new Voucher()
+                                        {
+                                            Id=selected.Id,
+                                            CampaignId=selected.campaign_id,
+                                            Cdate=selected.cdate,
+                                            Code=selected.code,
+                                            Description=selected.description,
+                                            EDate=selected.eDate,
+                                            GroupUserPriority="",
+                                            PriceSales=selected.price_sales,
+                                            Unit=selected.unit,
+
+                                        };
+                                    }
+                                }
+                            }
+                            catch { }
+                            
+                        }
+
+                        voucher_apply = await _voucherRepository.getDetailVoucher(model.voucher_code);
                         if (voucher_apply != null && voucher_apply.Id > 0)
                         {
                             double total_discount = 0;

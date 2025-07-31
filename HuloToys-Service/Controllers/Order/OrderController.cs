@@ -590,20 +590,20 @@ namespace HuloToys_Service.Controllers
                             list_cart.Add(cart);
 
                             cart.product = await productDetailService.GetByID(cart.product._id);
-                            var amount = cart.product.amount;
-                            var price = cart.product.price;
-                            var profit = cart.product.profit;
-                            var discount = 0;
-                            if ( cart.product.amount_after_flashsale != null && cart.product.amount_after_flashsale > 0)
-                            {
-                                amount = (double)cart.product.amount_after_flashsale;
-                                profit = amount - price;
-                            }
+                            //var amount = cart.product.amount;
+                            //var price = cart.product.price;
+                            //var profit = cart.product.profit;
+                            //var discount = 0;
+                            //if ( cart.product.amount_after_flashsale != null && cart.product.amount_after_flashsale > 0)
+                            //{
+                            //    amount = (double)cart.product.amount_after_flashsale;
+                            //    profit = amount - price;
+                            //}
                             cart.quanity = item.quanity;
-                            cart.total_price = price * item.quanity;
-                            cart.total_profit = profit * item.quanity;
-                            cart.total_amount = amount * item.quanity;
-                            cart.total_discount = discount * item.quanity;
+                            cart.total_price = cart.total_price/ item.quanity;
+                            cart.total_profit = cart.total_profit/item.quanity;
+                            cart.total_amount = cart.total_amount/ item.quanity;
+                            cart.total_discount = cart.product.discount * item.quanity;
                             model.total_price += cart.total_price;
                             model.total_profit += cart.total_profit;
                             model.total_amount += cart.total_amount;

@@ -590,25 +590,33 @@ namespace HuloToys_Service.Controllers
                             list_cart.Add(cart);
 
                             cart.product = await productDetailService.GetByID(cart.product._id);
-                            //var amount = cart.product.amount;
-                            //var price = cart.product.price;
-                            //var profit = cart.product.profit;
-                            //var discount = 0;
-                            //if ( cart.product.amount_after_flashsale != null && cart.product.amount_after_flashsale > 0)
-                            //{
-                            //    amount = (double)cart.product.amount_after_flashsale;
-                            //    profit = amount - price;
-                            //}
+                            var amount = cart.product.amount;
+                            var price = cart.product.price;
+                            var profit = cart.product.profit;
+                            var discount = cart.product.discount;
+
+                            if (cart.product.amount_after_flashsale != null && cart.product.amount_after_flashsale > 0)
+                            {
+                                amount = (double)cart.product.amount_after_flashsale;
+                                profit = amount - price;
+                                discount = cart.product.amount - (double)cart.product.amount_after_flashsale;
+                            }
                             cart.quanity = item.quanity;
-                            cart.total_price = cart.total_price/cart.quanity * item.quanity;
-                            cart.total_profit = cart.total_profit / cart.quanity * item.quanity;
-                            cart.total_amount = cart.total_amount / cart.quanity * item.quanity;
+                            cart.total_price = price * item.quanity;
+                            cart.total_profit = profit * item.quanity;
+                            cart.total_amount = amount * item.quanity;
                             cart.total_discount = cart.product.discount / cart.quanity * item.quanity;
                             model.total_price += cart.total_price;
                             model.total_profit += cart.total_profit;
                             model.total_amount += cart.total_amount;
                             model.carts.Add(cart);
-                            LogHelper.InsertLogTelegram("Order Confirm Cart: ["+ cart._id + "]["+ cart.product.amount + "]["+ item.quanity + "]["+ cart.total_amount + "]");
+                            LogHelper.InsertLogTelegram("Order Confirm Cart: ["+ cart._id + "]" +
+                                "["+ amount + "]" +
+                                "["+ item.quanity + "]" +
+                                "["+ cart.total_amount + "]" +
+                                "["+ cart.total_price + "]" +
+                                "["+ cart.total_profit + "]" 
+                                );
                             await _cartMongodbService.Delete(item.id);
                             
 

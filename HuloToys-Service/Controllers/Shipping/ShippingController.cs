@@ -118,103 +118,105 @@ namespace HuloToys_Service.Controllers.Shipping
                             msg = ResponseMessages.DataInvalid
                         });
                     }
-                    List<VTPServiceListingResponseModel> response = new List<VTPServiceListingResponseModel>();
                     var carts = await _cartMongodbService.GetByIds(request.carts.Select(x => x._id).ToList());
-                    //LogHelper.InsertLogTelegram(
-                    //    "GetVTPServiceListing "
-                    //    + " carts count=" + (carts == null ? "NULL" : carts.Count.ToString())
+                    ////LogHelper.InsertLogTelegram(
+                    ////    "GetVTPServiceListing "
+                    ////    + " carts count=" + (carts == null ? "NULL" : carts.Count.ToString())
 
-                    //    );
-                    if (carts!=null && carts.Count > 0)
+                    ////    );
+                    //if (carts!=null && carts.Count > 0)
+                    //{
+                    //    var list_supplier = carts.Select(x => x.product.supplier_id).Distinct();
+                    //    bool fill_first_supplier=false;
+                    //    foreach (var supplier in list_supplier)
+                    //    {
+                    //        var cart_belong_to_supplier = carts.Where(x => x.product.supplier_id == supplier);
+                    //        var detail_supplier = await _supplierESRepository.GetByIdAsync(supplier);
+                    //        //LogHelper.InsertLogTelegram(
+                    //        //      "GetVTPServiceListing "
+                    //        //      + " detail_supplier " + (detail_supplier == null ? "NULL" : detail_supplier.supplierid)
+
+                    //        //      );
+                    //        int package_weight = 0;
+                    //        //int package_width = 0;
+                    //        //int package_height = 0;
+                    //        //int package_depth = 0;
+                    //        double amount = 0;
+                    //        foreach (var c in cart_belong_to_supplier)
+                    //        {
+                    //            var selected = request.carts.First(x => x._id == c._id);
+                    //            package_weight += Convert.ToInt32(((c.product.weight <= 0 ? 0 : c.product.weight) * selected.quanity));
+                    //            //package_width += Convert.ToInt32(((c.product.package_width <= 0 ? 0 : c.product.package_width) * selected.quanity));
+                    //            //package_height += Convert.ToInt32(((c.product.package_height <= 0 ? 0 : c.product.package_height) * selected.quanity));
+                    //            //package_depth += Convert.ToInt32(((c.product.package_depth <= 0 ? 0 : c.product.package_depth) * selected.quanity));
+                    //            amount += Convert.ToInt32(((c.product.amount_after_flashsale == null ? c.product.amount : c.product.amount_after_flashsale) * selected.quanity));
+                    //        }
+                    //        //LogHelper.InsertLogTelegram(
+                    //        //        "GetVTPServiceListing "
+                    //        //        + " _viettelPostService " + (_viettelPostService == null ? "NULL" : "_viettelPostService")
+
+                    //        //        );
+                    //        var response_item = await _viettelPostService.GetShippingMethods(new VTPGetPriceAllRequest()
+                    //        {
+                    //            MoneyCollection = 0,
+                    //            ProductHeight = 0,
+                    //            ProductLength =0,
+                    //            ProductPrice = Convert.ToInt64(amount),
+                    //            ProductType = "HH",
+                    //            ProductWeight = package_weight,
+                    //            ProductWidth = 0,
+                    //            SenderDistrict   = detail_supplier.districtid==null? 4: (int)detail_supplier.districtid,
+                    //            SenderProvince = detail_supplier.provinceid == null ? 1: (int)detail_supplier.provinceid,
+                    //            ReceiverDistrict = request.receiver_district_id,
+                    //            ReceiverProvince = request.receiver_provinces_id,
+                    //             Type=1
+                    //        });
+                    //        if(response_item!=null && response_item.Count > 0)
+                    //        {
+                    //            if (fill_first_supplier == false)
+                    //            {
+                    //                response.Add(new VTPServiceListingResponseModel()
+                    //                {
+                    //                    supplier_id = 0,
+                    //                    supplier_name = "Giao hàng khả dụng cho tất cả sản phẩm",
+                    //                    cart_ids = carts.Select(x => x._id).ToList(),
+                    //                    services = response_item.Select(x => new VTPServiceListingResponseMethod()
+                    //                    {
+                    //                        name = x.TenDichVu,
+                    //                        service_code = x.MaDvChinh,
+                    //                        total_amount = x.GiaCuoc,
+                    //                        time = x.ThoiGian
+                    //                    }).ToList()
+                    //                });
+                    //                fill_first_supplier = true;
+                    //            }
+                    //            else if(response.Count > 0) {
+                    //                foreach (var delivery in response_item) {
+                    //                    if (response[0].services.Any(x => x.service_code.Trim() == delivery.MaDvChinh.Trim()))
+                    //                    {
+                    //                        response[0].services.First(x => x.service_code.Trim() == delivery.MaDvChinh.Trim()).total_amount += delivery.GiaCuoc;
+                    //                    }
+                    //                    else
+                    //                    {
+                    //                        response[0].services.RemoveAll(x => x.service_code.Trim() == delivery.MaDvChinh.Trim());
+                    //                    }
+
+                    //                }
+
+                    //            }
+
+                    //        }
+                    //    }
+
+                    //}
+                    List<VTPServiceListingResponseModel> response = await _viettelPostService.GetShippingFeeByListCart(carts, request);
+
+                    return Ok(new
                     {
-                        var list_supplier = carts.Select(x => x.product.supplier_id).Distinct();
-                        bool fill_first_supplier=false;
-                        foreach (var supplier in list_supplier)
-                        {
-                            var cart_belong_to_supplier = carts.Where(x => x.product.supplier_id == supplier);
-                            var detail_supplier = await _supplierESRepository.GetByIdAsync(supplier);
-                            //LogHelper.InsertLogTelegram(
-                            //      "GetVTPServiceListing "
-                            //      + " detail_supplier " + (detail_supplier == null ? "NULL" : detail_supplier.supplierid)
-
-                            //      );
-                            int package_weight = 0;
-                            //int package_width = 0;
-                            //int package_height = 0;
-                            //int package_depth = 0;
-                            double amount = 0;
-                            foreach (var c in cart_belong_to_supplier)
-                            {
-                                var selected = request.carts.First(x => x._id == c._id);
-                                package_weight += Convert.ToInt32(((c.product.weight <= 0 ? 0 : c.product.weight) * selected.quanity));
-                                //package_width += Convert.ToInt32(((c.product.package_width <= 0 ? 0 : c.product.package_width) * selected.quanity));
-                                //package_height += Convert.ToInt32(((c.product.package_height <= 0 ? 0 : c.product.package_height) * selected.quanity));
-                                //package_depth += Convert.ToInt32(((c.product.package_depth <= 0 ? 0 : c.product.package_depth) * selected.quanity));
-                                amount += Convert.ToInt32(((c.product.amount_after_flashsale == null ? c.product.amount : c.product.amount_after_flashsale) * selected.quanity));
-                            }
-                            //LogHelper.InsertLogTelegram(
-                            //        "GetVTPServiceListing "
-                            //        + " _viettelPostService " + (_viettelPostService == null ? "NULL" : "_viettelPostService")
-
-                            //        );
-                            var response_item = await _viettelPostService.GetShippingMethods(new VTPGetPriceAllRequest()
-                            {
-                                MoneyCollection = 0,
-                                ProductHeight = 0,
-                                ProductLength =0,
-                                ProductPrice = Convert.ToInt64(amount),
-                                ProductType = "HH",
-                                ProductWeight = package_weight,
-                                ProductWidth = 0,
-                                SenderDistrict   = detail_supplier.districtid==null? 4: (int)detail_supplier.districtid,
-                                SenderProvince = detail_supplier.provinceid == null ? 1: (int)detail_supplier.provinceid,
-                                ReceiverDistrict = request.receiver_district_id,
-                                ReceiverProvince = request.receiver_provinces_id,
-                                 Type=1
-                            });
-                            if(response_item!=null && response_item.Count > 0)
-                            {
-                                if (fill_first_supplier == false)
-                                {
-                                    response.Add(new VTPServiceListingResponseModel()
-                                    {
-                                        supplier_id = 0,
-                                        supplier_name = "Giao hàng khả dụng cho tất cả sản phẩm",
-                                        cart_ids = carts.Select(x => x._id).ToList(),
-                                        services = response_item.Select(x => new VTPServiceListingResponseMethod()
-                                        {
-                                            name = x.TenDichVu,
-                                            service_code = x.MaDvChinh,
-                                            total_amount = x.GiaCuoc,
-                                            time = x.ThoiGian
-                                        }).ToList()
-                                    });
-                                    fill_first_supplier = true;
-                                }
-                                else if(response.Count > 0) {
-                                    foreach (var delivery in response_item) {
-                                        if (response[0].services.Any(x => x.service_code.Trim() == delivery.MaDvChinh.Trim()))
-                                        {
-                                            response[0].services.First(x => x.service_code.Trim() == delivery.MaDvChinh.Trim()).total_amount += delivery.GiaCuoc;
-                                        }
-                                        else
-                                        {
-                                            response[0].services.RemoveAll(x => x.service_code.Trim() == delivery.MaDvChinh.Trim());
-                                        }
-
-                                    }
-
-                                }
-                               
-                            }
-                        }
-                        return Ok(new
-                        {
-                            status = (int)ResponseType.SUCCESS,
-                            msg = "Success",
-                            data= response
-                        });
-                    }
+                        status = (int)ResponseType.SUCCESS,
+                        msg = "Success",
+                        data = response
+                    });
 
                 }
 

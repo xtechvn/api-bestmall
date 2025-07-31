@@ -707,49 +707,70 @@ namespace HuloToys_Service.Controllers
                                     {
                                         break;
                                     }
-                                    var list_supplier = list_cart.Select(x => x.product.supplier_id).Distinct();
-                                    foreach (var supplier in list_supplier)
+                                    //var list_supplier = list_cart.Select(x => x.product.supplier_id).Distinct();
+                                    //foreach (var supplier in list_supplier)
+                                    //{
+                                    //    var cart_belong_to_supplier = list_cart.Where(x => x.product.supplier_id == supplier);
+                                    //    var detail_supplier = await _supplierESRepository.GetByIdAsync(supplier);
+                                    //    int package_weight = 0;
+
+                                    //    double amount = 0;
+                                    //    foreach (var c in cart_belong_to_supplier)
+                                    //    {
+                                    //        var selected = list_cart.First(x => x._id == c._id);
+                                    //        package_weight += Convert.ToInt32(((c.product.weight <= 0 ? 0 : c.product.weight) * selected.quanity));
+
+                                    //        amount += Convert.ToInt32(((c.product.amount_after_flashsale == null ? c.product.amount : c.product.amount_after_flashsale) * selected.quanity));
+                                    //    }
+                                    //    var response_item = await _viettelPostService.GetShippingMethods(new VTPGetPriceAllRequest()
+                                    //    {
+                                    //        MoneyCollection = 0,
+                                    //        ProductHeight = 0,
+                                    //        ProductLength = 0,
+                                    //        ProductPrice = Convert.ToInt64(amount),
+                                    //        ProductType = "HH",
+                                    //        ProductWeight = package_weight,
+                                    //        ProductWidth = 0,
+                                    //        SenderDistrict = detail_supplier.districtid == null ? 4 : (int)detail_supplier.districtid,
+                                    //        SenderProvince = (int)detail_supplier.provinceid == null ? 1 : (int)detail_supplier.provinceid,
+                                    //        ReceiverDistrict = Convert.ToInt32(request.address.DistrictId),
+                                    //        ReceiverProvince = Convert.ToInt32(request.address.ProvinceId),
+                                    //        Type = 1
+                                    //    });
+                                    //    if (response_item != null && response_item.Count > 0)
+                                    //    {
+                                    //        var selected_delivery = response_item.Where(x => x.MaDvChinh.Trim().ToUpper() == model.delivery_detail.shipping_service_code.Trim().ToUpper());
+
+                                    //        if(selected_delivery!=null && selected_delivery.Count() > 0)
+                                    //        {
+                                    //            LogHelper.InsertLogTelegram("Order selected_delivery: [" + string.Join(",", selected_delivery.Select(x => x.MaDvChinh)) + "]" +
+                                    //              "[" + string.Join(", ", selected_delivery.Select(x => x.GiaCuoc)) + "]" 
+                                    //              );
+                                    //            model.shipping_fee = selected_delivery.Sum(x => x.GiaCuoc);
+                                    //            model.total_amount += selected_delivery.Sum(x => x.GiaCuoc);
+                                    //        }
+                                    //    }
+                                    //}
+
+                                    VTPServiceListingRequestModel request_delivery = new VTPServiceListingRequestModel()
                                     {
-                                        var cart_belong_to_supplier = list_cart.Where(x => x.product.supplier_id == supplier);
-                                        var detail_supplier = await _supplierESRepository.GetByIdAsync(supplier);
-                                        int package_weight = 0;
-                                      
-                                        double amount = 0;
-                                        foreach (var c in cart_belong_to_supplier)
+                                        receiver_district_id = Convert.ToInt32(request.address.DistrictId),
+                                        receiver_provinces_id = Convert.ToInt32(request.address.ProvinceId),
+                                        carts = model.carts.Select(x => new VTPServiceListingRequestCart()
                                         {
-                                            var selected = list_cart.First(x => x._id == c._id);
-                                            package_weight += Convert.ToInt32(((c.product.weight <= 0 ? 0 : c.product.weight) * selected.quanity));
-                                           
-                                            amount += Convert.ToInt32(((c.product.amount_after_flashsale == null ? c.product.amount : c.product.amount_after_flashsale) * selected.quanity));
+                                            _id = x._id,
+                                            quanity = x.quanity
+                                        }).ToList()
+                                    };
+                                    var response=await _viettelPostService.GetShippingFeeByListCart(model.carts, request_delivery);
+                                    if (response != null && response.Count > 0) {
+                                        var selected_delivery = response.First().services.FirstOrDefault(x => x.service_code.Trim().ToUpper() == model.delivery_detail.shipping_service_code.Trim().ToUpper());
+                                        if (selected_delivery != null) {
+
+                                            model.shipping_fee = selected_delivery.total_amount;
+                                            model.total_amount += selected_delivery.total_amount;
                                         }
-                                        var response_item = await _viettelPostService.GetShippingMethods(new VTPGetPriceAllRequest()
-                                        {
-                                            MoneyCollection = 0,
-                                            ProductHeight = 0,
-                                            ProductLength = 0,
-                                            ProductPrice = Convert.ToInt64(amount),
-                                            ProductType = "HH",
-                                            ProductWeight = package_weight,
-                                            ProductWidth = 0,
-                                            SenderDistrict = detail_supplier.districtid == null ? 4 : (int)detail_supplier.districtid,
-                                            SenderProvince = (int)detail_supplier.provinceid == null ? 1 : (int)detail_supplier.provinceid,
-                                            ReceiverDistrict = Convert.ToInt32(request.address.DistrictId),
-                                            ReceiverProvince = Convert.ToInt32(request.address.ProvinceId),
-                                            Type = 1
-                                        });
-                                        if (response_item != null && response_item.Count > 0)
-                                        {
-                                            var selected_delivery = response_item.Where(x => x.MaDvChinh.Trim().ToUpper() == model.delivery_detail.shipping_service_code.Trim().ToUpper());
-                                           
-                                            if(selected_delivery!=null && selected_delivery.Count() > 0)
-                                            {
-                                                LogHelper.InsertLogTelegram("Order selected_delivery: [" + string.Join(",", selected_delivery.Select(x => x.MaDvChinh)) + "]" +
-                                                  "[" + string.Join(", ", selected_delivery.Select(x => x.GiaCuoc)) + "]" 
-                                                  );
-                                                model.shipping_fee = selected_delivery.Sum(x => x.GiaCuoc);
-                                                model.total_amount += selected_delivery.Sum(x => x.GiaCuoc);
-                                            }
-                                        }
+                                       
                                     }
                                 }
                                 break;

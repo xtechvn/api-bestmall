@@ -747,7 +747,7 @@ namespace HuloToys_Service.Controllers
                     var result = await orderMongodbService.Insert(model);
                     LogHelper.InsertLogTelegram( "Order InsertMongodb: "
                       + QueueName.QUEUE_CHECKOUT
-                      + "[" + JsonConvert.SerializeObject(model.carts) + "] [" + model._id + "]");
+                      + "[" +string.Join(",", model.carts.Select(x=>x._id)) + "] [" + model._id + "]");
                     //-- Insert Queue:
                     var queue_model = new CheckoutQueueModel() { event_id = (int)CheckoutEventID.CREATE_ORDER, order_mongo_id = result };
 

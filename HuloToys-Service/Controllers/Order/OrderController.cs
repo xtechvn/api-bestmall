@@ -729,12 +729,12 @@ namespace HuloToys_Service.Controllers
                                         var response_item = await _viettelPostService.GetShippingMethods(new VTPGetPriceAllRequest()
                                         {
                                             MoneyCollection = 0,
-                                            ProductHeight = package_height,
-                                            ProductLength = package_depth,
+                                            ProductHeight = 0,
+                                            ProductLength = 0,
                                             ProductPrice = Convert.ToInt64(amount),
                                             ProductType = "HH",
                                             ProductWeight = package_weight,
-                                            ProductWidth = package_width,
+                                            ProductWidth = 0,
                                             SenderDistrict = detail_supplier.districtid == null ? 4 : (int)detail_supplier.districtid,
                                             SenderProvince = (int)detail_supplier.provinceid == null ? 1 : (int)detail_supplier.provinceid,
                                             ReceiverDistrict = Convert.ToInt32(request.address.DistrictId),

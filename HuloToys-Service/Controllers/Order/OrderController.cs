@@ -609,7 +609,7 @@ namespace HuloToys_Service.Controllers
                             model.total_amount += cart.total_amount;
                             model.carts.Add(cart);
 
-                            //await _cartMongodbService.Delete(item.id);
+                            await _cartMongodbService.Delete(item.id);
                             
 
                         }

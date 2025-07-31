@@ -608,7 +608,7 @@ namespace HuloToys_Service.Controllers
                             model.total_profit += cart.total_profit;
                             model.total_amount += cart.total_amount;
                             model.carts.Add(cart);
-
+                            LogHelper.InsertLogTelegram("Order Confirm Cart: ["+ cart._id + "]["+ cart.product.amount + "]["+ item.quanity + "]["+ cart.total_amount + "]");
                             await _cartMongodbService.Delete(item.id);
                             
 
@@ -745,9 +745,7 @@ namespace HuloToys_Service.Controllers
                     //-- Mongodb:
                     
                     var result = await orderMongodbService.Insert(model);
-                    LogHelper.InsertLogTelegram( "Order InsertMongodb: "
-                      + QueueName.QUEUE_CHECKOUT
-                      + "[" +string.Join(",", model.carts.Select(x=>x._id)) + "] [" + model._id + "]");
+                   
                     //-- Insert Queue:
                     var queue_model = new CheckoutQueueModel() { event_id = (int)CheckoutEventID.CREATE_ORDER, order_mongo_id = result };
 

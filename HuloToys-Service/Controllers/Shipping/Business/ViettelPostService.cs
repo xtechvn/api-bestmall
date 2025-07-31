@@ -1,7 +1,12 @@
-﻿using HuloToys_Service.RedisWorker;
+﻿using Azure.Core;
+using Caching.Elasticsearch.FlashSale;
+using HuloToys_Service.Models.Shipping.ViettelPost;
+using HuloToys_Service.RedisWorker;
 using HuloToys_Service.Utilities.Lib;
+using Models.MongoDb;
 using Newtonsoft.Json;
 using System.Text;
+using Utilities.Contants;
 
 namespace HuloToys_Service.Controllers.Shipping.Business
 {
@@ -23,7 +28,9 @@ namespace HuloToys_Service.Controllers.Shipping.Business
         private readonly RedisConn _redisService;
         private int exprire_time = 86400;
         private IConfiguration _configuration;
-        public ViettelPostService(RedisConn redisService, IConfiguration configuration)
+        private readonly SupplierESRepository _supplierESRepository;
+
+        public ViettelPostService(RedisConn redisService, IConfiguration configuration, SupplierESRepository supplierESRepository)
         {
             _configuration = configuration;
             _httpClient = new HttpClient();
@@ -37,6 +44,8 @@ namespace HuloToys_Service.Controllers.Shipping.Business
             {
 
             }
+            _supplierESRepository = supplierESRepository;
+
         }
         public async Task<bool> GetTemporaryToken()
         {
@@ -235,6 +244,108 @@ namespace HuloToys_Service.Controllers.Shipping.Business
                 return null;
             }
         }
+        public async Task<List<VTPServiceListingResponseModel>> GetShippingFeeByListCart(List<CartItemMongoDbModel> carts, VTPServiceListingRequestModel request)
+        {
+            List<VTPServiceListingResponseModel> response = new List<VTPServiceListingResponseModel>();
+
+            try
+            {
+                if (carts != null && carts.Count > 0)
+                {
+                    var list_supplier = carts.Select(x => x.product.supplier_id).Distinct();
+                    bool fill_first_supplier = false;
+                    foreach (var supplier in list_supplier)
+                    {
+                        var cart_belong_to_supplier = carts.Where(x => x.product.supplier_id == supplier);
+                        var detail_supplier = await _supplierESRepository.GetByIdAsync(supplier);
+                        //LogHelper.InsertLogTelegram(
+                        //      "GetVTPServiceListing "
+                        //      + " detail_supplier " + (detail_supplier == null ? "NULL" : detail_supplier.supplierid)
+
+                        //      );
+                        int package_weight = 0;
+                        //int package_width = 0;
+                        //int package_height = 0;
+                        //int package_depth = 0;
+                        double amount = 0;
+                        foreach (var c in cart_belong_to_supplier)
+                        {
+                            var selected = carts.First(x => x._id == c._id);
+                            package_weight += Convert.ToInt32(((c.product.weight <= 0 ? 0 : c.product.weight) * selected.quanity));
+                            //package_width += Convert.ToInt32(((c.product.package_width <= 0 ? 0 : c.product.package_width) * selected.quanity));
+                            //package_height += Convert.ToInt32(((c.product.package_height <= 0 ? 0 : c.product.package_height) * selected.quanity));
+                            //package_depth += Convert.ToInt32(((c.product.package_depth <= 0 ? 0 : c.product.package_depth) * selected.quanity));
+                            amount += Convert.ToInt32(((c.product.amount_after_flashsale == null ? c.product.amount : c.product.amount_after_flashsale) * selected.quanity));
+                        }
+                        //LogHelper.InsertLogTelegram(
+                        //        "GetVTPServiceListing "
+                        //        + " _viettelPostService " + (_viettelPostService == null ? "NULL" : "_viettelPostService")
+
+                        //        );
+                        var response_item = await GetShippingMethods(new VTPGetPriceAllRequest()
+                        {
+                            MoneyCollection = 0,
+                            ProductHeight = 0,
+                            ProductLength = 0,
+                            ProductPrice = Convert.ToInt64(amount),
+                            ProductType = "HH",
+                            ProductWeight = package_weight,
+                            ProductWidth = 0,
+                            SenderDistrict = detail_supplier.districtid == null ? 4 : (int)detail_supplier.districtid,
+                            SenderProvince = detail_supplier.provinceid == null ? 1 : (int)detail_supplier.provinceid,
+                            ReceiverDistrict = request.receiver_district_id,
+                            ReceiverProvince = request.receiver_provinces_id,
+                            Type = 1
+                        });
+                        if (response_item != null && response_item.Count > 0)
+                        {
+                            if (fill_first_supplier == false)
+                            {
+                                response.Add(new VTPServiceListingResponseModel()
+                                {
+                                    supplier_id = 0,
+                                    supplier_name = "Giao hàng khả dụng cho tất cả sản phẩm",
+                                    cart_ids = carts.Select(x => x._id).ToList(),
+                                    services = response_item.Select(x => new VTPServiceListingResponseMethod()
+                                    {
+                                        name = x.TenDichVu,
+                                        service_code = x.MaDvChinh,
+                                        total_amount = x.GiaCuoc,
+                                        time = x.ThoiGian
+                                    }).ToList()
+                                });
+                                fill_first_supplier = true;
+                            }
+                            else if (response.Count > 0)
+                            {
+                                foreach (var delivery in response_item)
+                                {
+                                    if (response[0].services.Any(x => x.service_code.Trim() == delivery.MaDvChinh.Trim()))
+                                    {
+                                        response[0].services.First(x => x.service_code.Trim() == delivery.MaDvChinh.Trim()).total_amount += delivery.GiaCuoc;
+                                    }
+                                    else
+                                    {
+                                        response[0].services.RemoveAll(x => x.service_code.Trim() == delivery.MaDvChinh.Trim());
+                                    }
+
+                                }
+
+                            }
+
+                        }
+                    }
+                   
+                }
+            }
+            catch(Exception e)
+            {
+                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], "GetShippingFeeByListCart - ViettelPostService: "+e.ToString());
+
+            }
+            return response;
+        }
+        
     }
 
     // --- INPUT MODEL ---

@@ -713,17 +713,13 @@ namespace HuloToys_Service.Controllers
                                         var cart_belong_to_supplier = list_cart.Where(x => x.product.supplier_id == supplier);
                                         var detail_supplier = await _supplierESRepository.GetByIdAsync(supplier);
                                         int package_weight = 0;
-                                        int package_width = 0;
-                                        int package_height = 0;
-                                        int package_depth = 0;
+                                      
                                         double amount = 0;
                                         foreach (var c in cart_belong_to_supplier)
                                         {
                                             var selected = list_cart.First(x => x._id == c._id);
                                             package_weight += Convert.ToInt32(((c.product.weight <= 0 ? 0 : c.product.weight) * selected.quanity));
-                                            package_width += Convert.ToInt32(((c.product.package_width <= 0 ? 0 : c.product.package_width) * selected.quanity));
-                                            package_height += Convert.ToInt32(((c.product.package_height <= 0 ? 0 : c.product.package_height) * selected.quanity));
-                                            package_depth += Convert.ToInt32(((c.product.package_depth <= 0 ? 0 : c.product.package_depth) * selected.quanity));
+                                           
                                             amount += Convert.ToInt32(((c.product.amount_after_flashsale == null ? c.product.amount : c.product.amount_after_flashsale) * selected.quanity));
                                         }
                                         var response_item = await _viettelPostService.GetShippingMethods(new VTPGetPriceAllRequest()

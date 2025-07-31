@@ -600,10 +600,10 @@ namespace HuloToys_Service.Controllers
                             //    profit = amount - price;
                             //}
                             cart.quanity = item.quanity;
-                            cart.total_price = cart.total_price/ item.quanity;
-                            cart.total_profit = cart.total_profit/item.quanity;
-                            cart.total_amount = cart.total_amount/ item.quanity;
-                            cart.total_discount = cart.product.discount * item.quanity;
+                            cart.total_price = cart.total_price/cart.quanity * item.quanity;
+                            cart.total_profit = cart.total_profit / cart.quanity * item.quanity;
+                            cart.total_amount = cart.total_amount / cart.quanity * item.quanity;
+                            cart.total_discount = cart.product.discount / cart.quanity * item.quanity;
                             model.total_price += cart.total_price;
                             model.total_profit += cart.total_profit;
                             model.total_amount += cart.total_amount;

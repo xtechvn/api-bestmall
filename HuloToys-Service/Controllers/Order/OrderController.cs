@@ -33,6 +33,7 @@ using System.Drawing.Printing;
 using System.Reflection;
 using Utilities;
 using Utilities.Contants;
+using static MongoDB.Driver.WriteConcern;
 
 namespace HuloToys_Service.Controllers
 {
@@ -656,13 +657,18 @@ namespace HuloToys_Service.Controllers
                             catch { }
                             
                         }
-                        if(voucher_apply==null|| voucher_apply.Id<=0)
+                       
+                        if (voucher_apply==null|| voucher_apply.Id<=0)
                         {
                             voucher_apply = await _voucherRepository.getDetailVoucher(model.voucher_code);
 
                         }
                         if (voucher_apply != null && voucher_apply.Id > 0)
                         {
+                            LogHelper.InsertLogTelegram("Order voucher_apply: [" + voucher_apply.Id + "]" +
+                               "[" + voucher_apply.PriceSales + "]" +
+                               "[" + voucher_apply.Unit + "]" 
+                               );
                             double total_discount = 0;
                             double percent = Convert.ToDouble(voucher_apply.PriceSales);
                             switch (voucher_apply.Unit)
@@ -738,8 +744,12 @@ namespace HuloToys_Service.Controllers
                                         if (response_item != null && response_item.Count > 0)
                                         {
                                             var selected_delivery = response_item.Where(x => x.MaDvChinh.Trim().ToUpper() == model.delivery_detail.shipping_service_code.Trim().ToUpper());
+                                           
                                             if(selected_delivery!=null && selected_delivery.Count() > 0)
                                             {
+                                                LogHelper.InsertLogTelegram("Order selected_delivery: [" + string.Join(",", selected_delivery.Select(x => x.MaDvChinh)) + "]" +
+                                                  "[" + string.Join(", ", selected_delivery.Select(x => x.GiaCuoc)) + "]" 
+                                                  );
                                                 model.shipping_fee = selected_delivery.Sum(x => x.GiaCuoc);
                                                 model.total_amount += selected_delivery.Sum(x => x.GiaCuoc);
                                             }
@@ -751,7 +761,10 @@ namespace HuloToys_Service.Controllers
                     }
 
                     //-- Mongodb:
-                    
+                    LogHelper.InsertLogTelegram("Order orderMongodbService.Insert: [" + model.total_price + "]" +
+                                                  "[" + model.total_profit + "]"+
+                                                  "[" + model.total_amount + "]"
+                                                  );
                     var result = await orderMongodbService.Insert(model);
                    
                     //-- Insert Queue:

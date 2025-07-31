@@ -33,6 +33,7 @@ using System.Drawing.Printing;
 using System.Reflection;
 using Utilities;
 using Utilities.Contants;
+using static MongoDB.Driver.WriteConcern;
 
 namespace HuloToys_Service.Controllers
 {
@@ -593,23 +594,31 @@ namespace HuloToys_Service.Controllers
                             var amount = cart.product.amount;
                             var price = cart.product.price;
                             var profit = cart.product.profit;
-                            var discount = 0;
-                            if ( cart.product.amount_after_flashsale != null && cart.product.amount_after_flashsale > 0)
+                            var discount = cart.product.discount;
+
+                            if (cart.product.amount_after_flashsale != null && cart.product.amount_after_flashsale > 0)
                             {
                                 amount = (double)cart.product.amount_after_flashsale;
                                 profit = amount - price;
+                                discount = cart.product.amount - (double)cart.product.amount_after_flashsale;
                             }
                             cart.quanity = item.quanity;
                             cart.total_price = price * item.quanity;
                             cart.total_profit = profit * item.quanity;
                             cart.total_amount = amount * item.quanity;
-                            cart.total_discount = discount * item.quanity;
+                            cart.total_discount = cart.product.discount / cart.quanity * item.quanity;
                             model.total_price += cart.total_price;
                             model.total_profit += cart.total_profit;
                             model.total_amount += cart.total_amount;
                             model.carts.Add(cart);
-
-                            //await _cartMongodbService.Delete(item.id);
+                            //LogHelper.InsertLogTelegram("Order Confirm Cart: ["+ cart._id + "]" +
+                            //    "["+ amount + "]" +
+                            //    "["+ item.quanity + "]" +
+                            //    "["+ cart.total_amount + "]" +
+                            //    "["+ cart.total_price + "]" +
+                            //    "["+ cart.total_profit + "]" 
+                            //    );
+                            await _cartMongodbService.Delete(item.id);
                             
 
                         }
@@ -648,13 +657,18 @@ namespace HuloToys_Service.Controllers
                             catch { }
                             
                         }
-                        if(voucher_apply==null|| voucher_apply.Id<=0)
+                       
+                        if (voucher_apply==null|| voucher_apply.Id<=0)
                         {
                             voucher_apply = await _voucherRepository.getDetailVoucher(model.voucher_code);
 
                         }
                         if (voucher_apply != null && voucher_apply.Id > 0)
                         {
+                            //LogHelper.InsertLogTelegram("Order voucher_apply: [" + voucher_apply.Id + "]" +
+                            //   "[" + voucher_apply.PriceSales + "]" +
+                            //   "[" + voucher_apply.Unit + "]" 
+                            //   );
                             double total_discount = 0;
                             double percent = Convert.ToDouble(voucher_apply.PriceSales);
                             switch (voucher_apply.Unit)
@@ -699,28 +713,24 @@ namespace HuloToys_Service.Controllers
                                         var cart_belong_to_supplier = list_cart.Where(x => x.product.supplier_id == supplier);
                                         var detail_supplier = await _supplierESRepository.GetByIdAsync(supplier);
                                         int package_weight = 0;
-                                        int package_width = 0;
-                                        int package_height = 0;
-                                        int package_depth = 0;
+                                      
                                         double amount = 0;
                                         foreach (var c in cart_belong_to_supplier)
                                         {
                                             var selected = list_cart.First(x => x._id == c._id);
                                             package_weight += Convert.ToInt32(((c.product.weight <= 0 ? 0 : c.product.weight) * selected.quanity));
-                                            package_width += Convert.ToInt32(((c.product.package_width <= 0 ? 0 : c.product.package_width) * selected.quanity));
-                                            package_height += Convert.ToInt32(((c.product.package_height <= 0 ? 0 : c.product.package_height) * selected.quanity));
-                                            package_depth += Convert.ToInt32(((c.product.package_depth <= 0 ? 0 : c.product.package_depth) * selected.quanity));
+                                           
                                             amount += Convert.ToInt32(((c.product.amount_after_flashsale == null ? c.product.amount : c.product.amount_after_flashsale) * selected.quanity));
                                         }
                                         var response_item = await _viettelPostService.GetShippingMethods(new VTPGetPriceAllRequest()
                                         {
                                             MoneyCollection = 0,
-                                            ProductHeight = package_height,
-                                            ProductLength = package_depth,
+                                            ProductHeight = 0,
+                                            ProductLength = 0,
                                             ProductPrice = Convert.ToInt64(amount),
                                             ProductType = "HH",
                                             ProductWeight = package_weight,
-                                            ProductWidth = package_width,
+                                            ProductWidth = 0,
                                             SenderDistrict = detail_supplier.districtid == null ? 4 : (int)detail_supplier.districtid,
                                             SenderProvince = (int)detail_supplier.provinceid == null ? 1 : (int)detail_supplier.provinceid,
                                             ReceiverDistrict = Convert.ToInt32(request.address.DistrictId),
@@ -730,8 +740,12 @@ namespace HuloToys_Service.Controllers
                                         if (response_item != null && response_item.Count > 0)
                                         {
                                             var selected_delivery = response_item.Where(x => x.MaDvChinh.Trim().ToUpper() == model.delivery_detail.shipping_service_code.Trim().ToUpper());
+                                           
                                             if(selected_delivery!=null && selected_delivery.Count() > 0)
                                             {
+                                                LogHelper.InsertLogTelegram("Order selected_delivery: [" + string.Join(",", selected_delivery.Select(x => x.MaDvChinh)) + "]" +
+                                                  "[" + string.Join(", ", selected_delivery.Select(x => x.GiaCuoc)) + "]" 
+                                                  );
                                                 model.shipping_fee = selected_delivery.Sum(x => x.GiaCuoc);
                                                 model.total_amount += selected_delivery.Sum(x => x.GiaCuoc);
                                             }
@@ -743,11 +757,14 @@ namespace HuloToys_Service.Controllers
                     }
 
                     //-- Mongodb:
-                    
+                    LogHelper.InsertLogTelegram("Order orderMongodbService.Insert: [" + model.total_price + "]" +
+                                                  "[" + model.total_profit + "]"+
+                                                  "[" + model.shipping_fee + "]"+
+                                                  "[" + model.total_discount + "]"+
+                                                  "[" + model.total_amount + "]"
+                                                  );
                     var result = await orderMongodbService.Insert(model);
-                    LogHelper.InsertLogTelegram( "Order InsertMongodb: "
-                      + QueueName.QUEUE_CHECKOUT
-                      + "[" +string.Join(",", model.carts.Select(x=>x._id)) + "] [" + model._id + "]");
+                   
                     //-- Insert Queue:
                     var queue_model = new CheckoutQueueModel() { event_id = (int)CheckoutEventID.CREATE_ORDER, order_mongo_id = result };
 

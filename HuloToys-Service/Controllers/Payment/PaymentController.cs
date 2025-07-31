@@ -17,6 +17,7 @@ using Repositories.Repositories;
 using System.Globalization;
 using System.Net;
 using System.Reflection;
+using Telegram.Bot.Types.Payments;
 using Utilities;
 using Utilities.Contants;
 using static Utilities.Contants.DepositHistoryConstant;
@@ -303,6 +304,7 @@ namespace HuloToys_Service.Controllers
                     var validate  =await _vNPayService.ValidateURL(url_part, vnp_SecureHash);
                     if (validate)
                     {
+                        
                         if (
                             parameters.ContainsKey("vnp_ResponseCode") && parameters["vnp_ResponseCode"].Trim()=="00"
                            && parameters.ContainsKey("vnp_TransactionStatus") && parameters["vnp_TransactionStatus"].Trim()=="00"
@@ -320,6 +322,8 @@ namespace HuloToys_Service.Controllers
                             string vnp_OrderInfo = parameters["vnp_OrderInfo"];
                             string vnp_PayDate_str = parameters["vnp_PayDate"];
                             DateTime vnp_PayDate = DateTime.ParseExact(vnp_PayDate_str, "yyyyMMddHHmmss", CultureInfo.InvariantCulture);
+                            //-- Check order
+                            var order = _orderRepository.GetByOrderNo(order_no);
                             //-- Check exists contractpay_detail
                             var exists_contractpay_detail = _contractPayRepository.ContractPayDetailByServiceCode(vnpayTranId.Trim() + vnp_BankTranNo.Trim());
                             if (exists_contractpay_detail != null && exists_contractpay_detail.Id > 0)
@@ -333,13 +337,13 @@ namespace HuloToys_Service.Controllers
                                     {
                                         amount = vnp_Amount,
                                         order_no = order_no,
+                                        order_id= order.OrderId,
                                         created_date = vnp_PayDate.ToString("dd/MM/yyyy HH:mm:ss")
                                     }
                                 });
 
                             }
-                            //-- Check order
-                            var order=_orderRepository.GetByOrderNo(order_no);
+                           
                             if(order==null || order.OrderId <= 0)
                             {
                                 return Ok(new
@@ -350,6 +354,7 @@ namespace HuloToys_Service.Controllers
                                     {
                                         amount = 0,
                                         order_no = "",
+                                        order_id = 0,
                                         created_date = ""
                                     }
                                 });
@@ -402,7 +407,8 @@ namespace HuloToys_Service.Controllers
                                 {
                                     amount=vnp_Amount,
                                     order_no= order.OrderNo,
-                                    created_date= vnp_PayDate.ToString("dd/MM/yyyy HH:mm:ss")
+                                    order_id = order.OrderId,
+                                    created_date = vnp_PayDate.ToString("dd/MM/yyyy HH:mm:ss")
                                 }
                             });
                         }
@@ -417,6 +423,7 @@ namespace HuloToys_Service.Controllers
                         {
                             amount = 0,
                             order_no = "",
+                            order_id = 0,
                             created_date = ""
                         }
                     });

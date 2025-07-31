@@ -611,13 +611,13 @@ namespace HuloToys_Service.Controllers
                             model.total_profit += cart.total_profit;
                             model.total_amount += cart.total_amount;
                             model.carts.Add(cart);
-                            LogHelper.InsertLogTelegram("Order Confirm Cart: ["+ cart._id + "]" +
-                                "["+ amount + "]" +
-                                "["+ item.quanity + "]" +
-                                "["+ cart.total_amount + "]" +
-                                "["+ cart.total_price + "]" +
-                                "["+ cart.total_profit + "]" 
-                                );
+                            //LogHelper.InsertLogTelegram("Order Confirm Cart: ["+ cart._id + "]" +
+                            //    "["+ amount + "]" +
+                            //    "["+ item.quanity + "]" +
+                            //    "["+ cart.total_amount + "]" +
+                            //    "["+ cart.total_price + "]" +
+                            //    "["+ cart.total_profit + "]" 
+                            //    );
                             await _cartMongodbService.Delete(item.id);
                             
 
@@ -665,10 +665,10 @@ namespace HuloToys_Service.Controllers
                         }
                         if (voucher_apply != null && voucher_apply.Id > 0)
                         {
-                            LogHelper.InsertLogTelegram("Order voucher_apply: [" + voucher_apply.Id + "]" +
-                               "[" + voucher_apply.PriceSales + "]" +
-                               "[" + voucher_apply.Unit + "]" 
-                               );
+                            //LogHelper.InsertLogTelegram("Order voucher_apply: [" + voucher_apply.Id + "]" +
+                            //   "[" + voucher_apply.PriceSales + "]" +
+                            //   "[" + voucher_apply.Unit + "]" 
+                            //   );
                             double total_discount = 0;
                             double percent = Convert.ToDouble(voucher_apply.PriceSales);
                             switch (voucher_apply.Unit)
@@ -759,6 +759,8 @@ namespace HuloToys_Service.Controllers
                     //-- Mongodb:
                     LogHelper.InsertLogTelegram("Order orderMongodbService.Insert: [" + model.total_price + "]" +
                                                   "[" + model.total_profit + "]"+
+                                                  "[" + model.shipping_fee + "]"+
+                                                  "[" + model.total_discount + "]"+
                                                   "[" + model.total_amount + "]"
                                                   );
                     var result = await orderMongodbService.Insert(model);

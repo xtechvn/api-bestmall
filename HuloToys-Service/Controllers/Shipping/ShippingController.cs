@@ -128,7 +128,7 @@ namespace HuloToys_Service.Controllers.Shipping
                     if (carts!=null && carts.Count > 0)
                     {
                         var list_supplier = carts.Select(x => x.product.supplier_id).Distinct();
-                      
+                        bool fill_first_supplier=false;
                         foreach (var supplier in list_supplier)
                         {
                             var cart_belong_to_supplier = carts.Where(x => x.product.supplier_id == supplier);
@@ -174,19 +174,38 @@ namespace HuloToys_Service.Controllers.Shipping
                             });
                             if(response_item!=null && response_item.Count > 0)
                             {
-                                response.Add(new VTPServiceListingResponseModel()
+                                if (fill_first_supplier == false)
                                 {
-                                    supplier_id = supplier,
-                                    supplier_name= detail_supplier.fullname,
-                                    cart_ids= cart_belong_to_supplier.Select(x=>x._id).ToList(),
-                                    services =response_item.Select(x=> new VTPServiceListingResponseMethod()
+                                    response.Add(new VTPServiceListingResponseModel()
                                     {
-                                        name=x.TenDichVu,
-                                        service_code=x.MaDvChinh,
-                                        total_amount=x.GiaCuoc,
-                                        time=x.ThoiGian
-                                    }).ToList()
-                                });
+                                        supplier_id = 0,
+                                        supplier_name = "Giao hàng khả dụng cho tất cả sản phẩm",
+                                        cart_ids = carts.Select(x => x._id).ToList(),
+                                        services = response_item.Select(x => new VTPServiceListingResponseMethod()
+                                        {
+                                            name = x.TenDichVu,
+                                            service_code = x.MaDvChinh,
+                                            total_amount = x.GiaCuoc,
+                                            time = x.ThoiGian
+                                        }).ToList()
+                                    });
+                                    fill_first_supplier = true;
+                                }
+                                else if(response.Count > 0) {
+                                    foreach (var delivery in response_item) {
+                                        if (response[0].services.Any(x => x.service_code.Trim() == delivery.MaDvChinh.Trim()))
+                                        {
+                                            response[0].services.First(x => x.service_code.Trim() == delivery.MaDvChinh.Trim()).total_amount += delivery.GiaCuoc;
+                                        }
+                                        else
+                                        {
+                                            response[0].services.RemoveAll(x => x.service_code.Trim() == delivery.MaDvChinh.Trim());
+                                        }
+
+                                    }
+
+                                }
+                               
                             }
                         }
                         return Ok(new

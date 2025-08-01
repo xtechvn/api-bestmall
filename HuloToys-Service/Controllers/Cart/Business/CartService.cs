@@ -27,23 +27,21 @@ namespace HuloToys_Service.Controllers.Cart.Business
             productDetailService = _productDetailService;
             _supplierESRepository = supplierESRepository;
         }
-        public async Task<List<CartItemMongoDbViewModel>> GetList(long account_client_id)
+        public async Task<List<CartItemMongoDbModel>> GetList(long account_client_id)
         {
-            List<CartItemMongoDbViewModel> model = new List<CartItemMongoDbViewModel>();
+            List<CartItemMongoDbModel> model = new List<CartItemMongoDbModel>();
             try
             {
-               var model_core = await _cartMongodbService.GetList(account_client_id);
+                model = await _cartMongodbService.GetList(account_client_id);
                 if (model != null && model.Count > 0)
                 {
-                    foreach (var item in model_core)
+                    foreach (var item in model)
                     {
                         try
                         {
-                            var expand_model = JsonConvert.DeserializeObject<CartItemMongoDbViewModel>(JsonConvert.SerializeObject(item));
                             item.product = await productDetailService.GetByID(item.product._id);
                             var sup = await _supplierESRepository.GetById(item.product.supplier_id);
-                            expand_model.supplier_name = sup.fullname;
-                            model.Add(expand_model);
+                            item.product.supplier_name = sup.fullname;
                         }
                         catch { }
                     }

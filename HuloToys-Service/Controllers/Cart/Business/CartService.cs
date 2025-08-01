@@ -6,8 +6,10 @@ using HuloToys_Service.RedisWorker;
 using HuloToys_Service.Utilities.Lib;
 using Models.MongoDb;
 using MongoDB.Driver;
+using Newtonsoft.Json;
 using Pipelines.Sockets.Unofficial.Buffers;
 using System.Reflection;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace HuloToys_Service.Controllers.Cart.Business
 {
@@ -25,43 +27,34 @@ namespace HuloToys_Service.Controllers.Cart.Business
             productDetailService = _productDetailService;
             _supplierESRepository = supplierESRepository;
         }
-        public async Task<List<CartItemMongoDbModel>> GetList(long account_client_id)
+        public async Task<List<CartItemMongoDbViewModel>> GetList(long account_client_id)
         {
+            List<CartItemMongoDbViewModel> model = new List<CartItemMongoDbViewModel>();
             try
             {
-                var model = await _cartMongodbService.GetList(account_client_id);
-                if (model != null)
+               var model_core = await _cartMongodbService.GetList(account_client_id);
+                if (model != null && model.Count > 0)
                 {
-                    if (model.Count > 0)
+                    foreach (var item in model_core)
                     {
-                        foreach(var item in model)
+                        try
                         {
-                            item.product= await productDetailService.GetByID(item.product._id);
+                            var expand_model = JsonConvert.DeserializeObject<CartItemMongoDbViewModel>(JsonConvert.SerializeObject(item));
+                            item.product = await productDetailService.GetByID(item.product._id);
+                            var sup = await _supplierESRepository.GetById(item.product.supplier_id);
+                            expand_model.supplier_name = sup.fullname;
+                            model.Add(expand_model);
                         }
+                        catch { }
                     }
-                    return model;
                 }
-
-
-                //var carts= cartCollection.Aggregate()
-                //                .Match(filterDefinition)
-                //                .Lookup<CartItemMongoDbModel, ProductMongoDbModel, CartItemMongoDbModel>(
-                //                    _productDetailCollection,
-                //                    localField => localField.product._id,
-                //                    foreignField => foreignField._id,
-                //                    output => output.products)
-                //                .ToList();
-                //if (carts != null)
-                //{
-                //    return carts;
-                //}
             }
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
                 LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
             }
-            return null;
+            return model;
         }
     }
 }

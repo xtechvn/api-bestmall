@@ -274,7 +274,7 @@ namespace HuloToys_Service.Controllers.Shipping.Business
                     foreach (var supplier in list_supplier)
                     {
                         var cart_belong_to_supplier = carts.Where(x => x.product.supplier_id == supplier);
-                        var detail_supplier = await _supplierESRepository.GetByIdAsync(supplier);
+                        var detail_supplier = await _supplierESRepository.GetById(supplier);
                         //LogHelper.InsertLogTelegram(
                         //      "GetVTPServiceListing "
                         //      + " detail_supplier " + (detail_supplier == null ? "NULL" : detail_supplier.supplierid)

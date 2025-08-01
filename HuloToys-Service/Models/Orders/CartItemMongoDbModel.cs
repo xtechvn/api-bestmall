@@ -25,4 +25,8 @@ namespace Models.MongoDb
         public AddressClientFEModel address { get; set; }
 
     }
+    public class CartItemMongoDbViewModel
+    {
+        public string supplier_name { get; set; }
+    }
 }

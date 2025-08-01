@@ -28,13 +28,13 @@ namespace Caching.Elasticsearch.FlashSale
             _client = new ElasticClient(settings);
         }
 
-        public async Task<SupplierESModel> GetByIdAsync(int flashsaleId)
+        public async Task<SupplierESModel> GetById(int id)
         {
             var response = await _client.SearchAsync<SupplierESModel>(s => s
                 .Query(q => q
                     .Term(t => t
                         .Field(f => f.supplierid)
-                        .Value(flashsaleId)
+                        .Value(id)
                     )
                 )
             );

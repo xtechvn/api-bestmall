@@ -243,6 +243,15 @@ namespace HuloToys_Service.Controllers
         [HttpPost("list")]
         public async Task<IActionResult> Listing([FromBody] APIRequestGenericModel input)
         {
+            //var model_input=new ProductCartCountRequestModel()
+            //{
+            //    token= "F08nOlAVBi8vLwxaDGMgagRjYX97aVlkfFt7AmJnTlpFXyNQYmNiUgBpXnt3Q1BJUlZ0WE5BcCxNFysoPCdLQhRzZWoEfmR5Y2pZBHhfcAFnbFhPSQNlQ21wYFppZRI="
+
+            //};
+            //input = new APIRequestGenericModel()
+            //{
+            //    token=CommonHelper.Encode(JsonConvert.SerializeObject(model_input), _configuration["KEY:private_key"])
+            //};
             try
             {
                 JArray objParr = null;
@@ -268,23 +277,23 @@ namespace HuloToys_Service.Controllers
                     }
                     //var data = await _cartMongodbService.GetList(request.account_client_id);
                     var data = await _cartService.GetList(account_client_id);
-                    List<SupplierESModel> list = new List<SupplierESModel>();
-                    if(data != null && data.Count > 0)
-                    {
-                        var list_supplier = _supplierESRepository.GetByIds(data.Select(x => x.product.supplier_id).ToList());
-                        if (list_supplier != null && list_supplier.Count > 0) list = list_supplier;
-                    }
+                    //List<SupplierESModel> list = new List<SupplierESModel>();
+                    //if(data != null && data.Count > 0)
+                    //{
+                    //    var list_supplier = _supplierESRepository.GetByIds(data.Select(x => x.product.supplier_id).ToList());
+                    //    if (list_supplier != null && list_supplier.Count > 0) list = list_supplier;
+                    //}
                     return Ok(new
                     {
                         status = (int)ResponseType.SUCCESS,
                         msg = ResponseMessages.Success,
                         data = data,
-                        supplier=list.Select(x=>new
-                        {
-                            x.supplierid,
-                            x.suppliercode,
-                            x.fullname
-                        })
+                        //supplier=list.Select(x=>new
+                        //{
+                        //    x.supplierid,
+                        //    x.suppliercode,
+                        //    x.fullname
+                        //})
                     });
                 }
 

@@ -83,4 +83,6 @@ public partial class Order
     public string? ShippingTypeCode { get; set; }
 
     public string? ShippingToken { get; set; }
+    public int? SupplierId { get; set; }
+
 }

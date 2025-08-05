@@ -26,9 +26,11 @@ using Models.MongoDb;
 using Nest;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Repositories.IRepositories;
 using REPOSITORIES.IRepositories;
 using StackExchange.Redis;
 using System.Data;
+using System.Drawing;
 using System.Drawing.Printing;
 using System.Reflection;
 using Utilities;
@@ -61,9 +63,11 @@ namespace HuloToys_Service.Controllers
         private readonly LocationESService locationESService;
         private readonly ViettelPostService _viettelPostService;
         private readonly SupplierESRepository _supplierESRepository;
+        private readonly IOrderRepository _orderRepository;
 
         public OrderController(IConfiguration _configuration, RedisConn redisService, IVoucherRepository voucherRepository, ViettelPostService viettelPostService,
-            ProductDetailService _productDetailService, CartMongodbService cartMongodbService, OrderMongodbService _orderMongodbService, SupplierESRepository supplierESRepository)
+            ProductDetailService _productDetailService, CartMongodbService cartMongodbService, OrderMongodbService _orderMongodbService, SupplierESRepository supplierESRepository,
+            IOrderRepository orderRepository)
         {
             configuration = _configuration;
 
@@ -89,6 +93,7 @@ namespace HuloToys_Service.Controllers
             productDetailService = _productDetailService;
             _cartMongodbService = cartMongodbService;
             _supplierESRepository = supplierESRepository;
+            _orderRepository= orderRepository;
         }
 
         [HttpPost("history")]
@@ -1144,6 +1149,107 @@ namespace HuloToys_Service.Controllers
             {
                 status = (int)ResponseType.FAILED,
                 msg = ResponseMessages.FunctionExcutionFailed
+            });
+        }
+        [HttpPost("cancel-order")]
+        public async Task<ActionResult> CancelOrder([FromBody] APIRequestGenericModel input)
+        {
+            try
+            {
+                //var input_model = new
+                //{
+                //    id = 10624,
+                //    token = "F08nOlAVBi8vLwxaDGMgagRjYX97aVlkfFt7AmJnTlpFXyNQYmNiUgBpXnt3Q1BJUlZ0WE5BcCxNFysoPCdLQhRzZWoEfmR5Y2pZBHhfcAFnbFhPSQNlQ21wYFppZRI=",
+                //    reason="Test Cancel Order"
+                //};
+                //input = new APIRequestGenericModel()
+                //{
+                //    token = CommonHelper.Encode(JsonConvert.SerializeObject(input_model), configuration["KEY:private_key"])
+                //};
+                JArray objParr = null;
+                if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, configuration["KEY:private_key"]))
+                {
+                    var request = JsonConvert.DeserializeObject<OrdersCancelRequestModel>(objParr[0].ToString());
+                    if (request == null
+                        || request.id == null || request.id.Trim() == ""
+                        || request.token == null || request.token.Trim() == ""
+                        || request.reason == null || request.reason.Trim() == ""
+                        )
+                    {
+
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+                    long account_client_id = await clientServices.GetAccountClientIdFromToken(request.token);
+                    if (account_client_id <= 0)
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+                    var account_client = accountClientESService.GetById(account_client_id);
+                    var client = clientESService.GetById((long)account_client.ClientId);
+                    try
+                    {
+                        long order_id = Convert.ToInt64(request.id);
+                    }
+                    catch
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+                    var order = await _orderRepository.GetDetailOrderByOrderId(Convert.ToInt64(request.id));
+                    if(order == null || order.OrderId!= Convert.ToInt64(request.id)||order.ClientId!= (long)account_client.ClientId)
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+                    try
+                    {
+                        
+                        var result = await _orderRepository.UpdateOrderStatus(new Models.Models.Order()
+                        {
+                            OrderId = Convert.ToInt64(request.id),
+                            OrderStatus = (int)OrderStatus.CANCEL,
+                            UserUpdateId = 1,
+                            RefundStatus=1,
+                            RefundReason= request.reason
+                        });
+
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.SUCCESS,
+                            msg = "Success",
+                        });
+                    }
+                    catch
+                    {
+
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
+               
+
+            }
+            return Ok(new
+            {
+                status = (int)ResponseType.FAILED,
+                msg = ResponseMessages.DataInvalid
             });
         }
     }

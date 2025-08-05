@@ -306,35 +306,35 @@ namespace WEB.CMS.Controllers
                     }
                     result.cert = new ProductDetailResponseModelCertificate()
                     {
-                        root_product = [],
-                        product = [],
-                        supply = [],
-                        confirm = []
+                        root_product = result.product_main.attachment_root==null?new List<string>() : result.product_main.attachment_root,
+                        product = result.product_main.attachment_product == null ? new List<string>() : result.product_main.attachment_product,
+                        supply = result.product_main.attachment_supply == null ? new List<string>() : result.product_main.attachment_supply,
+                        confirm = result.product_main.attachment_confirm == null ? new List<string>() : result.product_main.attachment_confirm
                     };
                     result.favourite = new ProductDetailResponseModelFavourite()
                     {
                         is_favourite = false
                     };
-                    var attach_root = await attachFileESModelESRepository.GetByDataidAndType(result.product_main.supplier_id, (int)AttachmentType.Supplier_Cert_RootProduct);
-                    var attach_product = await attachFileESModelESRepository.GetByDataidAndType(result.product_main.supplier_id, (int)AttachmentType.Supplier_Cert_Product);
-                    var attach_supply = await attachFileESModelESRepository.GetByDataidAndType(result.product_main.supplier_id, (int)AttachmentType.Supplier_Cert_Supply);
-                    var attach_confirm = await attachFileESModelESRepository.GetByDataidAndType(result.product_main.supplier_id, (int)AttachmentType.Supplier_Cert_Confirm);
-                    if (attach_root != null && attach_root.Count > 0)
-                    {
-                        result.cert.root_product = attach_root.Select(x => x.Path).ToList();
-                    }
-                    if (attach_product != null && attach_product.Count > 0)
-                    {
-                        result.cert.product = attach_product.Select(x => x.Path).ToList();
-                    }
-                    if (attach_supply != null && attach_supply.Count > 0)
-                    {
-                        result.cert.supply = attach_supply.Select(x => x.Path).ToList();
-                    }
-                    if (attach_confirm != null && attach_confirm.Count > 0)
-                    {
-                        result.cert.confirm = attach_confirm.Select(x => x.Path).ToList();
-                    }
+                    //var attach_root = await attachFileESModelESRepository.GetByDataidAndType(result.product_main.supplier_id, (int)AttachmentType.Supplier_Cert_RootProduct);
+                    //var attach_product = await attachFileESModelESRepository.GetByDataidAndType(result.product_main.supplier_id, (int)AttachmentType.Supplier_Cert_Product);
+                    //var attach_supply = await attachFileESModelESRepository.GetByDataidAndType(result.product_main.supplier_id, (int)AttachmentType.Supplier_Cert_Supply);
+                    //var attach_confirm = await attachFileESModelESRepository.GetByDataidAndType(result.product_main.supplier_id, (int)AttachmentType.Supplier_Cert_Confirm);
+                    //if (attach_root != null && attach_root.Count > 0)
+                    //{
+                    //    result.cert.root_product = attach_root.Select(x => x.Path).ToList();
+                    //}
+                    //if (attach_product != null && attach_product.Count > 0)
+                    //{
+                    //    result.cert.product = attach_product.Select(x => x.Path).ToList();
+                    //}
+                    //if (attach_supply != null && attach_supply.Count > 0)
+                    //{
+                    //    result.cert.supply = attach_supply.Select(x => x.Path).ToList();
+                    //}
+                    //if (attach_confirm != null && attach_confirm.Count > 0)
+                    //{
+                    //    result.cert.confirm = attach_confirm.Select(x => x.Path).ToList();
+                    //}
                     //favourites:
                     if (request.token != null && request.token.Trim() != "")
                     {

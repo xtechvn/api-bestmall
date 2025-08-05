@@ -2,6 +2,7 @@
 using HuloToys_Service.RedisWorker;
 using HuloToys_Service.Utilities.Lib;
 using Microsoft.Extensions.Hosting;
+using Newtonsoft.Json;
 using RabbitMQ.Client;
 using System.Reflection;
 using System.Text;
@@ -170,6 +171,31 @@ namespace HuloToys_Service.RabitMQ
                     return false;
                 }
             }
+        }
+        public bool SyncES(long id, string store_procedure, string index_es, short project_id)
+        {
+            try
+            {
+                var j_param = new Dictionary<string, object>
+                              {
+                              { "store_name", store_procedure },
+                              { "index_es", index_es },
+                              {"project_type", project_id },
+                              {"id" , id }
+
+                              };
+                var _data_push = JsonConvert.SerializeObject(j_param);
+                // Push message vào queue
+                var response_queue = InsertQueueSimpleSyncES(_data_push);
+                LogHelper.InsertLogTelegram("WorkQueueClient - SyncES [ " + configuration["Queue:V_Host_Sync"] + "/" + configuration["Queue:QueueSyncES"] + "] -> [" + id + "][" + store_procedure + "] [" + index_es + "][" + project_id + "]: " + response_queue.ToString());
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return false;
         }
 
     }

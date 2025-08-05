@@ -1151,7 +1151,7 @@ namespace HuloToys_Service.Controllers
                 msg = ResponseMessages.FunctionExcutionFailed
             });
         }
-        [HttpPost("cancel-order")]
+        [HttpPost("cancel")]
         public async Task<ActionResult> CancelOrder([FromBody] APIRequestGenericModel input)
         {
             try
@@ -1160,7 +1160,7 @@ namespace HuloToys_Service.Controllers
                 //{
                 //    id = 10624,
                 //    token = "F08nOlAVBi8vLwxaDGMgagRjYX97aVlkfFt7AmJnTlpFXyNQYmNiUgBpXnt3Q1BJUlZ0WE5BcCxNFysoPCdLQhRzZWoEfmR5Y2pZBHhfcAFnbFhPSQNlQ21wYFppZRI=",
-                //    reason="Test Cancel Order"
+                //    reason = "Test Cancel Order"
                 //};
                 //input = new APIRequestGenericModel()
                 //{
@@ -1226,6 +1226,7 @@ namespace HuloToys_Service.Controllers
                             RefundStatus=1,
                             RefundReason= request.reason
                         });
+                        work_queue.SyncES(Convert.ToInt64(request.id), "SP_GetOrder", "hulotoys_sp_getorder", 1);
 
                         return Ok(new
                         {

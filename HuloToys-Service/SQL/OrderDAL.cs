@@ -298,7 +298,105 @@ namespace DAL
             }
             return null;
         }
-       
+        public async Task<long> UpdateOrder(Order model)
+        {
+            try
+            {
+                SqlParameter[] objParam = new SqlParameter[] {
+                   new SqlParameter("@OrderId", model.OrderId),
+                    new SqlParameter("@ClientId", model.ClientId<=0?(object)DBNull.Value:model.ClientId),
+                    new SqlParameter("@OrderNo", model.OrderNo??(object)DBNull.Value),
+                    new SqlParameter("@Price", model.Price ??(object) DBNull.Value),
+                    new SqlParameter("@Profit", model.Profit ??(object) DBNull.Value),
+                    new SqlParameter("@Discount", model.Discount??(object)DBNull.Value),
+                    new SqlParameter("@Amount", model.Amount??(object)DBNull.Value),
+                    new SqlParameter("@Status", model.OrderStatus<=0?(object)DBNull.Value:model.OrderStatus),
+                    new SqlParameter("@PaymentType", model.PaymentType <= 0 ?(object) DBNull.Value : model.PaymentType),
+                    new SqlParameter("@PaymentStatus", model.PaymentStatus <= 0 ?(object) DBNull.Value : model.PaymentStatus),
+                    new SqlParameter("@UtmSource", model.UtmSource ??(object) DBNull.Value),
+                    new SqlParameter("@UtmMedium", model.UtmMedium??(object)DBNull.Value),
+                    new SqlParameter("@Note", model.Note??(object)DBNull.Value),
+                    new SqlParameter("@VoucherId", model.VoucherId??(object)DBNull.Value),
+                    new SqlParameter("@IsDelete", model.IsDelete??(object)DBNull.Value),
+                    new SqlParameter("@UserId", model.UserId <= 0 ?(object) DBNull.Value : model.UserId),
+                    new SqlParameter("@UserGroupIds", model.UserGroupIds??(object)DBNull.Value),
+                    new SqlParameter("@UserUpdateId", model.UserUpdateId??(object)DBNull.Value),
+                    new SqlParameter("@ProvinceId", model.ProvinceId??(object)DBNull.Value),
+                    new SqlParameter("@DistrictId", model.DistrictId??(object)DBNull.Value),
+                    new SqlParameter("@WardId", model.WardId??(object)DBNull.Value),
+                    new SqlParameter("@Address", model.Address??(object)DBNull.Value),
+                    new SqlParameter("@ShippingFee", model.ShippingFee??(object)DBNull.Value),
+                    new SqlParameter("@CarrierId", model.CarrierId??(object)DBNull.Value),
+                    new SqlParameter("@ShippingType", model.ShippingType??(object)DBNull.Value),
+                    new SqlParameter("@ShippingCode", model.ShippingCode ??(object) DBNull.Value),
+                    new SqlParameter("@ShippingStatus", model.ShippingStatus ??(object) DBNull.Value),
+                    new SqlParameter("@PackageWeight", model.PackageWeight??(object)DBNull.Value),
+                    new SqlParameter("@Phone", model.Phone??(object)DBNull.Value),
+                    new SqlParameter("@RefundStatus", model.RefundStatus??(object)DBNull.Value),
+                    new SqlParameter("@RefundReason", model.RefundReason??(object)DBNull.Value),
+                    new SqlParameter("@RefundDate", model.RefundDate??(object)DBNull.Value),
+                    new SqlParameter("@ShippingToken", model.ShippingToken??(object)DBNull.Value),
+                    new SqlParameter("@ShippingTypeCode", model.ShippingTypeCode??(object)DBNull.Value),
+                    new SqlParameter("@SupplierId", model.SupplierId??(object)DBNull.Value),
+
+                };
+
+                return _DbWorker.ExecuteNonQuery(StoreProcedureConstant.Sp_UpdateOrder, objParam);
+
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram("UpdateOrderSaler - OrderDal: " + ex);
+                return -2;
+            }
+        }
+        public async Task<long> UpdateOrderStatus(Order model)
+        {
+            try
+            {
+                SqlParameter[] objParam = new SqlParameter[] {
+                   new SqlParameter("@OrderId", model.OrderId),
+                    new SqlParameter("@Status", model.OrderStatus),
+                    new SqlParameter("@UpdatedBy", model.UserUpdateId??(object)DBNull.Value),
+                    new SqlParameter("@UserVerify", model.UserUpdateId ??(object) DBNull.Value),
+                    new SqlParameter("@RefundStatus", model.RefundStatus ??(object) DBNull.Value),
+                    new SqlParameter("@RefundReason", model.RefundReason ??(object) DBNull.Value),
+
+                    
+
+                };
+
+                return _DbWorker.ExecuteNonQuery("SP_UpdateOrderStatus", objParam);
+
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram("UpdateOrderStatus - OrderDal: " + ex);
+                return -2;
+            }
+        }
+
+        public async Task<OrderDetailViewModel> GetDetailOrderByOrderId(long OrderId)
+        {
+            try
+            {
+
+                SqlParameter[] objParam = new SqlParameter[1];
+                objParam[0] = new SqlParameter("@OrderId", OrderId);
+
+                DataTable dt = _DbWorker.GetDataTable(ProcedureConstants.SP_GetDetailOrderByOrderId, objParam);
+                if (dt != null && dt.Rows.Count > 0)
+                {
+                    var data = dt.ToList<OrderDetailViewModel>();
+                    return data[0];
+                }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram("GetDetailOrderByOrderId - OrderDal: " + ex);
+            }
+            return null;
+        }
 
     }
 }

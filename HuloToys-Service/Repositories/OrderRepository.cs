@@ -1,10 +1,13 @@
 ﻿using DAL;
+using DAL.StoreProcedure;
 using Entities.ConfigModels;
 using Entities.Models;
 using Entities.ViewModels;
 using HuloToys_Service.Models.Article;
 using HuloToys_Service.Models.Models;
+using HuloToys_Service.Models.Orders;
 using HuloToys_Service.Utilities.Lib;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Options;
 using Repositories.IRepositories;
 using System.Data;
@@ -69,5 +72,15 @@ namespace Repositories.Repositories
         {
             return _OrderDal.GetByOrderNo(orderNo);
         }
+        public Task<long> UpdateOrderStatus(Order model)
+        {
+            return _OrderDal.UpdateOrderStatus(model);
+        }
+        public Task<OrderDetailViewModel> GetDetailOrderByOrderId(long OrderId)
+        {
+            return _OrderDal.GetDetailOrderByOrderId(OrderId);
+        }
+        
+
     }
 }

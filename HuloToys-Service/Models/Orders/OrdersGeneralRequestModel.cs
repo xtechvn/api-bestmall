@@ -16,4 +16,10 @@
         public string response_from_vnpay { get; set; }
 
     }
+    public class OrdersCancelRequestModel: OrdersGeneralRequestModel
+    {
+        public string token { get; set; }
+        public string reason { get; set; }
+
+    }
 }

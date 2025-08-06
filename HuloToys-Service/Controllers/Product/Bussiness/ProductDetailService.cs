@@ -419,6 +419,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                 }
                 else
                 {
+                    item.star = 0;
                     item.review_count = 0;
                     item.rating = 0;
                 }

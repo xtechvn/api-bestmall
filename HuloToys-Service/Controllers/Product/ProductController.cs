@@ -637,7 +637,7 @@ namespace WEB.CMS.Controllers
         [HttpPost("raiting")]
         public async Task<IActionResult> ProductRaiting([FromBody] APIRequestGenericModel input)
         {
-			//var model_input = new { id = "684c451c5f4484629df83786" };
+            //var model_input = new { id = "687b0403f274694e8c09be27" };
             //input = new APIRequestGenericModel()
             //{
             //    token = CommonHelper.Encode(JsonConvert.SerializeObject(model_input), _configuration["KEY:private_key"])

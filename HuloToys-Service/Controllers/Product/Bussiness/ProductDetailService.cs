@@ -453,7 +453,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             try
             {
                 if (item == null || item._id == null) return false;
-                bool has_badge=false;
+                //bool has_badge=false;
                 if (active_flashsale != null && active_flashsale.Count > 0 && list_item != null && list_item.Count > 0)
                 {
                     var exists_flash_sale_product = list_item.FirstOrDefault(x => x.productid == (item.parent_product_id != null && item.parent_product_id.Trim() != "" ? item.parent_product_id : item._id));
@@ -510,21 +510,21 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                         item.old_price = amount_product;
                         item.amount_after_flashsale = NumberHelpers.RoundUpToHundredsDouble((double)item.amount_after_flashsale);
                         item.profit = NumberHelpers.RoundUpToHundredsDouble((double)item.profit);
-                        item.flashsale_badge_type = exists_flash_sale_product.badgetype;
-                        has_badge = true;
+                        //item.flashsale_badge_type = exists_flash_sale_product.badgetype;
+                        //has_badge = true;
                     }
                 }
-                if (!has_badge) {
-                    if (group_types != null && group_types.Count>0 && item.group_product_id!=null && item.group_product_id.Trim()!="" ) {
-                        try
-                        {
-                            var exists = group_types.FirstOrDefault(x => x.Id == Convert.ToInt32(item.group_product_id.Trim().Split(",")[0]));
-                            if (exists != null && exists.Id>0) { item.flashsale_badge_type = exists.Id; }
-                        }
-                        catch { }
+                //if (!has_badge) {
+                //    if (group_types != null && group_types.Count>0 && item.group_product_id!=null && item.group_product_id.Trim()!="" ) {
+                //        try
+                //        {
+                //            var exists = group_types.FirstOrDefault(x => x.Id == Convert.ToInt32(item.group_product_id.Trim().Split(",")[0]));
+                //            if (exists != null && exists.Id>0) { item.flashsale_badge_type = exists.Id; }
+                //        }
+                //        catch { }
                     
-                    }
-                }
+                //    }
+                //}
             }
             catch (Exception ex)
             {

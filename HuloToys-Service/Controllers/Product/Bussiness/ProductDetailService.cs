@@ -307,14 +307,14 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                 {
                     var list_product_mongo = await _productDetailMongoAccess.ListByProductIgnoreCondition(list_item.Select(x => x.productid).ToList());
 
-                    foreach (var item in list_item)
+                    foreach (var selected in list_product_mongo)
                     {
-                        var selected = list_product_mongo.FirstOrDefault(x => x._id == item.productid);
-                        if (selected == null || selected._id == null || selected.status!=1 || selected.supplier_status!=1)
+                        ProductMongoDbModelFEResponse extend_product = new ProductMongoDbModelFEResponse()
                         {
-                            LogHelper.InsertLogTelegram("GetFlashSaleProductByProductIds Ignore [ID=" + (selected == null ? "NULL" : selected._id) +"] [supplier_id="+ (selected == null ? "NULL" : selected.supplier_id) + "][status="+ (selected == null ? "NULL" : selected.status) + "][supplier_status="+ (selected == null ? "NULL" : selected.supplier_status) + "]");
-                            continue;
-                        }
+                            _id=selected._id,
+                        };
+                        UpdateProductRaiting(extend_product);
+                        var item = list_item.First(x => x.productid.Trim()==selected._id.Trim());
                         var amount_product = selected.amount;
                         if (selected.amount <= 0 && selected.amount_min != null && selected.amount_min > 0)
                         {
@@ -352,9 +352,9 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                             avatar = selected.avatar,
                             name = selected.name,
                             code = selected.code,
-                            rating = selected.rating,
-                            review_count = selected.review_count,
-                            total_sold = selected.total_sold,
+                            rating = extend_product.rating,
+                            review_count = extend_product.review_count,
+							total_sold = selected.total_sold,
                             super_sale=item.supersale,
                             badge_type=item.badgetype
                         });

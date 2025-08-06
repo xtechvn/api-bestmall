@@ -217,7 +217,7 @@ namespace WEB.CMS.Controllers
         {
             //var model_con = new
             //{
-            //    id = "682551b6711071e30c18bae5"
+            //    id = "687a10ac1b5a1afd121300c2"
             //};
             //input.token = CommonHelper.Encode(JsonConvert.SerializeObject(model_con), _configuration["KEY:private_key"]);
             try
@@ -1254,14 +1254,22 @@ namespace WEB.CMS.Controllers
                     // }
                     if (result != null && result.items != null && result.items.Count > 0)
                     {
+                        List<ProductsFavouritesMongoDbModel> filter_data = new List<ProductsFavouritesMongoDbModel>();
                         //_redisService.Set(cache_name, JsonConvert.SerializeObject(result), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
-                        result.items = (request.page_size * request.page_index) >= result.count ? result.items.Skip(skip).Take(request.page_size).ToList() : new List<ProductsFavouritesMongoDbModel>();
+                        foreach (var item in result.items) { 
+                            var product=await _productDetailService.GetByID(item.product_id);
+                            if(product.status==(int)ProductStatus.ACTIVE && product.supplier_status == (int)SUPPLIER_STATUS.CONFIRMED)
+                            {
+                                filter_data.Add(item);
+                            }
+                        }
+                        result.items = (request.page_size * request.page_index) >= filter_data.Count ? filter_data.Skip(skip).Take(request.page_size).ToList() : new List<ProductsFavouritesMongoDbModel>();
                         return Ok(new
                         {
                             status = (int)ResponseType.SUCCESS,
                             msg = ResponseMessages.Success,
                             data = result.items,
-                            total = result.count
+                            total = filter_data.Count
                         });
                     }
                 }

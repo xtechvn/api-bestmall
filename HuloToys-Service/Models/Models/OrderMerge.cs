@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 namespace HuloToys_Service.Models.Models;
 
-public partial class Order
+public partial class OrderMerge
 {
-    public long OrderId { get; set; }
+    public long Id { get; set; }
 
     public long ClientId { get; set; }
 
@@ -42,7 +42,7 @@ public partial class Order
     /// </summary>
     public string? Note { get; set; }
 
-    public int? VoucherId { get; set; }
+    public string VoucherId { get; set; }
 
     public int? IsDelete { get; set; }
 
@@ -62,29 +62,11 @@ public partial class Order
 
     public string? Address { get; set; }
 
-    public double? ShippingFee { get; set; }
-
-    public int? CarrierId { get; set; }
-
-    public int? ShippingType { get; set; }
-
-    public string? ShippingCode { get; set; }
-
-    public int? ShippingStatus { get; set; }
-
-    public double? PackageWeight { get; set; }
-
     public int? RefundStatus { get; set; }
 
     public string? RefundReason { get; set; }
 
     public DateTime? RefundDate { get; set; }
+    public double? ShippingFee { get; set; }
 
-    public string? ShippingTypeCode { get; set; }
-
-    public string? ShippingToken { get; set; }
-
-    public int? SupplierId { get; set; }
-
-    public long? OrderMergeId { get; set; }
 }

@@ -21,7 +21,7 @@ public partial class Invoice
 
     public string? InvoiceNo { get; set; }
 
-    public DateTime? ExportDate { get; set; }
+    public DateOnly? ExportDate { get; set; }
 
     public int? UserVerify { get; set; }
 
@@ -37,7 +37,7 @@ public partial class Invoice
 
     public int? UpdatedBy { get; set; }
 
-    public DateTime? UpdatedDate { get; set; }
+    public DateOnly? UpdatedDate { get; set; }
 
     public string? Note { get; set; }
 

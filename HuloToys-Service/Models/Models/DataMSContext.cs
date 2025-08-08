@@ -105,6 +105,8 @@ public partial class DataMSContext : DbContext
 
     public virtual DbSet<OrderDetail> OrderDetails { get; set; }
 
+    public virtual DbSet<OrderMerge> OrderMerges { get; set; }
+
     public virtual DbSet<Payment> Payments { get; set; }
 
     public virtual DbSet<PaymentAccount> PaymentAccounts { get; set; }
@@ -855,6 +857,32 @@ public partial class DataMSContext : DbContext
             entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
         });
 
+        modelBuilder.Entity<OrderMerge>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToTable("OrderMerge");
+
+            entity.Property(e => e.Address).HasMaxLength(500);
+            entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+            entity.Property(e => e.Note).HasComment("Chính là label so với wiframe");
+            entity.Property(e => e.OrderNo)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.Phone)
+                .HasMaxLength(50)
+                .IsFixedLength();
+            entity.Property(e => e.ReceiverName).HasMaxLength(150);
+            entity.Property(e => e.RefundDate).HasColumnType("datetime");
+            entity.Property(e => e.RefundReason).HasMaxLength(500);
+            entity.Property(e => e.UpdateLast).HasColumnType("datetime");
+            entity.Property(e => e.UserGroupIds).HasMaxLength(250);
+            entity.Property(e => e.UtmMedium).HasMaxLength(250);
+            entity.Property(e => e.UtmSource).HasMaxLength(50);
+            entity.Property(e => e.VoucherId).HasMaxLength(50);
+
+        });
+
         modelBuilder.Entity<Payment>(entity =>
         {
             entity.ToTable("Payment");
@@ -1318,11 +1346,14 @@ public partial class DataMSContext : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("code");
-            entity.Property(e => e.Description).HasColumnName("description");
+            entity.Property(e => e.Description)
+                .HasMaxLength(4000)
+                .HasColumnName("description");
             entity.Property(e => e.EDate)
                 .HasColumnType("datetime")
                 .HasColumnName("eDate");
             entity.Property(e => e.GroupUserPriority)
+                .HasMaxLength(4000)
                 .IsUnicode(false)
                 .HasComment("Trường này để lưu nhóm những user được áp dụng trên voucher này")
                 .HasColumnName("group_user_priority");
@@ -1341,7 +1372,7 @@ public partial class DataMSContext : DbContext
                 .HasComment("Trường này dùng để phân biệt voucher triển khai này chạy theo rule nào. Ví dụ: rule giảm giá với 1 số tiền vnđ trên toàn bộ đơn hàng. Giảm giá 20% phí first pound đầu tiên của nhãn hàng amazon. 1: triển khai rule giảm giá cho toàn bộ đơn hàng. 2 là rule áp dụng cho 20% phí first pound đầu tiên.")
                 .HasColumnName("rule_type");
             entity.Property(e => e.StoreApply)
-                .HasMaxLength(200)
+                .HasMaxLength(4000)
                 .IsUnicode(false)
                 .HasColumnName("store_apply");
             entity.Property(e => e.Udate)

@@ -11,9 +11,9 @@ public partial class UserDepart
 
     public int? DepartmentId { get; set; }
 
-    public DateTime? JoinDate { get; set; }
+    public DateOnly? JoinDate { get; set; }
 
-    public DateTime? LeaveDate { get; set; }
+    public DateOnly? LeaveDate { get; set; }
 
     public int? CreatedBy { get; set; }
 

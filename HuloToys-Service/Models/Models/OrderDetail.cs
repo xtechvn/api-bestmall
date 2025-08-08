@@ -42,4 +42,6 @@ public partial class OrderDetail
     public DateTime? UpdatedDate { get; set; }
 
     public string? ParentProductId { get; set; }
+
+    public long? OrderMergeId { get; set; }
 }

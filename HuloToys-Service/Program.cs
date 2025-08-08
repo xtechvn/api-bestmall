@@ -69,6 +69,7 @@ internal class Program
         builder.Services.AddSingleton<IContractPayRepository, ContractPayRepository>();
         builder.Services.AddSingleton<IIdentifierServiceRepository, IdentifierServiceRepository>();
         builder.Services.AddSingleton<IOrderRepository, OrderRepository>();
+        builder.Services.AddSingleton<IVoucherRepository, VoucherRepository>();
         builder.Services.AddSingleton<ProductDetailService>();
         builder.Services.AddSingleton<ProductRaitingService>();
         builder.Services.AddSingleton<CartMongodbService>();
@@ -79,6 +80,7 @@ internal class Program
         builder.Services.AddSingleton<NewsMongoService>();
         builder.Services.AddSingleton<ClientContactMongodbService>();
         builder.Services.AddSingleton<ViettelPostService>();
+        builder.Services.AddSingleton<SupplierESRepository>();
         builder.Services.AddSingleton<SupplierESRepository>();
 
 

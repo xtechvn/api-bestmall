@@ -11,7 +11,7 @@ public partial class InvoiceRequest
 
     public int? ClientId { get; set; }
 
-    public DateTime? PlanDate { get; set; }
+    public DateOnly? PlanDate { get; set; }
 
     public string? TaxNo { get; set; }
 

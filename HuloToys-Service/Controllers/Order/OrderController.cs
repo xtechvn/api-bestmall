@@ -46,7 +46,8 @@ namespace HuloToys_Service.Controllers
     {
         private readonly IConfiguration configuration;
         private readonly WorkQueueClient workQueueClient;
-        private readonly OrderESService orderESRepository;
+       // private readonly OrderESService orderESRepository;
+        private readonly OrderMergeESService orderMergeESService;
         private readonly OrderMongodbService orderMongodbService;
         // private readonly ProductDetailMongoAccess _productDetailMongoAccess;
         private readonly AccountClientESService accountClientESService;
@@ -72,7 +73,8 @@ namespace HuloToys_Service.Controllers
             configuration = _configuration;
 
             workQueueClient = new WorkQueueClient(configuration);
-            orderESRepository = new OrderESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
+           // orderESRepository = new OrderESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
+            orderMergeESService = new OrderMergeESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
             raitingESService = new RaitingESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
             locationESService = new LocationESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
             accountClientESService = new AccountClientESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
@@ -128,7 +130,7 @@ namespace HuloToys_Service.Controllers
                     var account_client = accountClientESService.GetById(account_client_id);
                     var client = clientESService.GetById((long)account_client.ClientId);
 
-                    var result = orderESRepository.GetByClientID(client.Id);
+                    var result = orderMergeESService.GetByClientID(client.Id);
 
                     return Ok(new
                     {
@@ -202,7 +204,7 @@ namespace HuloToys_Service.Controllers
                     //        });
                     //    }
                     //}
-                    var result = orderESRepository.GetFEByClientID((long)account_client.ClientId, request.status, request.order_no, (request.page_index <= 0 ? 1 : request.page_index), (request.page_size <= 0 ? 10 : request.page_size));
+                    var result = orderMergeESService.GetFEByClientID((long)account_client.ClientId, request.status, request.order_no, (request.page_index <= 0 ? 1 : request.page_index), (request.page_size <= 0 ? 10 : request.page_size));
                     if (result != null && result.data != null && result.data.Count > 0)
                     {
                         result.data_order = await orderMongodbService.GetListByOrdersNo(result.data.Select(x => x.OrderNo).ToList());
@@ -261,7 +263,7 @@ namespace HuloToys_Service.Controllers
                     var account_client = accountClientESService.GetById(account_client_id);
                     var client = clientESService.GetById((long)account_client.ClientId);
 
-                    var result = orderESRepository.GetLastestClientID(client.Id);
+                    var result = orderMergeESService.GetLastestClientID(client.Id);
 
 
                     return Ok(new
@@ -317,7 +319,7 @@ namespace HuloToys_Service.Controllers
                     }
                     var account_client = accountClientESService.GetById(account_client_id);
                     var client = clientESService.GetById((long)account_client.ClientId);
-                    var order = orderESRepository.GetByOrderNo(request.order_no, client.Id);
+                    var order = orderMergeESService.GetByOrderNo(request.order_no, client.Id);
                     return Ok(new
                     {
                         status = (int)ResponseType.SUCCESS,
@@ -362,13 +364,13 @@ namespace HuloToys_Service.Controllers
                         });
                     }
                     var result = await orderMongodbService.FindById(request.id);
-                    OrderESModel order_es = new OrderESModel();
+                    OrderMergeESModel order_es = new OrderMergeESModel();
                     Province province = new Province();
                     District district = new District();
                     Ward ward = new Ward();
                     if (result != null && result.order_id > 0)
                     {
-                        order_es = orderESRepository.GetByOrderId(result.order_id);
+                        order_es = orderMergeESService.GetByOrderId(result.order_id);
                         if (result.provinceid != null)
                         {
                             province = locationESService.GetProvincesByProvinceId(result.provinceid);
@@ -428,9 +430,9 @@ namespace HuloToys_Service.Controllers
                             msg = ResponseMessages.DataInvalid
                         });
                     }
-                    OrderDetailResponseModel result = new OrderDetailResponseModel()
+                    OrderMergeDetailResponseModel result = new OrderMergeDetailResponseModel()
                     {
-                        data = orderESRepository.GetByOrderId(request.id)
+                        data = orderMergeESService.GetByOrderId(request.id)
                     };
                     if (result.data == null)
                     {
@@ -542,7 +544,7 @@ namespace HuloToys_Service.Controllers
                         });
                     }
 
-                    var count = await orderESRepository.CountOrderByYear();
+                    var count = await orderMergeESService.CountOrderByYear();
                     if (count < 0)
                     {
                         return Ok(new
@@ -577,7 +579,49 @@ namespace HuloToys_Service.Controllers
                          
                          
                     };
-                    var list_cart=new List<CartItemMongoDbModel>();
+                    List<Voucher> voucher_apply = new List<Voucher>();
+                    if (model.voucher_code != null && model.voucher_code.Count > 0)
+                    {
+                        model.voucher_code = model.voucher_code.Select(x => x.ToUpper().Trim()).ToList();
+                        string cache_name = CacheType.VOUCHER + account_client_id;
+                        var str = _redisService.Get(cache_name, Convert.ToInt32(configuration["Redis:Database:db_search_result"]));
+                        if (str != null && str.Trim() != "")
+                        {
+                            try
+                            {
+                                List<VoucherFEModel> list = JsonConvert.DeserializeObject<List<VoucherFEModel>>(str);
+                                if (list != null && list.Count > 0)
+                                {
+                                    var selected_list = list.Where(x => model.voucher_code.Contains(x.code.Trim().ToUpper()));
+                                    if (selected_list != null && selected_list.Count() > 0)
+                                    {
+                                        voucher_apply = selected_list.Select(selected => new Voucher()
+                                        {
+                                            Id = selected.Id,
+                                            CampaignId = selected.campaign_id,
+                                            Cdate = selected.cdate,
+                                            Code = selected.code,
+                                            Description = selected.description,
+                                            EDate = selected.eDate,
+                                            GroupUserPriority = "",
+                                            PriceSales = selected.price_sales,
+                                            Unit = selected.unit,
+
+                                        }).ToList();
+                                    }
+                                }
+                            }
+                            catch { }
+
+                        }
+                        if (voucher_apply == null || voucher_apply.Count <= 0)
+                        {
+                            voucher_apply = await _voucherRepository.GetListVoucher(model.voucher_code);
+
+                        }
+                       
+                    }
+                    var list_cart =new List<CartItemMongoDbModel>();
                     foreach (var item in request.carts)
                     {
                         var cart = await _cartMongodbService.FindById(item.id);
@@ -615,87 +659,16 @@ namespace HuloToys_Service.Controllers
                             model.total_price += cart.total_price;
                             model.total_profit += cart.total_profit;
                             model.total_amount += cart.total_amount;
+                            model.total_amount_product += cart.total_amount;
+                            
                             model.carts.Add(cart);
-                            //LogHelper.InsertLogTelegram("Order Confirm Cart: ["+ cart._id + "]" +
-                            //    "["+ amount + "]" +
-                            //    "["+ item.quanity + "]" +
-                            //    "["+ cart.total_amount + "]" +
-                            //    "["+ cart.total_price + "]" +
-                            //    "["+ cart.total_profit + "]" 
-                            //    );
                             await _cartMongodbService.Delete(item.id);
-                            
-
                         }
                     }
-                    if (model.voucher_code != null && model.voucher_code.Trim() != "")
-                    {
-                        Voucher voucher_apply = new Voucher();
-                        string cache_name = CacheType.VOUCHER + account_client_id;
-                        var str = _redisService.Get(cache_name, Convert.ToInt32(configuration["Redis:Database:db_search_result"]));
-                        if (str != null && str.Trim() != "")
-                        {
-                            try
-                            {
-                                List<VoucherFEModel> list = JsonConvert.DeserializeObject<List<VoucherFEModel>>(str);
-                                if(list!=null && list.Count > 0)
-                                {
-                                    var selected = list.FirstOrDefault(x => x.code.Trim().ToUpper() == model.voucher_code.Trim().ToUpper());
-                                    if(selected!=null && selected.Id > 0)
-                                    {
-                                        voucher_apply=new Voucher()
-                                        {
-                                            Id=selected.Id,
-                                            CampaignId=selected.campaign_id,
-                                            Cdate=selected.cdate,
-                                            Code=selected.code,
-                                            Description=selected.description,
-                                            EDate=selected.eDate,
-                                            GroupUserPriority="",
-                                            PriceSales=selected.price_sales,
-                                            Unit=selected.unit,
-
-                                        };
-                                    }
-                                }
-                            }
-                            catch { }
-                            
-                        }
-                       
-                        if (voucher_apply==null|| voucher_apply.Id<=0)
-                        {
-                            voucher_apply = await _voucherRepository.getDetailVoucher(model.voucher_code);
-
-                        }
-                        if (voucher_apply != null && voucher_apply.Id > 0)
-                        {
-                            //LogHelper.InsertLogTelegram("Order voucher_apply: [" + voucher_apply.Id + "]" +
-                            //   "[" + voucher_apply.PriceSales + "]" +
-                            //   "[" + voucher_apply.Unit + "]" 
-                            //   );
-                            double total_discount = 0;
-                            double percent = Convert.ToDouble(voucher_apply.PriceSales);
-                            switch (voucher_apply.Unit)
-                            {
-                                case "percent":
-                                    total_discount += ((double)model.total_amount * Convert.ToDouble(percent / 100));
-                                    break;
-                                case "vnd":
-                                    total_discount += percent;
-                                    break;
-
-                                default: break;
-                            }
-                            model.voucher_code = voucher_apply.Code;
-                            model.voucher_id = voucher_apply.Id;
-                            model.total_discount = total_discount;
-                            model.total_amount -= total_discount;
-                            model.total_profit -= total_discount;
-                        }
-                    }
+                    
                     if(model.delivery_detail.carrier_id>1)
                     {
+                        model.delivery_order = new List<OrderDetailMongoDbDelivery>();
                         switch (model.delivery_detail.carrier_id) {
                             case 1:
                                 {
@@ -712,76 +685,119 @@ namespace HuloToys_Service.Controllers
                                     {
                                         break;
                                     }
-                                    //var list_supplier = list_cart.Select(x => x.product.supplier_id).Distinct();
-                                    //foreach (var supplier in list_supplier)
-                                    //{
-                                    //    var cart_belong_to_supplier = list_cart.Where(x => x.product.supplier_id == supplier);
-                                    //    var detail_supplier = await _supplierESRepository.GetByIdAsync(supplier);
-                                    //    int package_weight = 0;
-
-                                    //    double amount = 0;
-                                    //    foreach (var c in cart_belong_to_supplier)
-                                    //    {
-                                    //        var selected = list_cart.First(x => x._id == c._id);
-                                    //        package_weight += Convert.ToInt32(((c.product.weight <= 0 ? 0 : c.product.weight) * selected.quanity));
-
-                                    //        amount += Convert.ToInt32(((c.product.amount_after_flashsale == null ? c.product.amount : c.product.amount_after_flashsale) * selected.quanity));
-                                    //    }
-                                    //    var response_item = await _viettelPostService.GetShippingMethods(new VTPGetPriceAllRequest()
-                                    //    {
-                                    //        MoneyCollection = 0,
-                                    //        ProductHeight = 0,
-                                    //        ProductLength = 0,
-                                    //        ProductPrice = Convert.ToInt64(amount),
-                                    //        ProductType = "HH",
-                                    //        ProductWeight = package_weight,
-                                    //        ProductWidth = 0,
-                                    //        SenderDistrict = detail_supplier.districtid == null ? 4 : (int)detail_supplier.districtid,
-                                    //        SenderProvince = (int)detail_supplier.provinceid == null ? 1 : (int)detail_supplier.provinceid,
-                                    //        ReceiverDistrict = Convert.ToInt32(request.address.DistrictId),
-                                    //        ReceiverProvince = Convert.ToInt32(request.address.ProvinceId),
-                                    //        Type = 1
-                                    //    });
-                                    //    if (response_item != null && response_item.Count > 0)
-                                    //    {
-                                    //        var selected_delivery = response_item.Where(x => x.MaDvChinh.Trim().ToUpper() == model.delivery_detail.shipping_service_code.Trim().ToUpper());
-
-                                    //        if(selected_delivery!=null && selected_delivery.Count() > 0)
-                                    //        {
-                                    //            LogHelper.InsertLogTelegram("Order selected_delivery: [" + string.Join(",", selected_delivery.Select(x => x.MaDvChinh)) + "]" +
-                                    //              "[" + string.Join(", ", selected_delivery.Select(x => x.GiaCuoc)) + "]" 
-                                    //              );
-                                    //            model.shipping_fee = selected_delivery.Sum(x => x.GiaCuoc);
-                                    //            model.total_amount += selected_delivery.Sum(x => x.GiaCuoc);
-                                    //        }
-                                    //    }
-                                    //}
-
-                                    VTPServiceListingRequestModel request_delivery = new VTPServiceListingRequestModel()
+                                    var list_supplier = list_cart.Select(x => x.product.supplier_id).Distinct();
+                                    foreach (var supplier in list_supplier)
                                     {
-                                        receiver_district_id = Convert.ToInt32(request.address.DistrictId),
-                                        receiver_provinces_id = Convert.ToInt32(request.address.ProvinceId),
-                                        carts = model.carts.Select(x => new VTPServiceListingRequestCart()
-                                        {
-                                            _id = x._id,
-                                            quanity = x.quanity
-                                        }).ToList()
-                                    };
-                                    var response=await _viettelPostService.GetShippingFeeByListCart(model.carts, request_delivery);
-                                    if (response != null && response.Count > 0) {
-                                        var selected_delivery = response.First().services.FirstOrDefault(x => x.service_code.Trim().ToUpper() == model.delivery_detail.shipping_service_code.Trim().ToUpper());
-                                        if (selected_delivery != null) {
+                                        var cart_belong_to_supplier = list_cart.Where(x => x.product.supplier_id == supplier);
+                                        var detail_supplier = await _supplierESRepository.GetById(supplier);
+                                        int package_weight = 0;
 
-                                            model.shipping_fee = selected_delivery.total_amount;
-                                            model.total_amount += selected_delivery.total_amount;
+                                        double amount = 0;
+                                        foreach (var c in cart_belong_to_supplier)
+                                        {
+                                            var selected = list_cart.First(x => x._id == c._id);
+                                            package_weight += Convert.ToInt32(((c.product.weight <= 0 ? 0 : c.product.weight) * selected.quanity));
+
+                                            amount += Convert.ToInt32(((c.product.amount_after_flashsale == null ? c.product.amount : c.product.amount_after_flashsale) * selected.quanity));
                                         }
-                                       
+                                        var response_item = await _viettelPostService.GetShippingMethods(new VTPGetPriceAllRequest()
+                                        {
+                                            MoneyCollection = 0,
+                                            ProductHeight = 0,
+                                            ProductLength = 0,
+                                            ProductPrice = Convert.ToInt64(amount),
+                                            ProductType = "HH",
+                                            ProductWeight = package_weight,
+                                            ProductWidth = 0,
+                                            SenderDistrict = detail_supplier.districtid == null ? 4 : (int)detail_supplier.districtid,
+                                            SenderProvince = (int)detail_supplier.provinceid == null ? 1 : (int)detail_supplier.provinceid,
+                                            ReceiverDistrict = Convert.ToInt32(request.address.DistrictId),
+                                            ReceiverProvince = Convert.ToInt32(request.address.ProvinceId),
+                                            Type = 1
+                                        });
+                                        if (response_item != null && response_item.Count > 0)
+                                        {
+                                            var selected_delivery = response_item.Where(x => x.MaDvChinh.Trim().ToUpper() == model.delivery_detail.shipping_service_code.Trim().ToUpper());
+
+                                            if (selected_delivery != null && selected_delivery.Count() > 0)
+                                            {
+                                                LogHelper.InsertLogTelegram("Order selected_delivery: [" + string.Join(",", selected_delivery.Select(x => x.MaDvChinh)) + "]" +
+                                                  "[" + string.Join(", ", selected_delivery.Select(x => x.GiaCuoc)) + "]"
+                                                  );
+                                                model.shipping_fee = selected_delivery.Sum(x => x.GiaCuoc);
+                                                model.total_amount += selected_delivery.Sum(x => x.GiaCuoc);
+                                            }
+                                            model.delivery_order.Add(new OrderDetailMongoDbDelivery()
+                                            {
+                                                package_weight=package_weight,
+                                                shipping_fee= selected_delivery.Sum(x => x.GiaCuoc),
+                                                SupplierId=supplier
+                                            });
+                                        }
                                     }
+
+                                  
                                 }
                                 break;
                         }
                     }
+                    //--apply voucher to 
+                    if (voucher_apply != null && voucher_apply.Count > 0)
+                    {
+                        model.voucher_apply = new List<OrderDetailMongoDbVoucherApply>();
+                        foreach (var voucher in voucher_apply)
+                        {
+                            double total_discount = 0;
+                            double percent = Convert.ToDouble(voucher.PriceSales);
+                            double total_amount_calculate = 0;
+                            switch (voucher.RuleType)
+                            {
+                                case 0: // Giảm giá trên tiền hàng
+                                    {
+                                        total_amount_calculate = model.total_amount;
+                                    }
+                                    break;
+                                case 1: // Giảm giá trên phí ship
+                                    {
+                                        total_amount_calculate = model.shipping_fee==null?0:(double)model.shipping_fee;
+                                    }
+                                    break;
+                                case 2: // Giảm giá trên NCC
+                                    {
+                                        if(voucher.CampaignId!=null && voucher.CampaignId > 0)
+                                        {
+                                            total_amount_calculate = model.carts.Where(x => x.product.supplier_id == (int)voucher.CampaignId).Sum(x => x.total_amount);
+                                        }
+                                    }
+                                    break;
+                            }
+                            switch (voucher.Unit)
+                            {
+                                case "percent":
+                                    total_discount += (total_amount_calculate * Convert.ToDouble(percent / 100));
+                                    break;
+                                case "vnd":
+                                    total_discount += percent;
+                                    break;
 
+                                default: break;
+                            }
+                            model.total_discount = total_discount;
+                            model.total_amount -= total_discount;
+                            model.total_profit -= total_discount;
+                            model.voucher_apply.Add(new OrderDetailMongoDbVoucherApply()
+                            {
+                                PriceSales=voucher.PriceSales,
+                                RuleType=voucher.RuleType,
+                                SupplierId=voucher.CampaignId,
+                                TotalDiscount=total_discount,
+                                Unit=voucher.Unit,  
+                                voucher_code=voucher.Code,
+                                voucher_id=voucher.Id,
+                            });
+                        }
+
+                    }
                     //-- Mongodb:
                     LogHelper.InsertLogTelegram("Order orderMongodbService.Insert: [" + model.total_price + "]" +
                                                   "[" + model.total_profit + "]"+
@@ -941,7 +957,7 @@ namespace HuloToys_Service.Controllers
                     var account_client = accountClientESService.GetById(account_client_id);
                     var client = clientESService.GetById((long)account_client.ClientId);
 
-                    var (allOrders, status016, status25, status3, status4) = orderESRepository.CountOrdersByStatus((long)account_client.ClientId);
+                    var (allOrders, status016, status25, status3, status4) = orderMergeESService.CountOrdersByStatus((long)account_client.ClientId);
 
                     return Ok(new
                     {

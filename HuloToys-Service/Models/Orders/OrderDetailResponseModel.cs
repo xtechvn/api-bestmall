@@ -12,4 +12,13 @@ namespace HuloToys_Service.Models.Orders
         public Ward ward { get; set; }
         public bool has_raiting { get; set; }
     }
+    public class OrderMergeDetailResponseModel
+    {
+        public OrderDetailMongoDbModel data_order { get; set; }
+        public OrderMergeESModel data { get; set; }
+        public Province province { get; set; }
+        public District district { get; set; }
+        public Ward ward { get; set; }
+        public bool has_raiting { get; set; }
+    }
 }

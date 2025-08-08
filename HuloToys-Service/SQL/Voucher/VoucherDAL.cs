@@ -103,5 +103,20 @@ namespace DAL
                 return null;
             }
         }
+        public async Task<List<Voucher>> GetListVoucher(List<string> vouchers)
+        {
+            try
+            {
+                using (var _DbContext = new EntityDataContext(_connection))
+                {
+                    return await _DbContext.Vouchers.Where(s => vouchers.Contains(s.Code.ToUpper())).ToListAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram("GetListVoucher - VoucherDAL: " + ex.ToString());
+                return null;
+            }
+        }
     }
 }

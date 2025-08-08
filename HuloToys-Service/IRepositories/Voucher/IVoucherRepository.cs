@@ -8,5 +8,7 @@ namespace REPOSITORIES.IRepositories
         Task<Voucher> getDetailVoucher(string voucher_name);
         Task<Voucher> getDetailVoucherbyId(long Id);
         Task<List<VoucherFEModel>> GetVoucherList(long account_client_id, string hotel_id);
+        Task<List<Voucher>> GetListVoucher(List<string> vouchers);
+
     }
 }

@@ -17,5 +17,5 @@ public partial class InvoiceDetail
 
     public int? UpdatedBy { get; set; }
 
-    public DateTime? UpdatedDate { get; set; }
+    public DateOnly? UpdatedDate { get; set; }
 }

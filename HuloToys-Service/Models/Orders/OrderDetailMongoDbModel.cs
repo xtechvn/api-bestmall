@@ -1,4 +1,5 @@
-﻿using HuloToys_Service.Models.NinjaVan;
+﻿using HuloToys_Service.Models.Models;
+using HuloToys_Service.Models.NinjaVan;
 using Models.APIRequest;
 using Models.MongoDb;
 using MongoDB.Bson;
@@ -27,8 +28,8 @@ namespace HuloToys_Service.Models.Orders
         public List<CartItemMongoDbModel> carts { get; set; }
         public string utm_source { get; set; }
         public string utm_medium { get; set; }
-        public int? voucher_id { get; set; }
-        public string voucher_code { get; set; }
+        public List<int> voucher_id { get; set; }
+        public List<string> voucher_code { get; set; }
 
         public string receivername { get; set; }
 
@@ -45,6 +46,27 @@ namespace HuloToys_Service.Models.Orders
         public double? shipping_fee { get; set; } = 0;
         public ShippingFeeRequestModel delivery_detail { get; set; }
         public int? flashsale_badge_type { get; set; }
+        public double? total_amount_product { get; set; }
+        public List<OrderDetailMongoDbVoucherApply>? voucher_apply { get; set; }
+        public List<OrderDetailMongoDbDelivery>? delivery_order { get; set; }
+
+    }
+    public class OrderDetailMongoDbVoucherApply
+    {
+        public int voucher_id { get; set; }
+        public string voucher_code { get; set; }
+        public int? RuleType { get; set; }
+        public decimal? PriceSales { get; set; }
+        public string? Unit { get; set; }
+        public int? SupplierId { get; set; }
+
+        public double TotalDiscount { get; set; }
+    }
+    public class OrderDetailMongoDbDelivery {
+        public int? SupplierId { get; set; }
+        public double? shipping_fee { get; set; } = 0;
+        public int? package_weight { get; set; }
+
 
     }
 }

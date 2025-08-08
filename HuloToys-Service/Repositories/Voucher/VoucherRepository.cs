@@ -60,5 +60,17 @@ namespace REPOSITORIES.Repositories
             }
             return null;
         }
+        public async Task<List<Voucher>> GetListVoucher(List<string> vouchers)
+        {
+            try
+            {
+                return await _VoucherDAL.GetListVoucher(vouchers);
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram("GetListVoucher - ContractPayDAL. " + ex);
+            }
+            return null;
+        }
     }
 }

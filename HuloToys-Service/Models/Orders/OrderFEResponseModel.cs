@@ -10,4 +10,12 @@ namespace HuloToys_Service.Models.Orders
         public int page_size { get; set; }
         public long total { get; set; }
     }
+    public class OrderMergeFEResponseModel
+    {
+        public List<OrderMergeESModel> data { get; set; }
+        public List<OrderDetailMongoDbModel> data_order { get; set; }
+        public int page_index { get; set; }
+        public int page_size { get; set; }
+        public long total { get; set; }
+    }
 }

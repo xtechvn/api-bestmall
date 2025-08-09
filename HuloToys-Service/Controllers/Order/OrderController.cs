@@ -771,16 +771,19 @@ namespace HuloToys_Service.Controllers
                                     }
                                     break;
                             }
-                            switch (voucher.Unit)
+                            if (total_amount_calculate > 0)
                             {
-                                case "percent":
-                                    total_discount += (total_amount_calculate * Convert.ToDouble(percent / 100));
-                                    break;
-                                case "vnd":
-                                    total_discount += percent;
-                                    break;
+                                switch (voucher.Unit)
+                                {
+                                    case "percent":
+                                        total_discount += (total_amount_calculate * Convert.ToDouble(percent / 100));
+                                        break;
+                                    case "vnd":
+                                        total_discount += percent;
+                                        break;
 
-                                default: break;
+                                    default: break;
+                                }
                             }
                             model.total_discount = total_discount;
                             model.total_amount -= total_discount;

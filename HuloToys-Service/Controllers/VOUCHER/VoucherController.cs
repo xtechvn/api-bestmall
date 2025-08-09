@@ -2,6 +2,7 @@
 using ENTITIES.ViewModels.Voucher;
 using HuloToys_Service.Controllers.Client.Business;
 using HuloToys_Service.Models.APIRequest;
+using HuloToys_Service.Models.Voucher;
 using HuloToys_Service.RedisWorker;
 using HuloToys_Service.Utilities.Lib;
 using Microsoft.AspNetCore.Mvc;
@@ -60,6 +61,7 @@ namespace API_CORE.Controllers.VOUCHER
                         {"token","172" }, // token đăng nhập
                         {"product_id","172" }, // hotel id được áp mã. Truyền động lấy từ thông tin khách sạn muốn áp mã
                         {"total_order_amount_before","1000000" }, // Tổn giá trị đơn hàng
+                        {"total_shipping_fee_before","130000" }, // shipping_fee
                        
                 };
                 var data_product = JsonConvert.SerializeObject(j_param);
@@ -103,9 +105,19 @@ namespace API_CORE.Controllers.VOUCHER
                    // string product_id = objParr[0]["product_id"].ToString(); //hotel id được áp mã
 
                     double total_order_amount_before = Convert.ToDouble(objParr[0]["total_order_amount_before"].ToString()); // tổng giá trị đơn hàng trước giảm
+                    double total_shipping_fee_before = Convert.ToDouble(objParr[0]["total_shipping_fee_before"].ToString()); // tổng giá trị đơn hàng trước giảm
+                   
                     double total_order_amount_after = 0; // tổng giá trị đơn hàng sau giảm
                     double total_discount = 0; // Số tiền được giảm
+                    List<VoucherApplyRequestAmountSupplier> amount_by_supplier = new List<VoucherApplyRequestAmountSupplier>();
+                    if (objParr[0]["amount_by_supplier"] != null && objParr[0]["amount_by_supplier"].ToString() != null)
+                    {
+                        amount_by_supplier = JsonConvert.DeserializeObject<List<VoucherApplyRequestAmountSupplier>>(JsonConvert.SerializeObject(objParr[0]["amount_by_supplier"]));
 
+                    }
+                    double total_amount_by_supplier_before = 0;
+                    double total_amount_by_supplier_after = 0;
+                    double total_shipping_fee_after = 0;
                     var client = clientESService.GetById(account_client_id);
                     string email_user_current = client != null ? client.Email : ""; 
 
@@ -218,20 +230,81 @@ namespace API_CORE.Controllers.VOUCHER
                     #endregion
 
                     //1. Chiết khấu trên phí mua hộ đã trừ. Tính ra số tiền sau khi được trừ    
-                    double percent = Convert.ToDouble(voucher.PriceSales); // Giá trị giảm của voucher. Có thể là % hoặc vnđ                  
-                    switch (voucher.Unit)
-                    {
-                        case UnitVoucherType.PHAN_TRAM:
-                            //Tinh số tiền giảm theo %
-                            total_discount = total_order_amount_before * Convert.ToDouble(voucher.PriceSales / 100);  //Convert.ToDouble(total_fee_not_luxury * (percent / 100)) * rate_current; // so tien duoc giam tu  theo don vi %
-                            percent_decrease = Convert.ToDouble(voucher.PriceSales);
-                            break;
-                        case UnitVoucherType.VIET_NAM_DONG:
-                            total_discount = Convert.ToDouble(voucher.PriceSales); //Math.Min(Convert.ToDouble(voucher.LimitTotalDiscount), total_fee_not_luxury) ;
-                            break;
+                    //double percent = Convert.ToDouble(voucher.PriceSales); // Giá trị giảm của voucher. Có thể là % hoặc vnđ                  
+                    //switch (voucher.Unit)
+                    //{
+                    //    case UnitVoucherType.PHAN_TRAM:
+                    //        //Tinh số tiền giảm theo %
+                    //        total_discount = total_order_amount_before * Convert.ToDouble(voucher.PriceSales / 100);  //Convert.ToDouble(total_fee_not_luxury * (percent / 100)) * rate_current; // so tien duoc giam tu  theo don vi %
+                    //        percent_decrease = Convert.ToDouble(voucher.PriceSales);
+                    //        break;
+                    //    case UnitVoucherType.VIET_NAM_DONG:
+                    //        total_discount = Convert.ToDouble(voucher.PriceSales); //Math.Min(Convert.ToDouble(voucher.LimitTotalDiscount), total_fee_not_luxury) ;
+                    //        break;
 
-                        default:
-                            return Ok(new { status = ((int)ResponseType.FAILED).ToString(), msg = "Mã " + voucher_name + " không hợp lệ. Vui lòng liên hệ với bộ phận CSKH để được hỗ trợ" });
+                    //    default:
+                    //        return Ok(new { status = ((int)ResponseType.FAILED).ToString(), msg = "Mã " + voucher_name + " không hợp lệ. Vui lòng liên hệ với bộ phận CSKH để được hỗ trợ" });
+                    //}
+                    double voucher_discount = 0;
+                    double percent = Convert.ToDouble(voucher.PriceSales);
+                    double total_amount_calculate = 0;
+                    switch (voucher.RuleType)
+                    {
+                        case 0: // Giảm giá trên tiền hàng
+                            {
+                                total_amount_calculate = total_order_amount_before;
+                            }
+                            break;
+                        case 1: // Giảm giá trên phí ship
+                            {
+                                total_amount_calculate = total_shipping_fee_before;
+                            }
+                            break;
+                        case 2: // Giảm giá trên NCC
+                            {
+                                if (voucher.CampaignId != null && voucher.CampaignId > 0 && amount_by_supplier!=null && amount_by_supplier.Count>0)
+                                {
+                                    var selected=amount_by_supplier.FirstOrDefault(x=>x.supplier_id==voucher.CampaignId);
+                                    if (selected != null)
+                                    {
+                                        total_amount_calculate = selected.total_amount;
+                                        total_amount_by_supplier_before = selected.total_amount;
+                                    }
+                                }
+                            }
+                            break;
+                    }
+                    if (total_amount_calculate > 0)
+                    {
+                        switch (voucher.Unit)
+                        {
+                            case "percent":
+                                total_discount += (total_amount_calculate * Convert.ToDouble(percent / 100));
+                                break;
+                            case "vnd":
+                                total_discount += percent;
+                                break;
+
+                            default: break;
+                        }
+                        switch (voucher.RuleType)
+                        {
+                            case 0: // Giảm giá trên tiền hàng
+                                {
+                                    total_order_amount_after = total_order_amount_before - total_discount;
+                                }
+                                break;
+                            case 1: // Giảm giá trên phí ship
+                                {
+                                    total_shipping_fee_after = total_shipping_fee_before - total_discount;
+                                }
+                                break;
+                            case 2: // Giảm giá trên NCC
+                                {
+                                    total_amount_by_supplier_after= total_amount_by_supplier_before - total_discount;
+                                }
+                                break;
+                        }
                     }
 
                     // Nếu số tiền chiết khấu vượt quá 1 triệu thì sẽ chỉ được 1 triệu
@@ -255,12 +328,16 @@ namespace API_CORE.Controllers.VOUCHER
                         percent_decrease = percent_decrease,
                         expire_date = (voucher.EDate ?? DateTime.Now).ToString("dd-MM-yyyy"),
                         voucher_name = voucher.Code,
-                        total_order_amount_before = total_order_amount_before,
+                        total_order_amount_before,
                         discount = Math.Round(total_discount),
                         total_order_amount_after = total_order_amount_after,
                         value = Convert.ToDouble(voucher.PriceSales),
                         type = voucher.Unit,
-                        rule_type=voucher.RuleType
+                        rule_type=voucher.RuleType,
+                        total_shipping_fee_before,
+                        total_shipping_fee_after,
+                        total_amount_by_supplier_before,
+                        total_amount_by_supplier_after
 
                     });
                 }

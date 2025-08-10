@@ -74,7 +74,7 @@ namespace REPOSITORIES.Repositories
                                 is_max_price_product = row["is_max_price_product"] != DBNull.Value ? (bool?)Convert.ToBoolean(row["is_max_price_product"]) : null,
                                 MinTotalAmount = row["min_total_amount"] != DBNull.Value ? (double?)Convert.ToDouble(row["min_total_amount"]) : null,
                                 campaign_id = row["campaign_id"] != DBNull.Value ? (int?)Convert.ToInt32(row["campaign_id"]) : null,
-                                TotalRow = 0
+                                TotalRow = Convert.ToInt32(row["TotalRow"])
                             }).ToList();
                 }
                 

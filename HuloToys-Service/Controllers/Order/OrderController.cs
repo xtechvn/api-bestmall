@@ -592,7 +592,7 @@ namespace HuloToys_Service.Controllers
                                 List<VoucherFEModel> list = JsonConvert.DeserializeObject<List<VoucherFEModel>>(str);
                                 if (list != null && list.Count > 0)
                                 {
-                                    var selected_list = list.Where(x => model.voucher_code.Contains(x.Code.Trim().ToUpper()));
+                                    var selected_list = list.Where(x => model.voucher_code.Contains(x.code.Trim().ToUpper()));
                                     if (selected_list != null && selected_list.Count() > 0)
                                     {
                                         voucher_apply = selected_list.ToList();
@@ -739,9 +739,9 @@ namespace HuloToys_Service.Controllers
                         foreach (var voucher in voucher_apply)
                         {
                             double total_discount = 0;
-                            double percent = Convert.ToDouble(voucher.PriceSales);
+                            double percent = Convert.ToDouble(voucher.price_sales);
                             double total_amount_calculate = 0;
-                            switch (voucher.RuleType)
+                            switch (voucher.rule_type)
                             {
                                 case 0: // Giảm giá trên tiền hàng
                                     {
@@ -755,16 +755,16 @@ namespace HuloToys_Service.Controllers
                                     break;
                                 case 2: // Giảm giá trên NCC
                                     {
-                                        if(voucher.CampaignId!=null && voucher.CampaignId > 0)
+                                        if(voucher.campaign_id!=null && voucher.campaign_id > 0)
                                         {
-                                            total_amount_calculate = model.carts.Where(x => x.product.supplier_id == (int)voucher.CampaignId).Sum(x => x.total_amount);
+                                            total_amount_calculate = model.carts.Where(x => x.product.supplier_id == (int)voucher.campaign_id).Sum(x => x.total_amount);
                                         }
                                     }
                                     break;
                             }
                             if (total_amount_calculate > 0)
                             {
-                                switch (voucher.Unit)
+                                switch (voucher.unit)
                                 {
                                     case "percent":
                                         total_discount += (total_amount_calculate * Convert.ToDouble(percent / 100));
@@ -781,12 +781,12 @@ namespace HuloToys_Service.Controllers
                             model.total_profit -= total_discount;
                             model.voucher_apply.Add(new OrderDetailMongoDbVoucherApply()
                             {
-                                PriceSales=voucher.PriceSales,
-                                RuleType=voucher.RuleType,
-                                SupplierId=voucher.CampaignId,
+                                PriceSales=voucher.price_sales,
+                                RuleType=voucher.rule_type,
+                                SupplierId=voucher.campaign_id,
                                 TotalDiscount=total_discount,
-                                Unit=voucher.Unit,  
-                                voucher_code=voucher.Code,
+                                Unit=voucher.unit,  
+                                voucher_code=voucher.code,
                                 voucher_id=voucher.Id,
                             });
                         }

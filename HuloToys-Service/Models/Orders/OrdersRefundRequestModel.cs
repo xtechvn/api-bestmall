@@ -7,4 +7,10 @@
         public string token { get; set; }
 
     }
+    public class OrdersReceivedPackageRequestModel
+    {
+        public long id { get; set; }
+        public string token { get; set; }
+
+    }
 }

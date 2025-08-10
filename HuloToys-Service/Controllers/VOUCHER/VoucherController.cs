@@ -358,11 +358,12 @@ namespace API_CORE.Controllers.VOUCHER
                 #region Giả lập test
                 var j_param = new Dictionary<string, string>
                 {
-                       // {"product_id", ""},
-                        {"token", ""},
+                        {"token", "F08nOlAVBi8vLwxaDGMgagRjYX97aVlkfFt7AmJnTlpFXyNQYmNiUgBpXnt3Q1BJUlZ0WE5BcCxNFysoPCdLQhRzZWoEfmR5Y2pZBHhfcAFnbFhPSQNlQ21wYFppZRI="},
                 };
-                var data_product = JsonConvert.SerializeObject(j_param);
-                //  token = CommonHelper.Encode(data_product,  configuration["KEY:private_key"]);
+                input=new APIRequestGenericModel()
+                {
+                    token = CommonHelper.Encode(JsonConvert.SerializeObject(j_param), configuration["KEY:private_key"])
+                };
                 #endregion
                 if (input == null || input.token == null || input.token.Trim() == "")
                 {
@@ -413,7 +414,7 @@ namespace API_CORE.Controllers.VOUCHER
                             data = list
                         });
                     }
-                    var data = await voucherRepository.GetVoucherList(0, null);
+                    var data = await voucherRepository.GetVoucherList(null, 1, 1, 100);
                     if (data != null && data.Count > 0)
                     {
                       //  data = data.Where(x => x.store_apply.Trim().StartsWith(product_id + ",") || x.store_apply.Trim().EndsWith("," + product_id)

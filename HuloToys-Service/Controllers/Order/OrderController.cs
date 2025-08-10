@@ -579,7 +579,7 @@ namespace HuloToys_Service.Controllers
                          
                          
                     };
-                    List<Voucher> voucher_apply = new List<Voucher>();
+                    List<VoucherFEModel> voucher_apply = new List<VoucherFEModel>();
                     if (model.voucher_code != null && model.voucher_code.Count > 0)
                     {
                         model.voucher_code = model.voucher_code.Select(x => x.ToUpper().Trim()).ToList();
@@ -592,22 +592,10 @@ namespace HuloToys_Service.Controllers
                                 List<VoucherFEModel> list = JsonConvert.DeserializeObject<List<VoucherFEModel>>(str);
                                 if (list != null && list.Count > 0)
                                 {
-                                    var selected_list = list.Where(x => model.voucher_code.Contains(x.code.Trim().ToUpper()));
+                                    var selected_list = list.Where(x => model.voucher_code.Contains(x.Code.Trim().ToUpper()));
                                     if (selected_list != null && selected_list.Count() > 0)
                                     {
-                                        voucher_apply = selected_list.Select(selected => new Voucher()
-                                        {
-                                            Id = selected.Id,
-                                            CampaignId = selected.campaign_id,
-                                            Cdate = selected.cdate,
-                                            Code = selected.code,
-                                            Description = selected.description,
-                                            EDate = selected.eDate,
-                                            GroupUserPriority = "",
-                                            PriceSales = selected.price_sales,
-                                            Unit = selected.unit,
-
-                                        }).ToList();
+                                        voucher_apply = selected_list.ToList();
                                     }
                                 }
                             }
@@ -616,8 +604,11 @@ namespace HuloToys_Service.Controllers
                         }
                         if (voucher_apply == null || voucher_apply.Count <= 0)
                         {
-                            voucher_apply = await _voucherRepository.GetListVoucher(model.voucher_code);
-
+                            var data = await _voucherRepository.GetListVoucher(model.voucher_code);
+                            if(data!=null && data.Count > 0)
+                            {
+                                voucher_apply = JsonConvert.DeserializeObject<List<VoucherFEModel>>(JsonConvert.SerializeObject(data));
+                            }
                         }
                        
                     }

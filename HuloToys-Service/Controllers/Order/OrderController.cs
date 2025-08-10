@@ -1263,5 +1263,86 @@ namespace HuloToys_Service.Controllers
                 msg = ResponseMessages.DataInvalid
             });
         }
+        [HttpPost("received-order")]
+        public async Task<ActionResult> ReceivedOrder([FromBody] APIRequestGenericModel input)
+        {
+            try
+            {
+                //var input_model = new
+                //{
+                //    id = 10446,
+                //    reason = "test",
+                //    token = "F08nOlAVBi8vLwxaDGMgagRjYX97aVlkfFt7AmJnTlpFXyNQYmNiUgBpXnt3Q1BJUlZ0WE5BcCxNFysoPCdLQhRzZWoEfmR5Y2tYBHlQcABrbFhOSQVqS2t3ZlFpZRI="
+                //};
+                //input = new APIRequestGenericModel()
+                //{
+                //    token = CommonHelper.Encode(JsonConvert.SerializeObject(input_model), configuration["KEY:private_key"])
+                //};
+                JArray objParr = null;
+                if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, configuration["KEY:private_key"]))
+                {
+                    var request = JsonConvert.DeserializeObject<OrdersReceivedPackageRequestModel>(objParr[0].ToString());
+                    if (request == null
+                        || request.id <= 0
+                        || request.token == null || request.token.Trim() == ""
+                        )
+                    {
+
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+                    long account_client_id = await clientServices.GetAccountClientIdFromToken(request.token);
+                    if (account_client_id <= 0)
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+
+                    var account_client = accountClientESService.GetById(account_client_id);
+                    var client = clientESService.GetById((long)account_client.ClientId);
+                    var model = new
+                    {
+                        OrderId = request.id,
+                        ClientId = (long)account_client.ClientId,
+                        OrderStatus=(int)OrderStatus.FINISHED_DELIVERY,
+                       
+                    };
+                    var queue_model = new
+                    {
+                        type = QueueType.UPDATE_ORDER,
+                        data_push = JsonConvert.SerializeObject(model)
+                    };
+                    var pushed_queue = work_queue.InsertQueueSimple(JsonConvert.SerializeObject(queue_model), QueueName.queue_app_push);
+
+                    return Ok(new
+                    {
+                        status = (int)ResponseType.SUCCESS,
+                        msg = "Success",
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
+                return Ok(new
+                {
+                    status = (int)ResponseType.FAILED,
+                    msg = ResponseMessages.FunctionExcutionFailed
+                });
+
+            }
+            return Ok(new
+            {
+                status = (int)ResponseType.FAILED,
+                msg = ResponseMessages.FunctionExcutionFailed
+            });
+        }
     }
 }

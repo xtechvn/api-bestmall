@@ -84,15 +84,17 @@ namespace DAL
                 return null;
             }
         }
-        public async Task<DataTable> GetVoucherList(long account_client_id, string hotel_id)
+        public async Task<DataTable> GetVoucherList(string keyword,int status=1,int page_index=1, int page_size=10)
         {
             try
             {
 
                 SqlParameter[] input = new SqlParameter[]
                 {
-                    new SqlParameter("@HotelId",hotel_id==null?(object)DBNull.Value: hotel_id.ToString()),
-                    new SqlParameter("@AccountClientId", account_client_id<=0?(object)DBNull.Value: account_client_id.ToString()),
+                    new SqlParameter("@keyword",keyword??(object)DBNull.Value),
+                    new SqlParameter("@status", status),
+                    new SqlParameter("@page_index", page_index),
+                    new SqlParameter("@page_size", page_size),
 
                 };
                 return _DbWorker.GetDataTable(StoreProcedureConstant.GetListVoucher, input);

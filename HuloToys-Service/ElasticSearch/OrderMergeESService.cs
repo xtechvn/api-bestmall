@@ -114,8 +114,7 @@ namespace Caching.Elasticsearch
                     }
                     catch (Exception deserializeEx)
                     {
-                        string jsonError = JsonConvert.SerializeObject(query.Documents);
-                        string error_msg = "Deserialize error: " + deserializeEx.Message + " => JSON Data: " + jsonError;
+                        string error_msg = "Deserialize error: " + deserializeEx.Message;
                         LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
                         // Trả về kết quả rỗng hoặc throw exception tùy theo business logic
                         return result;

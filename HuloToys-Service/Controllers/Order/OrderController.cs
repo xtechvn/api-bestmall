@@ -557,8 +557,8 @@ namespace HuloToys_Service.Controllers
                         address_id = request.address_id,
                         receivername = request.address.ReceiverName,
                         phone = request.address.Phone,
-                        voucher_id = request.voucher_id,
-                        voucher_code = request.voucher_code,
+                        list_voucher_id = request.voucher_id,
+                        list_voucher_code = request.voucher_code,
                          shipping_fee=0,
                          total_discount=0,
                          total_price=0,
@@ -568,9 +568,9 @@ namespace HuloToys_Service.Controllers
                          
                     };
                     List<VoucherFEModel> voucher_apply = new List<VoucherFEModel>();
-                    if (model.voucher_code != null && model.voucher_code.Count > 0)
+                    if (request.voucher_code != null && request.voucher_code.Count > 0)
                     {
-                        model.voucher_code = model.voucher_code.Select(x => x.ToUpper().Trim()).ToList();
+                        model.list_voucher_code = request.voucher_code.Select(x => x.ToUpper().Trim()).ToList();
                         string cache_name = CacheType.VOUCHER + account_client_id;
                         var str = _redisService.Get(cache_name, Convert.ToInt32(configuration["Redis:Database:db_search_result"]));
                         if (str != null && str.Trim() != "")
@@ -592,7 +592,7 @@ namespace HuloToys_Service.Controllers
                         }
                         if (voucher_apply == null || voucher_apply.Count <= 0)
                         {
-                            var data = await _voucherRepository.GetListVoucher(model.voucher_code);
+                            var data = await _voucherRepository.GetListVoucher(model.list_voucher_code);
                             if(data!=null && data.Count > 0)
                             {
                                 voucher_apply = JsonConvert.DeserializeObject<List<VoucherFEModel>>(JsonConvert.SerializeObject(data));

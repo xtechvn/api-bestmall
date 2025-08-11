@@ -317,7 +317,7 @@ namespace Caching.Elasticsearch
                 .Index(index)
                 .Query(q => baseClientQuery(q) && q.Match(m => m.Field(f => f.OrderStatus).Query("7")))
             );
-            long status7Count = status7CountResponse.IsValid ? status4CountResponse.Count : 0;
+            long status7Count = status7CountResponse.IsValid ? status7CountResponse.Count : 0;
             return (allOrdersCount, status016Count, status25Count, status3Count, status4Count, status7Count);
         }
     }

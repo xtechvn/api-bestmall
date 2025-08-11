@@ -128,11 +128,11 @@ namespace HuloToys_Service.Models.Orders
     {
         [PropertyName("Id")]
 
-        public long Id { get; set; }
+        public long? Id { get; set; }
 
         [PropertyName("ClientId")]
 
-        public long ClientId { get; set; }
+        public long? ClientId { get; set; }
         [PropertyName("OrderNo")]
 
         public string OrderNo { get; set; }

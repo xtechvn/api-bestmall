@@ -62,17 +62,18 @@ namespace Caching.Elasticsearch
         public OrderMergeFEResponseModel GetFEByClientID(long client_id, string status, string order_no, int page_index, int page_size)
         {
             OrderMergeFEResponseModel result = new OrderMergeFEResponseModel();
+
             try
             {
                 // Build a list of QueryContainer predicates
                 var mustQueries = new List<Func<QueryContainerDescriptor<OrderMergeESModel>, QueryContainer>>
-                {
-                    // Always add ClientId filter
-                    q => q.Term(m => m.ClientId, client_id)
-                };
+        {
+            // Always add ClientId filter
+            q => q.Term(m => m.ClientId, client_id)
+        };
 
                 // Add OrderNo containment filter if order_no is provided
-                if (order_no!=null && order_no.Trim()!="")
+                if (order_no != null && order_no.Trim() != "")
                 {
                     mustQueries.Add(q => q.Wildcard(w => w.Field(f => f.OrderNo).Value($"*{order_no}*")));
                 }
@@ -95,25 +96,31 @@ namespace Caching.Elasticsearch
 
                 var query = elasticClient.Search<OrderMergeESModel>(searchRequest);
 
-
                 var countRequest = new CountDescriptor<OrderMergeESModel>().Query(finalQueryContainer);
 
-                var query_count = elasticClient.Count(countRequest); // Pass the descriptor directly
-
+                var query_count = elasticClient.Count(countRequest);
 
                 if (!query.IsValid || !query_count.IsValid)
                 {
-                    // It's generally better to check for !IsValid on individual responses,
-                    // and if any are invalid, return an appropriate error or empty result.
-                    // For a more robust solution, you might throw an exception or log specific errors.
-                    return result; // Returns empty result if either query or count is invalid
+                    // Trả về kết quả rỗng nếu query hoặc count không hợp lệ.
+                    return result;
                 }
                 else
                 {
-                    LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "GetFEByClientID count="+ query.Documents.Count);
-                    LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "GetFEByClientID json="+ JsonConvert.SerializeObject(query.Documents));
+                    // Thay đổi cách deserialize để bắt lỗi cụ thể
+                    try
+                    {
+                        result.data = query.Documents.ToList();
+                    }
+                    catch (Exception deserializeEx)
+                    {
+                        string jsonError = JsonConvert.SerializeObject(query.Documents);
+                        string error_msg = "Deserialize error: " + deserializeEx.Message + " => JSON Data: " + jsonError;
+                        LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
+                        // Trả về kết quả rỗng hoặc throw exception tùy theo business logic
+                        return result;
+                    }
 
-                    result.data = JsonConvert.DeserializeObject<List<OrderMergeESModel>>(JsonConvert.SerializeObject(query.Documents)); // Use ToList() for safety
                     result.total = query_count.Count;
                     result.page_index = page_index;
                     result.page_size = page_size;
@@ -122,10 +129,11 @@ namespace Caching.Elasticsearch
             }
             catch (Exception ex)
             {
-                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex;
-                 LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
+                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.Message;
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
             }
-            return null; // Or throw the exception, or return an error result model
+
+            return null;
         }
         public OrderMergeESModel GetLastestClientID(long client_id)
         {

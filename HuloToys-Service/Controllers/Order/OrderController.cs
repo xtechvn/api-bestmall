@@ -794,9 +794,9 @@ namespace HuloToys_Service.Controllers
 
 
                     var pushed_queue = work_queue.InsertQueueSimpleDurable(JsonConvert.SerializeObject(queue_model), QueueName.QUEUE_CHECKOUT);
-                    //LogHelper.InsertLogTelegram(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "Push Queue: "
-                    //   + QueueName.QUEUE_CHECKOUT
-                    //   + "[" + JsonConvert.SerializeObject(queue_model) + "] [" + pushed_queue + "]");
+                    LogHelper.InsertLogTelegram(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "Push Queue: "
+                       + QueueName.QUEUE_CHECKOUT
+                       + "[" + order_no + "][" + model._id + "] [" + pushed_queue + "]");
 
                     return Ok(new
                     {

@@ -111,8 +111,9 @@ namespace Caching.Elasticsearch
                 else
                 {
                     LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "GetFEByClientID count="+ query.Documents.Count);
+                    LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "GetFEByClientID json="+ JsonConvert.SerializeObject(query.Documents));
 
-                    result.data = JsonConvert.DeserializeObject<List<OrderMergeESModel>>(JsonConvert.SerializeObject(query.Documents.ToList())); // Use ToList() for safety
+                    result.data = JsonConvert.DeserializeObject<List<OrderMergeESModel>>(JsonConvert.SerializeObject(query.Documents)); // Use ToList() for safety
                     result.total = query_count.Count;
                     result.page_index = page_index;
                     result.page_size = page_size;

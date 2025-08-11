@@ -67,10 +67,10 @@ namespace Caching.Elasticsearch
             {
                 // Build a list of QueryContainer predicates
                 var mustQueries = new List<Func<QueryContainerDescriptor<OrderMergeESModel>, QueryContainer>>
-        {
-            // Always add ClientId filter
-            q => q.Term(m => m.ClientId, client_id)
-        };
+                {
+                    // Always add ClientId filter
+                    q => q.Term(m => m.ClientId, client_id)
+                };
 
                 // Add OrderNo containment filter if order_no is provided
                 if (order_no != null && order_no.Trim() != "")
@@ -143,7 +143,7 @@ namespace Caching.Elasticsearch
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.Message;
-                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "General error"+ error_msg);
             }
 
             return null;
@@ -277,45 +277,6 @@ namespace Caching.Elasticsearch
                 LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
             }
             return null;
-        }
-        public long CountOrdersByVoucherIdAndClientId(int voucher_id, long client_id)
-        {
-            try
-            {
-
-                var searchResponse = elasticClient.Search<OrderMergeESModel>(sd => sd
-                    .Query(q =>
-                    {
-                        // Khởi tạo một Container cho các điều kiện query
-                        QueryContainer queryContainer = q.Term(m => m.VoucherId, voucher_id);
-
-                        // Thêm điều kiện ClientId nếu client_id > 0
-                        if (client_id > 0)
-                        {
-                            queryContainer &= q.Term(m => m.ClientId, client_id);
-                        }
-                        return queryContainer;
-                    })
-                    .Size(0) // Chỉ quan tâm đến tổng số, không cần trả về tài liệu
-                );
-
-                if (!searchResponse.IsValid)
-                {
-                    string error_msg = $"Elasticsearch query failed: {searchResponse.DebugInformation ?? searchResponse.ServerError?.Error.ToString()}";
-                    LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
-                    return 0;
-                }
-                else
-                {
-                    return searchResponse.Total; // Lấy tổng số lượng khớp
-                }
-            }
-            catch (Exception ex)
-            {
-                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
-                return 0; // Trả về 0 nếu có lỗi
-            }
         }
         public (long allOrdersCount, long status016Count, long status25Count, long status3Count, long status4Count) CountOrdersByStatus(long client_id)
         {

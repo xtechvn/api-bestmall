@@ -128,11 +128,11 @@ namespace HuloToys_Service.Models.Orders
     {
         [PropertyName("Id")]
 
-        public long? Id { get; set; }
+        public long Id { get; set; }
 
         [PropertyName("ClientId")]
 
-        public long? ClientId { get; set; }
+        public long ClientId { get; set; }
         [PropertyName("OrderNo")]
 
         public string OrderNo { get; set; }
@@ -182,7 +182,7 @@ namespace HuloToys_Service.Models.Orders
         public string Note { get; set; }
         [PropertyName("VoucherId")]
 
-        public int? VoucherId { get; set; }
+        public string VoucherId { get; set; }
         [PropertyName("IsDelete")]
 
         public int? IsDelete { get; set; }

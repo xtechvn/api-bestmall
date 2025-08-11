@@ -81,7 +81,21 @@ namespace Caching.Elasticsearch
                 // Add OrderStatus filter if status is provided
                 if (!string.IsNullOrWhiteSpace(status))
                 {
-                    mustQueries.Add(q => q.Terms(t => t.Field(x => x.OrderStatus).Terms(status.Split(",", StringSplitOptions.RemoveEmptyEntries))));
+                    List<int> status_value = new List<int>();
+                    try
+                    {
+                        var split = status.Split(",");
+                        if (split.Length > 0)
+                        {
+                            foreach (var item in split)
+                            {
+                                status_value.Add(Convert.ToInt32(item));
+                            }
+
+                        }
+                    }
+                    catch { }
+                    mustQueries.Add(q => q.Terms(t => t.Field(x => x.OrderStatus).Terms(status_value)));
                 }
 
                 // Combine all 'must' queries using Bool.Must

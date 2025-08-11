@@ -278,7 +278,7 @@ namespace Caching.Elasticsearch
             }
             return null;
         }
-        public (long allOrdersCount, long status016Count, long status25Count, long status3Count, long status4Count) CountOrdersByStatus(long client_id)
+        public (long allOrdersCount, long status016Count, long status25Count, long status3Count, long status4Count, long status7Count) CountOrdersByStatus(long client_id)
         {
             Func<QueryContainerDescriptor<OrderMergeESModel>, QueryContainer> baseClientQuery = q =>
                 q.Match(m => m.Field(x => x.ClientId).Query(client_id.ToString()));
@@ -312,7 +312,13 @@ namespace Caching.Elasticsearch
                 .Query(q => baseClientQuery(q) && q.Match(m => m.Field(f => f.OrderStatus).Query("4")))
             );
             long status4Count = status4CountResponse.IsValid ? status4CountResponse.Count : 0;
-            return (allOrdersCount, status016Count, status25Count, status3Count, status4Count);
+
+            var status7CountResponse = elasticClient.Count<OrderMergeESModel>(c => c
+                .Index(index)
+                .Query(q => baseClientQuery(q) && q.Match(m => m.Field(f => f.OrderStatus).Query("7")))
+            );
+            long status7Count = status7CountResponse.IsValid ? status4CountResponse.Count : 0;
+            return (allOrdersCount, status016Count, status25Count, status3Count, status4Count, status7Count);
         }
     }
 }

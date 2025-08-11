@@ -5,6 +5,7 @@ using Nest;
 using System.Reflection;
 using HuloToys_Service.Models.Orders;
 using Utilities.Contants;
+using Newtonsoft.Json;
 
 namespace Caching.Elasticsearch
 {
@@ -109,7 +110,9 @@ namespace Caching.Elasticsearch
                 }
                 else
                 {
-                    result.data = query.Documents.ToList(); // Use ToList() for safety
+                    LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "GetFEByClientID count="+ query.Documents.Count);
+
+                    result.data = JsonConvert.DeserializeObject<List<OrderMergeESModel>>(JsonConvert.SerializeObject(query.Documents.ToList())); // Use ToList() for safety
                     result.total = query_count.Count;
                     result.page_index = page_index;
                     result.page_size = page_size;
@@ -118,7 +121,7 @@ namespace Caching.Elasticsearch
             }
             catch (Exception ex)
             {
-                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
+                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex;
                  LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
             }
             return null; // Or throw the exception, or return an error result model

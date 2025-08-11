@@ -129,6 +129,7 @@ namespace HuloToys_Service.Models.Orders
         [PropertyName("Id")]
 
         public long Id { get; set; }
+
         [PropertyName("ClientId")]
 
         public long ClientId { get; set; }
@@ -161,13 +162,13 @@ namespace HuloToys_Service.Models.Orders
         public double? Amount { get; set; }
         [PropertyName("OrderStatus")]
 
-        public int OrderStatus { get; set; }
+        public int? OrderStatus { get; set; }
         [PropertyName("PaymentType")]
 
-        public short PaymentType { get; set; }
+        public short? PaymentType { get; set; }
         [PropertyName("PaymentStatus")]
 
-        public int PaymentStatus { get; set; }
+        public int? PaymentStatus { get; set; }
         [PropertyName("UtmSource")]
 
         public string UtmSource { get; set; }
@@ -209,7 +210,7 @@ namespace HuloToys_Service.Models.Orders
         [PropertyName("Address")]
 
         public string Address { get; set; }
-       
+
         [PropertyName("RefundStatus")]
 
         public int? RefundStatus { get; set; }

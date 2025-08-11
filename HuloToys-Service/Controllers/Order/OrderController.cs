@@ -781,12 +781,7 @@ namespace HuloToys_Service.Controllers
 
                     }
                     //-- Mongodb:
-                    LogHelper.InsertLogTelegram("Order orderMongodbService.Insert: [" + model.total_price + "]" +
-                                                  "[" + model.total_profit + "]"+
-                                                  "[" + model.shipping_fee + "]"+
-                                                  "[" + model.total_discount + "]"+
-                                                  "[" + model.total_amount + "]"
-                                                  );
+                   
                     var result = await orderMongodbService.Insert(model);
                    
                     //-- Insert Queue:
@@ -794,9 +789,12 @@ namespace HuloToys_Service.Controllers
 
 
                     var pushed_queue = work_queue.InsertQueueSimpleDurable(JsonConvert.SerializeObject(queue_model), QueueName.QUEUE_CHECKOUT);
-                    LogHelper.InsertLogTelegram(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "Push Queue: "
-                       + QueueName.QUEUE_CHECKOUT
-                       + "[" + order_no + "][" + model._id + "] [" + pushed_queue + "]");
+                    LogHelper.InsertLogTelegram("Order orderMongodbService.Insert: " +
+                                                  "[" + model._id + "]" +
+                                                  "[" + order_no + "]" +
+                                                 "[" + model.total_amount + "]"+
+                                                 "[" + pushed_queue + "]"
+                                                 );
 
                     return Ok(new
                     {

@@ -1126,6 +1126,7 @@ namespace HuloToys_Service.Controllers
                     {
                         OrderId = request.id,
                         ClientId = (long)account_client.ClientId,
+                        OrderStatus=(int)OrderStatus.REFUND,
                         RefundStatus = 1,
                         RefundReason = request.reason,
                         RefundDate = DateTime.Now

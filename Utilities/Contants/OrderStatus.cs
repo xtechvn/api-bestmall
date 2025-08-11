@@ -29,6 +29,10 @@ namespace Utilities.Contants
 
         [Description("Đã hủy")]
         CANCEL = 4,
+
+        [Description("Trả hàng/ Hoàn tiền")]
+        REFUND = 7,
+
     }
 
     // Trạng thái đơn

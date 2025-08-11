@@ -188,13 +188,8 @@ namespace HuloToys_Service.Controllers
                     var client = clientESService.GetById((long)account_client.ClientId);
                     if (request.status == "-1") request.status = "";
                     if (request.order_no == null) request.order_no = "";
-
-                    LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "account_client_id ["+account_client_id+"]");
-                    LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "ClientId [" + (long)account_client.ClientId + "]");
-
+                   
                     var result = orderMergeESService.GetFEByClientID((long)account_client.ClientId, request.status, request.order_no, (request.page_index <= 0 ? 1 : request.page_index), (request.page_size <= 0 ? 10 : request.page_size));
-                    LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "orderMergeESService.GetFEByClientID [" + result == null ?"NULL": result.data.Count + "]");
-
                     if (result != null && result.data != null && result.data.Count > 0)
                     {
                         result.data_order = await orderMongodbService.GetListByOrdersNo(result.data.Select(x => x.OrderNo).ToList());

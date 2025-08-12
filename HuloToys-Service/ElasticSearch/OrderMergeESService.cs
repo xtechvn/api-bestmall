@@ -278,47 +278,47 @@ namespace Caching.Elasticsearch
             }
             return null;
         }
-        public (long allOrdersCount, long status016Count, long status25Count, long status3Count, long status4Count, long status7Count) CountOrdersByStatus(long client_id)
+        public (long all, long waiting, long delvering, long finish, long refund, long cancel) CountOrdersByStatus(long client_id)
         {
             Func<QueryContainerDescriptor<OrderMergeESModel>, QueryContainer> baseClientQuery = q =>
                 q.Match(m => m.Field(x => x.ClientId).Query(client_id.ToString()));
 
-            var allOrdersCountResponse = elasticClient.Count<OrderMergeESModel>(c => c
+            var allCountResponse = elasticClient.Count<OrderMergeESModel>(c => c
                 .Index(index)
                 .Query(baseClientQuery)
             );
-            long allOrdersCount = allOrdersCountResponse.IsValid ? allOrdersCountResponse.Count : 0;
+            long all = allCountResponse.IsValid ? allCountResponse.Count : 0;
 
-            var status016CountResponse = elasticClient.Count<OrderMergeESModel>(c => c
+            var waitingResponse = elasticClient.Count<OrderMergeESModel>(c => c
                 .Index(index)
-                .Query(q => baseClientQuery(q) && q.Terms(t => t.Field(f => f.OrderStatus).Terms(new[] { 0, 1, 6 })))
+                .Query(q => baseClientQuery(q) && q.Terms(t => t.Field(f => f.OrderStatus).Terms(new[] { 0 })))
             );
-            long status016Count = status016CountResponse.IsValid ? status016CountResponse.Count : 0;
+            long waiting = allCountResponse.IsValid ? allCountResponse.Count : 0;
 
-            var status25CountResponse = elasticClient.Count<OrderMergeESModel>(c => c
+            var delveringResponse = elasticClient.Count<OrderMergeESModel>(c => c
                 .Index(index)
-                .Query(q => baseClientQuery(q) && q.Terms(t => t.Field(f => f.OrderStatus).Terms(new[] { 2, 5 })))
+                .Query(q => baseClientQuery(q) && q.Terms(t => t.Field(f => f.OrderStatus).Terms(new[] { 1,2,5,6 })))
             );
-            long status25Count = status25CountResponse.IsValid ? status25CountResponse.Count : 0;
+            long delvering = allCountResponse.IsValid ? allCountResponse.Count : 0;
 
-            var status3CountResponse = elasticClient.Count<OrderMergeESModel>(c => c
+            var finishResponse = elasticClient.Count<OrderMergeESModel>(c => c
                 .Index(index)
-                .Query(q => baseClientQuery(q) && q.Match(m => m.Field(f => f.OrderStatus).Query("3")))
+                .Query(q => baseClientQuery(q) && q.Terms(m => m.Field(f => f.OrderStatus).Terms(new[] { 3 })))
             );
-            long status3Count = status3CountResponse.IsValid ? status3CountResponse.Count : 0;
+            long finish = finishResponse.IsValid ? finishResponse.Count : 0;
 
-            var status4CountResponse = elasticClient.Count<OrderMergeESModel>(c => c
+            var refundResponse = elasticClient.Count<OrderMergeESModel>(c => c
                 .Index(index)
-                .Query(q => baseClientQuery(q) && q.Match(m => m.Field(f => f.OrderStatus).Query("4")))
+                .Query(q => baseClientQuery(q) && q.Terms(m => m.Field(f => f.OrderStatus).Terms(new[] { 7 })))
             );
-            long status4Count = status4CountResponse.IsValid ? status4CountResponse.Count : 0;
+            long refund = refundResponse.IsValid ? refundResponse.Count : 0;
 
-            var status7CountResponse = elasticClient.Count<OrderMergeESModel>(c => c
+            var cancelResponse = elasticClient.Count<OrderMergeESModel>(c => c
                 .Index(index)
-                .Query(q => baseClientQuery(q) && q.Match(m => m.Field(f => f.OrderStatus).Query("7")))
+                .Query(q => baseClientQuery(q) && q.Terms(m => m.Field(f => f.OrderStatus).Terms(new[] { 4 })))
             );
-            long status7Count = status7CountResponse.IsValid ? status7CountResponse.Count : 0;
-            return (allOrdersCount, status016Count, status25Count, status3Count, status4Count, status7Count);
+            long cancel = cancelResponse.IsValid ? cancelResponse.Count : 0;
+            return (all, waiting, delvering, finish, refund, cancel);
         }
     }
 }

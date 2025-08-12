@@ -372,12 +372,13 @@ namespace HuloToys_Service.Controllers
                             ward = locationESService.GetWardsByWardId(result.wardid);
                         }
                     }
+                   
                     return Ok(new
                     {
                         status = (int)ResponseType.SUCCESS,
                         msg = "Success",
                         data = result,
-                        data_order = order_es,
+                        //data_order = order_es,
                         province,
                         district,
                         ward
@@ -937,7 +938,7 @@ namespace HuloToys_Service.Controllers
                     var account_client = accountClientESService.GetById(account_client_id);
                     var client = clientESService.GetById((long)account_client.ClientId);
 
-                    var (allOrders, status016, status25, status3, status4, status7) = orderMergeESService.CountOrdersByStatus((long)account_client.ClientId);
+                    var (all, waiting, delvering, finish, refund, cancel) = orderMergeESService.CountOrdersByStatus((long)account_client.ClientId);
 
                     return Ok(new
                     {
@@ -945,12 +946,12 @@ namespace HuloToys_Service.Controllers
                         msg = "Success",
                         data = new
                         {
-                            all = allOrders,
-                            waiting_payment = status016,
-                            on_delivery = status25,
-                            success = status3,
-                            cancel = status4,
-                            refund=status7
+                            all = all,
+                            waiting_payment = waiting,
+                            on_delivery = delvering,
+                            success = finish,
+                            cancel = refund,
+                            refund= cancel
                         }
                     });
 

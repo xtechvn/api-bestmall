@@ -278,7 +278,7 @@ namespace Caching.Elasticsearch
             }
             return null;
         }
-        public (long all, long waiting, long delvering, long finish, long refund, long cancel) CountOrdersByStatus(long client_id)
+        public (long all, long waiting, long delvering, long finish, long refund, long cancel, long processing) CountOrdersByStatus(long client_id)
         {
             Func<QueryContainerDescriptor<OrderMergeESModel>, QueryContainer> baseClientQuery = q =>
                 q.Match(m => m.Field(x => x.ClientId).Query(client_id.ToString()));
@@ -297,7 +297,7 @@ namespace Caching.Elasticsearch
 
             var delveringResponse = elasticClient.Count<OrderMergeESModel>(c => c
                 .Index(index)
-                .Query(q => baseClientQuery(q) && q.Terms(t => t.Field(f => f.OrderStatus).Terms(new[] { 1,2,5,6 })))
+                .Query(q => baseClientQuery(q) && q.Terms(t => t.Field(f => f.OrderStatus).Terms(new[] { 2,5})))
             );
             long delvering = delveringResponse.IsValid ? delveringResponse.Count : 0;
 
@@ -318,7 +318,13 @@ namespace Caching.Elasticsearch
                 .Query(q => baseClientQuery(q) && q.Terms(m => m.Field(f => f.OrderStatus).Terms(new[] { 4 })))
             );
             long cancel = cancelResponse.IsValid ? cancelResponse.Count : 0;
-            return (all, waiting, delvering, finish, refund, cancel);
+
+            var processingResponse = elasticClient.Count<OrderMergeESModel>(c => c
+                .Index(index)
+                .Query(q => baseClientQuery(q) && q.Terms(m => m.Field(f => f.OrderStatus).Terms(new[] { 1,6 })))
+            );
+            long processing = processingResponse.IsValid ? processingResponse.Count : 0;
+            return (all, waiting, delvering, finish, refund, cancel, processing);
         }
     }
 }

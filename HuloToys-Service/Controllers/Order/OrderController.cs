@@ -940,7 +940,7 @@ namespace HuloToys_Service.Controllers
                     var account_client = accountClientESService.GetById(account_client_id);
                     var client = clientESService.GetById((long)account_client.ClientId);
 
-                    var (all, waiting, delvering, finish, refund, cancel) = orderMergeESService.CountOrdersByStatus((long)account_client.ClientId);
+                    var (all, waiting, delvering, finish, refund, cancel, processing) = orderMergeESService.CountOrdersByStatus((long)account_client.ClientId);
 
                     return Ok(new
                     {
@@ -953,7 +953,8 @@ namespace HuloToys_Service.Controllers
                             on_delivery = delvering,
                             success = finish,
                             cancel = refund,
-                            refund= cancel
+                            refund= cancel,
+                            processing= processing
                         }
                     });
 

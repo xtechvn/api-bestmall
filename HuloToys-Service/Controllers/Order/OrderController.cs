@@ -378,7 +378,7 @@ namespace HuloToys_Service.Controllers
                         status = (int)ResponseType.SUCCESS,
                         msg = "Success",
                         data = result,
-                        //data_order = order_es,
+                        data_order = order_es,
                         province,
                         district,
                         ward

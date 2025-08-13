@@ -952,8 +952,8 @@ namespace HuloToys_Service.Controllers
                             waiting_payment = waiting,
                             on_delivery = delvering,
                             success = finish,
-                            cancel = refund,
-                            refund= cancel,
+                            cancel = cancel ,
+                            refund= refund,
                             processing= processing
                         }
                     });

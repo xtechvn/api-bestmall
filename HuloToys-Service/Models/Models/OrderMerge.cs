@@ -42,7 +42,7 @@ public partial class OrderMerge
     /// </summary>
     public string? Note { get; set; }
 
-    public string VoucherId { get; set; }
+    public string? VoucherId { get; set; }
 
     public int? IsDelete { get; set; }
 
@@ -67,6 +67,6 @@ public partial class OrderMerge
     public string? RefundReason { get; set; }
 
     public DateTime? RefundDate { get; set; }
-    public double? ShippingFee { get; set; }
 
+    public double? ShippingFee { get; set; }
 }

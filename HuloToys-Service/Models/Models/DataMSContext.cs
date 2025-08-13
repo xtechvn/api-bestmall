@@ -880,7 +880,6 @@ public partial class DataMSContext : DbContext
             entity.Property(e => e.UtmMedium).HasMaxLength(250);
             entity.Property(e => e.UtmSource).HasMaxLength(50);
             entity.Property(e => e.VoucherId).HasMaxLength(50);
-
         });
 
         modelBuilder.Entity<Payment>(entity =>

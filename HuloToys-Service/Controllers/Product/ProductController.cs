@@ -284,6 +284,7 @@ namespace WEB.CMS.Controllers
                             LogHelper.InsertLogTelegram("ProductDetail (result != null) UpdateFullProductById: " + (result == null ? "NULL" : result.product_main._id));
 
                             result = await _productDetailService.UpdateFullProductById(result);
+                            LogHelper.InsertLogTelegram("ProductDetail _productDetailService.UpdateFullProductById: " + (result == null|| result.product_main == null ? "NULL" : result.product_main._id));
 
                             return Ok(new
                             {

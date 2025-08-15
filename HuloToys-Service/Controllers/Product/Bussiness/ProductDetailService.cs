@@ -148,46 +148,23 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
         {
             try
             {
-                LogHelper.InsertLogTelegram("UpdateFullProductById result.product_main: " + (result.product_main == null ? "NULL" : result.product_main._id));
 
                 result.product_main = await UpdateProductDetail(result.product_main);
                 if (result.product_sub != null && result.product_sub.Count > 0)
                 {
                     result.product_sub = await UpdateProductDetail(result.product_sub);
+                    result.product_main.amount_min = result.product_sub.Min(x => (x.amount_after_flashsale != null && x.amount_after_flashsale > 0 ? x.amount_after_flashsale : x.amount));
+                    result.product_main.amount_max = result.product_sub.Max(x => (x.amount_after_flashsale != null && x.amount_after_flashsale > 0 ? x.amount_after_flashsale : x.amount));
+
                 }
-                result.product_main.amount_min = result.product_sub.Min(x => (x.amount_after_flashsale != null && x.amount_after_flashsale > 0 ? x.amount_after_flashsale : x.amount));
-                result.product_main.amount_max = result.product_sub.Max(x => (x.amount_after_flashsale != null && x.amount_after_flashsale > 0 ? x.amount_after_flashsale : x.amount));
-                //--Get group:
-                //if (result.product_main != null && result.product_main.group_product_id != null && result.product_main.group_product_id.Trim() != "")
-                //{
-                //    result.groups = new List<GroupProductESModel>();
-                //    try
-                //    {
-                //        var split = result.product_main.group_product_id.Split(",");
-                //        if (split != null && split.Count() > 0)
-                //        {
-                //            foreach (var item in split)
-                //            {
-                //                try
-                //                {
-                //                    var g = groupProductESService.GetById(Convert.ToInt32(item));
-                //                    if (g != null && g.Id > 0)
-                //                    {
-                //                        result.groups.Add(g);
-                //                    }
-                //                }
-                //                catch { }
-                //            }
-                //        }
-                //    }
-                //    catch { }
-                //}
             }
             catch (Exception ex)
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
                 LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
             }
+            LogHelper.InsertLogTelegram("UpdateFullProductById result: " + (result==null||result.product_main == null ? "NULL" : result.product_main._id));
+
             return result;
         }
         public async Task<List<ProductMongoDbModelFEResponse>> ListByProducts(List<string> ids)
@@ -215,19 +192,13 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             {
 
                 item = JsonConvert.DeserializeObject<ProductMongoDbModelFEResponse>(JsonConvert.SerializeObject(product));
-                LogHelper.InsertLogTelegram("UpdateProductDetail flashSaleESRepository.: " + (flashSaleESRepository == null ? "NULL" : "flashSaleESRepository"));
 
                 var active_flashsale = await flashSaleESRepository.SearchActiveFlashSales();
                 List<FlashSaleProductESModel> list_item = new List<FlashSaleProductESModel>();
                 if (active_flashsale != null && active_flashsale.Count > 0)
                 {
-                    LogHelper.InsertLogTelegram("UpdateProductDetail flashSaleProductESRepository.: " + (flashSaleESRepository == null ? "NULL" : "flashSaleProductESRepository"));
-
                     list_item = await flashSaleProductESRepository.GetByListFlashsaleId(active_flashsale.Select(x => x.flashsale_id).ToList());
-                    LogHelper.InsertLogTelegram("UpdateProductDetail groupProductESService.: " + (groupProductESService == null ? "NULL" : "groupProductESService"));
-
                     var group_type = groupProductESService.GetListGroupProductByParentId(109);
-
                     UpdateProductItem(item, active_flashsale, list_item, group_type);
                 }
 
@@ -404,8 +375,6 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                 if (item == null || item._id == null) return false;
                 if (!ignore_raiting)
                 {
-                    LogHelper.InsertLogTelegram("UpdateProductDetail UpdateProductRaiting.: ");
-
                     UpdateProductRaiting(item);
                 }
                 //if (!ignore_total_sold)
@@ -415,8 +384,6 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                 //}
                 if (active_flashsale != null && active_flashsale.Count > 0 && list_item != null && list_item.Count > 0)
                 {
-                    LogHelper.InsertLogTelegram("UpdateProductDetail UpdateProductFlashsale.: ");
-
                     UpdateProductFlashsale(item, active_flashsale, list_item, group_types);
                 }
             }
@@ -434,8 +401,6 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             try
             {
                 if (item == null || item._id == null) return false;
-                LogHelper.InsertLogTelegram("UpdateProductDetail _raitingESService: " + (_raitingESService == null ? "NULL" : "_raitingESService"));
-
                 var raiting = _raitingESService.GetListByFilter(new Models.Raiting.ProductRaitingRequestModel()
                 {
                     id = item._id,

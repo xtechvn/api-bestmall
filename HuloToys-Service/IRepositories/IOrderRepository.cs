@@ -15,5 +15,6 @@ namespace Repositories.IRepositories
         Order GetByOrderNo(string orderNo);
         Task<long> UpdateOrderStatus(Order model);
         Task<OrderDetailViewModel> GetDetailOrderByOrderId(long OrderId);
+        public Task<List<Order>> GetByOrderMergeId(long order_merge_id);
     }
 }

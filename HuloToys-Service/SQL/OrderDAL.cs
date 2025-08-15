@@ -399,6 +399,22 @@ namespace DAL
             }
             return null;
         }
+        public async Task<List<Order>> GetByOrderMergeId(long order_merge_id)
+        {
+            try
+            {
+                using (var _DbContext = new EntityDataContext(_connection))
+                {
+
+                    return await _DbContext.Orders.AsNoTracking().Where(s => s.OrderMergeId == order_merge_id).ToListAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram("GetByOrderMergeId - OrderDal: " + ex);
+                return null;
+            }
+        }
 
     }
 }

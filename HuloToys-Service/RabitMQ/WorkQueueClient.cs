@@ -92,7 +92,7 @@ namespace HuloToys_Service.RabitMQ
                 catch (Exception ex)
                 {
                     string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                    LogHelper.InsertLogTelegram(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
+                    LogHelper.InsertLogTelegram("WorkQueueClient - InsertQueueSimpleDurable [ " + configuration["Queue:V_Host_Sync"] + "/" + configuration["Queue:QueueSyncES"] + "] -> [" + message + "][" + queueName + "]: " + ex);
                     return false;
                 }
             }
@@ -187,7 +187,6 @@ namespace HuloToys_Service.RabitMQ
                 var _data_push = JsonConvert.SerializeObject(j_param);
                 // Push message vào queue
                 var response_queue = InsertQueueSimpleSyncES(_data_push);
-                LogHelper.InsertLogTelegram("WorkQueueClient - SyncES [ " + configuration["Queue:V_Host_Sync"] + "/" + configuration["Queue:QueueSyncES"] + "] -> [" + id + "][" + store_procedure + "] [" + index_es + "][" + project_id + "]: " + response_queue.ToString());
 
                 return true;
             }

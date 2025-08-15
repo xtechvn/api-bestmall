@@ -339,7 +339,6 @@ namespace DAL
                     new SqlParameter("@ShippingTypeCode", model.ShippingTypeCode??(object)DBNull.Value),
                     new SqlParameter("@SupplierId", model.SupplierId??(object)DBNull.Value),
                     new SqlParameter("@OrderMergeId", model.OrderMergeId??(object)DBNull.Value),
-                    new SqlParameter("@ShippingFee", model.ShippingFee??(object)DBNull.Value),
 
                 };
 

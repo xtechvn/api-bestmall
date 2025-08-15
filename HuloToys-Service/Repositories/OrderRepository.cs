@@ -85,6 +85,10 @@ namespace Repositories.Repositories
         {
             return await _OrderDal.GetByOrderMergeId(order_merge_id);
         }
+        public async Task<long> UpdateOrder(Order model)
+        {
+            return await _OrderDal.UpdateOrder(model);
+        }
         
 
     }

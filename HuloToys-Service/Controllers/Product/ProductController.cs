@@ -269,8 +269,6 @@ namespace WEB.CMS.Controllers
                     }
                     if (result == null || result.product_main == null || (result.product_main != null && result.product_main.status != (int)ProductStatus.ACTIVE))
                     {
-                        LogHelper.InsertLogTelegram("ProductDetail result == null: ");
-
                         return Ok(new
                         {
                             status = (int)ResponseType.FAILED,
@@ -292,8 +290,6 @@ namespace WEB.CMS.Controllers
                     if (request.token != null && request.token.Trim() != "")
                     {
                         long account_client_id = await clientServices.GetAccountClientIdFromToken(request.token);
-                        LogHelper.InsertLogTelegram("ProductDetail result == null account_client_id: " + (account_client_id <=0 ? "NULL" : account_client_id));
-
                         if (account_client_id > 0)
                         {
                             var exists = await _productFavouritesMongoAccess.GetByAccountAndProduct(request.id, account_client_id);
@@ -305,8 +301,6 @@ namespace WEB.CMS.Controllers
                         }
                     }
                     result.favourite.count = await _productFavouritesMongoAccess.CountByProductId(request.id);
-                    LogHelper.InsertLogTelegram("ProductDetail _productFavouritesMongoAccess.CountByProductId: " + (result.favourite.count <=0 ? "0" : result.favourite.count));
-
                     if (result.product_main.products_buy_with != null && result.product_main.products_buy_with.Count > 0)
                     {
                         result.product_buy_with = await _productDetailService.ListByProducts(result.product_main.products_buy_with);
@@ -336,8 +330,6 @@ namespace WEB.CMS.Controllers
                     if (result.product_main != null && result.product_main.label_id > 0)
                     {
                         var cache_name_label = CacheType.LABEL + result.product_main.label_id;
-                        LogHelper.InsertLogTelegram("ProductDetail cache_name_label: " + (cache_name_label == null ? "NULL" : cache_name_label));
-
                         var j_data_label = "";
                         try
                         {
@@ -361,8 +353,6 @@ namespace WEB.CMS.Controllers
                     //--Get group:
                     if (result.product_main != null && result.product_main.group_product_id !=null && result.product_main.group_product_id.Trim()!="")
                     {
-                        LogHelper.InsertLogTelegram("ProductDetail result.product_main.group_product_id: " + (result.product_main == null ? "NULL" : result.product_main.group_product_id));
-
                         result.groups = new List<GroupProductESModel>();
                         try
                         {

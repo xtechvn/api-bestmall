@@ -1128,7 +1128,11 @@ namespace HuloToys_Service.Controllers
                         order_merge.RefundStatus = 1;
                         order_merge.RefundReason = request.reason;
                         order_merge.UpdateLast = DateTime.Now;
-                        await _orderMergeRepository.UpdateOrderMerge(order_merge);
+                        try
+                        {
+                            await _orderMergeRepository.UpdateOrderMerge(order_merge);
+                        }
+                        catch { }
                         LogHelper.InsertLogTelegram("WorkQueueClient - SyncES [SP_GetOrderMerge] -> [hulotoys_sp_getordermerge][" + order_merge.Id + "][" + order_merge.OrderStatus + "]");
 
                         work_queue.SyncES(order_merge.Id, "SP_GetOrderMerge", "hulotoys_sp_getordermerge", 1);

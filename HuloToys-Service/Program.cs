@@ -1,5 +1,6 @@
 using Caching.Elasticsearch.FlashSale;
 using Entities.ConfigModels;
+using HuloToys_Service.Controllers.Flashsale.Bussiness;
 using HuloToys_Service.Controllers.IRepositories;
 using HuloToys_Service.Controllers.Payment.Bussiness;
 using HuloToys_Service.Controllers.Product.Bussiness;
@@ -82,6 +83,7 @@ internal class Program
         builder.Services.AddSingleton<ClientContactMongodbService>();
         builder.Services.AddSingleton<ViettelPostService>();
         builder.Services.AddSingleton<SupplierESRepository>();
+        builder.Services.AddSingleton<FlashsaleService>();
 
 
         builder.Services.AddSingleton<RedisConn>();

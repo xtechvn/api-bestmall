@@ -38,19 +38,31 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
         private readonly FlashSaleESRepository flashSaleESRepository;
         private readonly FlashSaleProductESRepository flashSaleProductESRepository;
         private readonly FlashsaleService flashsaleService;
-        public ProductDetailService(IConfiguration configuration)
+        public ProductDetailService(IConfiguration configuration, ProductDetailMongoAccess productDetailMongoAccess,
+            CartMongodbService cartMongodbService, FlashsaleService _flashsaleService, ProductFavouritesMongoAccess productFavouritesMongoAccess)
         {
-             _productDetailMongoAccess = new ProductDetailMongoAccess(configuration);
-            _cartMongodbService = new CartMongodbService(configuration);
+             _productDetailMongoAccess = productDetailMongoAccess;
+            _cartMongodbService = cartMongodbService;
             groupProductESService = new GroupProductESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
             _raitingESService = new RaitingESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
             _clientESService = new ClientESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
             _configuration = configuration;
             orderDetailESService = new OrderDetailESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
-            _productFavouritesMongoAccess = new ProductFavouritesMongoAccess(configuration);
+            _productFavouritesMongoAccess = productFavouritesMongoAccess;
             flashSaleESRepository = new FlashSaleESRepository(configuration["DataBaseConfig:Elastic:Host"], configuration);
             flashSaleProductESRepository = new FlashSaleProductESRepository(configuration["DataBaseConfig:Elastic:Host"], configuration);
-            flashsaleService = new FlashsaleService(configuration);
+            flashsaleService = _flashsaleService;
+            LogHelper.InsertLogTelegram("ProductDetailService _productDetailMongoAccess: " + (_productDetailMongoAccess == null ? "NULL" : "_productDetailMongoAccess"));
+            LogHelper.InsertLogTelegram("ProductDetailService _cartMongodbService: " + (_cartMongodbService == null ? "NULL" : "_cartMongodbService"));
+            LogHelper.InsertLogTelegram("ProductDetailService groupProductESService: " + (groupProductESService == null ? "NULL" : "groupProductESService"));
+            LogHelper.InsertLogTelegram("ProductDetailService _raitingESService: " + (_raitingESService == null ? "NULL" : "_raitingESService"));
+            LogHelper.InsertLogTelegram("ProductDetailService _clientESService: " + (_clientESService == null ? "NULL" : "_clientESService"));
+            LogHelper.InsertLogTelegram("ProductDetailService _configuration: " + (_configuration == null ? "NULL" : "_configuration"));
+            LogHelper.InsertLogTelegram("ProductDetailService orderDetailESService: " + (orderDetailESService == null ? "NULL" : "orderDetailESService"));
+            LogHelper.InsertLogTelegram("ProductDetailService _productFavouritesMongoAccess: " + (_productFavouritesMongoAccess == null ? "NULL" : "_productFavouritesMongoAccess"));
+            LogHelper.InsertLogTelegram("ProductDetailService flashSaleESRepository: " + (flashSaleESRepository == null ? "NULL" : "flashSaleESRepository"));
+            LogHelper.InsertLogTelegram("ProductDetailService flashSaleProductESRepository: " + (flashSaleProductESRepository == null ? "NULL" : "flashSaleProductESRepository"));
+            LogHelper.InsertLogTelegram("ProductDetailService flashsaleService: " + (_configuration == null ? "NULL" : "flashsaleService"));
 
         }
         public async Task<ProductListResponseFEModel> ProductListing(ProductListRequestModel request)

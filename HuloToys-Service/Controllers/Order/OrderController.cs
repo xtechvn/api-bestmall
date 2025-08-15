@@ -1137,7 +1137,7 @@ namespace HuloToys_Service.Controllers
 
 
                     var orders = await _orderRepository.GetByOrderMergeId(Convert.ToInt64(request.id));
-                    LogHelper.InsertLogTelegram("WorkQueueClient - _orderRepository.GetByOrderMergeId(Convert.ToInt64(request.id) [" + (orders==null ?"NULL": orders.Count) + "]");
+                    LogHelper.InsertLogTelegram("Refund - _orderRepository.GetByOrderMergeId(Convert.ToInt64(request.id) [" + (orders==null ?"NULL": orders.Count) + "]");
 
                     if (orders != null && orders.Count > 0)
                     {
@@ -1248,12 +1248,14 @@ namespace HuloToys_Service.Controllers
                         }
                         catch { }
                         var rs_push = work_queue.SyncES(order_merge.Id, "SP_GetOrderMerge", "hulotoys_sp_getordermerge", 1);
-                        LogHelper.InsertLogTelegram("WorkQueueClient - SyncES [SP_GetOrderMerge] -> [hulotoys_sp_getordermerge][" + order_merge.Id + "][" + order_merge.OrderStatus + "][" + rs_push + "]");
+                        LogHelper.InsertLogTelegram("CancelOrder - SyncES [SP_GetOrderMerge] -> [hulotoys_sp_getordermerge][" + order_merge.Id + "][" + order_merge.OrderStatus + "][" + rs_push + "]");
 
 
                     }
                     var orders = await _orderRepository.GetByOrderMergeId(Convert.ToInt64(request.id));
-                    if(orders != null && orders.Count>0)
+                    LogHelper.InsertLogTelegram("CancelOrder - _orderRepository.GetByOrderMergeId(Convert.ToInt64(request.id) [" + (orders == null ? "NULL" : orders.Count) + "]");
+
+                    if (orders != null && orders.Count>0)
                     {
                         foreach(var order in orders)
                         {
@@ -1352,6 +1354,8 @@ namespace HuloToys_Service.Controllers
 
                     }
                     var orders = await _orderRepository.GetByOrderMergeId(Convert.ToInt64(request.id));
+                    LogHelper.InsertLogTelegram("ReceivedOrder - _orderRepository.GetByOrderMergeId(Convert.ToInt64(request.id) [" + (orders == null ? "NULL" : orders.Count) + "]");
+
                     if (orders != null && orders.Count > 0)
                     {
                         foreach (var order in orders)

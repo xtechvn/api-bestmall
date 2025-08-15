@@ -1257,24 +1257,15 @@ namespace HuloToys_Service.Controllers
                     {
                         foreach(var order in orders)
                         {
-                            try
+                            var result = await _orderRepository.UpdateOrderStatus(new Models.Models.Order()
                             {
-
-                                var result = await _orderRepository.UpdateOrderStatus(new Models.Models.Order()
-                                {
-                                    OrderId = order.OrderId,
-                                    OrderStatus = (int)OrderStatus.CANCEL,
-                                    UserUpdateId = 1,
-                                    RefundStatus = 1,
-                                    RefundReason = request.reason
-                                });
-                                work_queue.SyncES(Convert.ToInt64(request.id), "SP_GetOrder", "hulotoys_sp_getorder", 1);
-                               
-                            }
-                            catch
-                            {
-
-                            }
+                                OrderId = order.OrderId,
+                                OrderStatus = (int)OrderStatus.CANCEL,
+                                UserUpdateId = 1,
+                                RefundStatus = 1,
+                                RefundReason = request.reason
+                            });
+                            work_queue.SyncES(Convert.ToInt64(request.id), "SP_GetOrder", "hulotoys_sp_getorder", 1);
                         }
                     }
                     return Ok(new
@@ -1365,18 +1356,10 @@ namespace HuloToys_Service.Controllers
                     {
                         foreach (var order in orders)
                         {
-                            try
-                            {
-                               
-                                order.OrderId = order.OrderId;
-                                order.OrderStatus = (int)OrderStatus.FINISHED_DELIVERY;
-                                await _orderRepository.UpdateOrder(order);
-                                work_queue.SyncES(Convert.ToInt64(request.id), "SP_GetOrder", "hulotoys_sp_getorder", 1);
-                            }
-                            catch
-                            {
-
-                            }
+                            order.OrderId = order.OrderId;
+                            order.OrderStatus = (int)OrderStatus.FINISHED_DELIVERY;
+                            await _orderRepository.UpdateOrder(order);
+                            work_queue.SyncES(Convert.ToInt64(request.id), "SP_GetOrder", "hulotoys_sp_getorder", 1);
                         }
                     }
                     return Ok(new

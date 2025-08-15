@@ -21,6 +21,7 @@ using HuloToys_Service.Utilities.constants.APP;
 using HuloToys_Service.Utilities.Lib;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Identity.Client;
 using Models.APIRequest;
 using Models.MongoDb;
 using Nest;
@@ -634,6 +635,7 @@ namespace HuloToys_Service.Controllers
                             cart.quanity = item.quanity;
                             cart.total_price = price * item.quanity;
                             cart.total_profit = profit * item.quanity;
+                            cart.total_profit = cart.product.profit * item.quanity;
                             cart.total_amount = amount * item.quanity;
                             cart.total_discount = cart.product.discount / cart.quanity * item.quanity;
                             model.total_price += cart.total_price;
@@ -767,7 +769,7 @@ namespace HuloToys_Service.Controllers
                             }
                             model.total_discount = total_discount;
                             model.total_amount -= total_discount;
-                            model.total_profit -= total_discount;
+                            //model.total_profit -= total_discount;
                             model.voucher_apply.Add(new OrderDetailMongoDbVoucherApply()
                             {
                                 PriceSales=voucher.price_sales,

@@ -226,7 +226,6 @@ namespace WEB.CMS.Controllers
             try
             {
                 JArray objParr = null;
-                LogHelper.InsertLogTelegram("ProductDetail receiver: " + (input == null ? "NULL" : input.token));
 
                 if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, _configuration["KEY:private_key"]))
                 {
@@ -239,19 +238,34 @@ namespace WEB.CMS.Controllers
                             msg = ResponseMessages.DataInvalid
                         });
                     }
+
+                    LogHelper.InsertLogTelegram("ProductDetail validate: " + (request == null ? "NULL" : request.id));
+
                     ProductDetailResponseModel result = new ProductDetailResponseModel();
                     Label label = new Label();
                     var cache_name = CacheType.PRODUCT_DETAIL + request.id;
-                    var j_data = await _redisService.GetAsync(cache_name, Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
+                    string j_data = "";
+                    try
+                    {
+                        j_data = await _redisService.GetAsync(cache_name, Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
+                    }
+                    catch { }
                     if (j_data != null && j_data.Trim() != "")
                     {
                         result = JsonConvert.DeserializeObject<ProductDetailResponseModel>(j_data);
+
                         //--Get Label:
                         if (result!=null && result.product_main != null && result.product_main.label_id > 0)
                         {
                             var cache_name_label = CacheType.LABEL + result.product_main.label_id;
 
-                            var j_data_label = await _redisService.GetAsync(cache_name_label, Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
+                            var j_data_label = "";
+                            try
+                            {
+                                j_data = await _redisService.GetAsync(cache_name_label, Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
+                            }
+                            catch { }
+
                             if (j_data_label != null && j_data_label.Trim() != "")
                             {
                                 label = JsonConvert.DeserializeObject<Label>(j_data_label);
@@ -385,7 +399,12 @@ namespace WEB.CMS.Controllers
                     {
                         var cache_name_label = CacheType.LABEL + result.product_main.label_id;
 
-                        var j_data_label = await _redisService.GetAsync(cache_name_label, Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
+                        var j_data_label = "";
+                        try
+                        {
+                            j_data = await _redisService.GetAsync(cache_name_label, Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
+                        }
+                        catch { }
                         if (j_data_label != null && j_data_label.Trim() != "")
                         {
                             label = JsonConvert.DeserializeObject<Label>(j_data_label);
@@ -425,7 +444,12 @@ namespace WEB.CMS.Controllers
                         }
                         catch { }
                     }
-                    _redisService.Set(cache_name, JsonConvert.SerializeObject(result), DateTime.Now.AddDays(1), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
+                    try
+                    {
+                        _redisService.Set(cache_name, JsonConvert.SerializeObject(result), DateTime.Now.AddDays(1), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
+
+                    }
+                    catch { }
                     return Ok(new
                     {
                         status = (int)ResponseType.SUCCESS,

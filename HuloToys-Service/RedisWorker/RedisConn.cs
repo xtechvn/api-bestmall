@@ -19,15 +19,16 @@ namespace HuloToys_Service.RedisWorker
         {
             try
             {
-                var configString = $"{_redisHost}:{_redisPort},connectRetry=5,allowAdmin=true";
-                _redis = ConnectionMultiplexer.Connect(configString);
+                if (_redis == null || !_redis.IsConnected)
+                {
+                    var configString = $"{_redisHost}:{_redisPort},connectRetry=5,allowAdmin=true";
+                    _redis = ConnectionMultiplexer.Connect(configString);
+                }
             }
             catch (RedisConnectionException err)
             {
-
-                throw err;
+                throw; 
             }
-            // Log.Debug("Connected to Redis");
         }
 
         public void Set(string key, string value, int db_index)

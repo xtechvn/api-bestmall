@@ -1137,8 +1137,6 @@ namespace HuloToys_Service.Controllers
 
 
                     var orders = await _orderRepository.GetByOrderMergeId(Convert.ToInt64(request.id));
-                    LogHelper.InsertLogTelegram("Refund - _orderRepository.GetByOrderMergeId(Convert.ToInt64(request.id) [" + (orders==null ?"NULL": orders.Count) + "]");
-
                     if (orders != null && orders.Count > 0)
                     {
                         foreach (var order in orders)
@@ -1150,7 +1148,7 @@ namespace HuloToys_Service.Controllers
                             order.RefundReason = request.reason;
                             order.RefundDate = DateTime.Now;
                             await _orderRepository.UpdateOrder(order);
-                            work_queue.SyncES(Convert.ToInt64(request.id), "SP_GetOrder", "hulotoys_sp_getorder", 1);
+                            work_queue.SyncES(order.OrderId, "SP_GetOrder", "hulotoys_sp_getorder", 1);
                         }
                     }
                     return Ok(new
@@ -1233,8 +1231,6 @@ namespace HuloToys_Service.Controllers
                         });
                     }
                     var order_merge =  _orderMergeRepository.GetById(Convert.ToInt64(request.id));
-                    LogHelper.InsertLogTelegram("WorkQueueClient - _orderMergeRepository.GetById(Convert.ToInt64(request.id)) [" + (order_merge == null ? "NULL" : order_merge.Id) + "]");
-
                     if (order_merge != null && order_merge.Id>0)
                     {
                         order_merge.OrderStatus = (int)OrderStatus.CANCEL;
@@ -1248,13 +1244,8 @@ namespace HuloToys_Service.Controllers
                         }
                         catch { }
                         var rs_push = work_queue.SyncES(order_merge.Id, "SP_GetOrderMerge", "hulotoys_sp_getordermerge", 1);
-                        LogHelper.InsertLogTelegram("CancelOrder - SyncES [SP_GetOrderMerge] -> [hulotoys_sp_getordermerge][" + order_merge.Id + "][" + order_merge.OrderStatus + "][" + rs_push + "]");
-
-
                     }
                     var orders = await _orderRepository.GetByOrderMergeId(Convert.ToInt64(request.id));
-                    LogHelper.InsertLogTelegram("CancelOrder - _orderRepository.GetByOrderMergeId(Convert.ToInt64(request.id) [" + (orders == null ? "NULL" : orders.Count) + "]");
-
                     if (orders != null && orders.Count>0)
                     {
                         foreach(var order in orders)
@@ -1267,7 +1258,7 @@ namespace HuloToys_Service.Controllers
                                 RefundStatus = 1,
                                 RefundReason = request.reason
                             });
-                            work_queue.SyncES(Convert.ToInt64(request.id), "SP_GetOrder", "hulotoys_sp_getorder", 1);
+                            work_queue.SyncES(order.OrderId, "SP_GetOrder", "hulotoys_sp_getorder", 1);
                         }
                     }
                     return Ok(new
@@ -1330,14 +1321,9 @@ namespace HuloToys_Service.Controllers
                             msg = ResponseMessages.DataInvalid
                         });
                     }
-                    LogHelper.InsertLogTelegram("ReceivedOrder - received [" + (request == null ? "NULL" : request.id) + "]");
-
                     var account_client = accountClientESService.GetById(account_client_id);
                     var client = clientESService.GetById((long)account_client.ClientId);
-                   
                     var order_merge = _orderMergeRepository.GetById(Convert.ToInt64(request.id));
-                    LogHelper.InsertLogTelegram("ReceivedOrder - _orderMergeRepository.GetById(Convert.ToInt64(request.id)) [" + (order_merge == null ? "NULL" : order_merge.Id) + "]");
-
                     if (order_merge != null && order_merge.Id > 0)
                     {
                         order_merge.OrderStatus = (int)OrderStatus.FINISHED_DELIVERY;
@@ -1350,12 +1336,8 @@ namespace HuloToys_Service.Controllers
                         catch { }
 
                         var rs_push = work_queue.SyncES(order_merge.Id, "SP_GetOrderMerge", "hulotoys_sp_getordermerge", 1);
-                        LogHelper.InsertLogTelegram("ReceivedOrder - SyncES [SP_GetOrderMerge] -> [hulotoys_sp_getordermerge][" + order_merge.Id + "][" + order_merge.OrderStatus + "][" + rs_push + "]");
-
                     }
                     var orders = await _orderRepository.GetByOrderMergeId(Convert.ToInt64(request.id));
-                    LogHelper.InsertLogTelegram("ReceivedOrder - _orderRepository.GetByOrderMergeId(Convert.ToInt64(request.id) [" + (orders == null ? "NULL" : orders.Count) + "]");
-
                     if (orders != null && orders.Count > 0)
                     {
                         foreach (var order in orders)
@@ -1363,7 +1345,7 @@ namespace HuloToys_Service.Controllers
                             order.OrderId = order.OrderId;
                             order.OrderStatus = (int)OrderStatus.FINISHED_DELIVERY;
                             await _orderRepository.UpdateOrder(order);
-                            work_queue.SyncES(Convert.ToInt64(request.id), "SP_GetOrder", "hulotoys_sp_getorder", 1);
+                            work_queue.SyncES(order.OrderId, "SP_GetOrder", "hulotoys_sp_getorder", 1);
                         }
                     }
                     return Ok(new

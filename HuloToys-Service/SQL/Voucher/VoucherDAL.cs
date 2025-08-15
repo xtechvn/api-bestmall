@@ -93,6 +93,7 @@ namespace DAL
                 {
                     new SqlParameter("@keyword",keyword??(object)DBNull.Value),
                     new SqlParameter("@status", status),
+                    new SqlParameter("@is_public",  true),
                     new SqlParameter("@page_index", page_index),
                     new SqlParameter("@page_size", page_size),
 

@@ -1364,6 +1364,9 @@ public partial class DataMSContext : DbContext
             entity.Property(e => e.LimitTotalDiscount).HasColumnName("limit_total_discount");
             entity.Property(e => e.LimitUse).HasColumnName("limitUse");
             entity.Property(e => e.MinTotalAmount).HasColumnName("min_total_amount");
+            entity.Property(e => e.Name)
+                .HasMaxLength(200)
+                .HasColumnName("name");
             entity.Property(e => e.PriceSales)
                 .HasColumnType("money")
                 .HasColumnName("price_sales");

@@ -50,5 +50,7 @@ public partial class Voucher
 
     public int? CampaignId { get; set; }
 
+    public string? Name { get; set; }
+
     public virtual ICollection<VoucherLogActivity> VoucherLogActivities { get; set; } = new List<VoucherLogActivity>();
 }

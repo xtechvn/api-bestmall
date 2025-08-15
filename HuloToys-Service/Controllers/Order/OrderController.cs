@@ -20,6 +20,7 @@ using HuloToys_Service.RabitMQ;
 using HuloToys_Service.RedisWorker;
 using HuloToys_Service.Utilities.constants.APP;
 using HuloToys_Service.Utilities.Lib;
+using IdGen;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Identity.Client;
@@ -1119,6 +1120,8 @@ namespace HuloToys_Service.Controllers
                     var client = clientESService.GetById((long)account_client.ClientId);
                    
                     var order_merge = _orderMergeRepository.GetById(Convert.ToInt64(request.id));
+                    LogHelper.InsertLogTelegram("WorkQueueClient - _orderMergeRepository.GetById(Convert.ToInt64(request.id)) [" + (order_merge==null?"NULL":order_merge.Id) + "]");
+
                     if (order_merge != null && order_merge.Id > 0&& order_merge.OrderStatus != (int)OrderStatus.REFUND)
                     {
                         order_merge.OrderStatus = (int)OrderStatus.REFUND;
@@ -1126,6 +1129,8 @@ namespace HuloToys_Service.Controllers
                         order_merge.RefundReason = request.reason;
                         order_merge.UpdateLast = DateTime.Now;
                         await _orderMergeRepository.UpdateOrderMerge(order_merge);
+                        LogHelper.InsertLogTelegram("WorkQueueClient - SyncES [SP_GetOrderMerge] -> [hulotoys_sp_getordermerge][" + order_merge.Id + "][" + order_merge.OrderStatus + "]");
+
                         work_queue.SyncES(order_merge.Id, "SP_GetOrderMerge", "hulotoys_sp_getordermerge", 1);
                     }
                   
@@ -1240,16 +1245,19 @@ namespace HuloToys_Service.Controllers
                         });
                     }
                     var order_merge =  _orderMergeRepository.GetById(Convert.ToInt64(request.id));
-                    if(order_merge != null && order_merge.Id>0 && order_merge.OrderStatus != (int)OrderStatus.CANCEL)
-                    {
+                    LogHelper.InsertLogTelegram("WorkQueueClient - _orderMergeRepository.GetById(Convert.ToInt64(request.id)) [" + (order_merge == null ? "NULL" : order_merge.Id) + "]");
 
+                    if (order_merge != null && order_merge.Id>0 && order_merge.OrderStatus != (int)OrderStatus.CANCEL)
+                    {
                         order_merge.OrderStatus = (int)OrderStatus.CANCEL;
                         order_merge.UserUpdateId = 1;
                         order_merge.RefundStatus = 1;
                         order_merge.RefundReason = request.reason;
                         order_merge.UpdateLast = DateTime.Now;
                         await _orderMergeRepository.UpdateOrderMerge(order_merge);
+                        LogHelper.InsertLogTelegram("WorkQueueClient - SyncES [SP_GetOrderMerge] -> [hulotoys_sp_getordermerge][" + order_merge.Id + "][" + order_merge.OrderStatus + "]");
                         work_queue.SyncES(order_merge.Id, "SP_GetOrderMerge", "hulotoys_sp_getordermerge", 1);
+
                     }
                     var orders = await _orderRepository.GetByOrderMergeId(Convert.ToInt64(request.id));
                     if(orders != null && orders.Count>0)
@@ -1341,11 +1349,15 @@ namespace HuloToys_Service.Controllers
                     var client = clientESService.GetById((long)account_client.ClientId);
                    
                     var order_merge = _orderMergeRepository.GetById(Convert.ToInt64(request.id));
+                    LogHelper.InsertLogTelegram("WorkQueueClient - _orderMergeRepository.GetById(Convert.ToInt64(request.id)) [" + (order_merge == null ? "NULL" : order_merge.Id) + "]");
+
                     if (order_merge != null && order_merge.Id > 0 && order_merge.OrderStatus != (int)OrderStatus.FINISHED_DELIVERY)
                     {
                         order_merge.OrderStatus = (int)OrderStatus.FINISHED_DELIVERY;
                         order_merge.UpdateLast = DateTime.Now;
                         await _orderMergeRepository.UpdateOrderMerge(order_merge);
+                        LogHelper.InsertLogTelegram("WorkQueueClient - SyncES [SP_GetOrderMerge] -> [hulotoys_sp_getordermerge][" + order_merge.Id + "][" + order_merge.OrderStatus + "]");
+
                         work_queue.SyncES(order_merge.Id, "SP_GetOrderMerge", "hulotoys_sp_getordermerge", 1);
                     }
                     var orders = await _orderRepository.GetByOrderMergeId(Convert.ToInt64(request.id));

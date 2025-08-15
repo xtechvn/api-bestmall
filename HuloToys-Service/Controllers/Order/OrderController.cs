@@ -1249,8 +1249,9 @@ namespace HuloToys_Service.Controllers
                             await _orderMergeRepository.UpdateOrderMerge(order_merge);
                         }
                         catch { }
-                        LogHelper.InsertLogTelegram("WorkQueueClient - SyncES [SP_GetOrderMerge] -> [hulotoys_sp_getordermerge][" + order_merge.Id + "][" + order_merge.OrderStatus + "]");
-                        work_queue.SyncES(order_merge.Id, "SP_GetOrderMerge", "hulotoys_sp_getordermerge", 1);
+                        var rs_push = work_queue.SyncES(order_merge.Id, "SP_GetOrderMerge", "hulotoys_sp_getordermerge", 1);
+                        LogHelper.InsertLogTelegram("WorkQueueClient - SyncES [SP_GetOrderMerge] -> [hulotoys_sp_getordermerge][" + order_merge.Id + "][" + order_merge.OrderStatus + "][" + rs_push + "]");
+
 
                     }
                     var orders = await _orderRepository.GetByOrderMergeId(Convert.ToInt64(request.id));
@@ -1351,12 +1352,14 @@ namespace HuloToys_Service.Controllers
                         order_merge.UpdateLast = DateTime.Now;
                         try
                         {
-                            await _orderMergeRepository.UpdateOrderMerge(order_merge);
+                           await _orderMergeRepository.UpdateOrderMerge(order_merge);
+
                         }
                         catch { }
-                        LogHelper.InsertLogTelegram("WorkQueueClient - SyncES [SP_GetOrderMerge] -> [hulotoys_sp_getordermerge][" + order_merge.Id + "][" + order_merge.OrderStatus + "]");
 
-                        work_queue.SyncES(order_merge.Id, "SP_GetOrderMerge", "hulotoys_sp_getordermerge", 1);
+                        var rs_push = work_queue.SyncES(order_merge.Id, "SP_GetOrderMerge", "hulotoys_sp_getordermerge", 1);
+                        LogHelper.InsertLogTelegram("WorkQueueClient - SyncES [SP_GetOrderMerge] -> [hulotoys_sp_getordermerge][" + order_merge.Id + "][" + order_merge.OrderStatus + "][" + rs_push + "]");
+
                     }
                     var orders = await _orderRepository.GetByOrderMergeId(Convert.ToInt64(request.id));
                     if (orders != null && orders.Count > 0)

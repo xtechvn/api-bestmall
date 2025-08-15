@@ -84,8 +84,8 @@ namespace DAL
                 SqlParameter[] objParam = new SqlParameter[]
                 {
                 new SqlParameter("@Id", model.Id),
-                new SqlParameter("@ClientId", model.ClientId <= 0 ? (object)DBNull.Value : model.ClientId),
-                new SqlParameter("@OrderNo", model.OrderNo ?? (object)DBNull.Value),
+                new SqlParameter("@ClientId", model.ClientId <= 0 ? 0 : model.ClientId),
+                new SqlParameter("@OrderNo", model.OrderNo ==null ?"": (object)DBNull.Value),
                 new SqlParameter("@CreatedDate", model.CreatedDate),
                 new SqlParameter("@CreatedBy", model.CreatedBy <= 0 ? (object)DBNull.Value : model.CreatedBy),
                 new SqlParameter("@UpdateLast", model.UpdateLast ?? (object)DBNull.Value),
@@ -94,9 +94,9 @@ namespace DAL
                 new SqlParameter("@Profit", model.Profit ?? (object)DBNull.Value),
                 new SqlParameter("@Discount", model.Discount ?? (object)DBNull.Value),
                 new SqlParameter("@Amount", model.Amount ?? (object)DBNull.Value),
-                new SqlParameter("@OrderStatus", model.OrderStatus <= 0 ? (object)DBNull.Value : model.OrderStatus),
-                new SqlParameter("@PaymentType", model.PaymentType <= 0 ? (object)DBNull.Value : model.PaymentType),
-                new SqlParameter("@PaymentStatus", model.PaymentStatus <= 0 ? (object)DBNull.Value : model.PaymentStatus),
+                new SqlParameter("@OrderStatus", model.OrderStatus <= 0 ? 0 : model.OrderStatus),
+                new SqlParameter("@PaymentType", model.PaymentType < 1 ? 1 : model.PaymentType),
+                new SqlParameter("@PaymentStatus", model.PaymentStatus <= 0 ? 0 : model.PaymentStatus),
                 new SqlParameter("@UtmSource", model.UtmSource ?? (object)DBNull.Value),
                 new SqlParameter("@UtmMedium", model.UtmMedium ?? (object)DBNull.Value),
                 new SqlParameter("@Note", model.Note ?? (object)DBNull.Value),

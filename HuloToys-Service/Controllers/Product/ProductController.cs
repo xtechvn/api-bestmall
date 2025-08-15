@@ -391,35 +391,41 @@ namespace WEB.CMS.Controllers
 
                     }
                     catch { }
-                    return Ok(new
+                    try{
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.SUCCESS,
+                            msg = "Success",
+                            data = new
+                            {
+                                product_main = result.product_main,
+                                product_sub = result.product_sub
+                            },
+                            cert = result.cert,
+                            favourite = result.favourite,
+                            buywith = result.product_buy_with_output,
+                            label_detail = label == null ? null : new
+                            {
+                                label.Id,
+                                label.LabelName,
+                                label.LabelCode,
+                                label.Icon,
+                                label.Banner,
+                                label.Description,
+                            },
+                            groups = (result.groups == null || result.groups.Count <= 0) ? null : result.groups.Select(x => new {
+                                x.Id,
+                                x.ParentId,
+                                x.ImagePath,
+                                x.Name
+                            })
+                        });
+                    }
+                    catch (Exception ex)
                     {
-                        status = (int)ResponseType.SUCCESS,
-                        msg = "Success",
-                        data = new
-                        {
-                            product_main=result.product_main,
-                            product_sub= result.product_sub
-                        },
-                        cert = result.cert,
-                        favourite = result.favourite,
-                        buywith = result.product_buy_with_output,
-                        label_detail = label == null ? null : new
-                        {
-                            label.Id,
-                            label.LabelName,
-                            label.LabelCode,
-                            label.Icon,
-                            label.Banner,
-                            label.Description,
-                        },
-                        groups = (result.groups == null || result.groups.Count <= 0) ? null : result.groups.Select(x => new {
-                            x.Id,
-                            x.ParentId,
-                            x.ImagePath,
-                            x.Name
-                        })
-                    });
-
+                        string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
+                        LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
+                    }
                 }
 
             }

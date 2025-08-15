@@ -103,7 +103,7 @@ internal class Program
 
         app.UseAuthorization();
 
-        app.UseMiddleware<GlobalErrorCaptureMiddleware>();
+       // app.UseMiddleware<GlobalErrorCaptureMiddleware>();
 
         app.MapControllers();
 

@@ -1122,7 +1122,7 @@ namespace HuloToys_Service.Controllers
                     var order_merge = _orderMergeRepository.GetById(Convert.ToInt64(request.id));
                     LogHelper.InsertLogTelegram("WorkQueueClient - _orderMergeRepository.GetById(Convert.ToInt64(request.id)) [" + (order_merge==null?"NULL":order_merge.Id) + "]");
 
-                    if (order_merge != null && order_merge.Id > 0&& order_merge.OrderStatus != (int)OrderStatus.REFUND)
+                    if (order_merge != null && order_merge.Id > 0)
                     {
                         order_merge.OrderStatus = (int)OrderStatus.REFUND;
                         order_merge.RefundStatus = 1;
@@ -1247,7 +1247,7 @@ namespace HuloToys_Service.Controllers
                     var order_merge =  _orderMergeRepository.GetById(Convert.ToInt64(request.id));
                     LogHelper.InsertLogTelegram("WorkQueueClient - _orderMergeRepository.GetById(Convert.ToInt64(request.id)) [" + (order_merge == null ? "NULL" : order_merge.Id) + "]");
 
-                    if (order_merge != null && order_merge.Id>0 && order_merge.OrderStatus != (int)OrderStatus.CANCEL)
+                    if (order_merge != null && order_merge.Id>0)
                     {
                         order_merge.OrderStatus = (int)OrderStatus.CANCEL;
                         order_merge.UserUpdateId = 1;
@@ -1351,7 +1351,7 @@ namespace HuloToys_Service.Controllers
                     var order_merge = _orderMergeRepository.GetById(Convert.ToInt64(request.id));
                     LogHelper.InsertLogTelegram("WorkQueueClient - _orderMergeRepository.GetById(Convert.ToInt64(request.id)) [" + (order_merge == null ? "NULL" : order_merge.Id) + "]");
 
-                    if (order_merge != null && order_merge.Id > 0 && order_merge.OrderStatus != (int)OrderStatus.FINISHED_DELIVERY)
+                    if (order_merge != null && order_merge.Id > 0)
                     {
                         order_merge.OrderStatus = (int)OrderStatus.FINISHED_DELIVERY;
                         order_merge.UpdateLast = DateTime.Now;

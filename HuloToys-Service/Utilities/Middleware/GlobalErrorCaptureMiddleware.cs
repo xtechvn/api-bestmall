@@ -23,7 +23,7 @@ namespace HuloToys_Service.Utilities.Middleware
             catch (Exception ex)
             {
                 caughtException = ex; // Lưu lại nguyên nhân
-                context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+                //context.Response.StatusCode = StatusCodes.Status500InternalServerError;
             }
             finally
             {

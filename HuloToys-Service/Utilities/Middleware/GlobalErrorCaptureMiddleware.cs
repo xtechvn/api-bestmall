@@ -47,6 +47,7 @@ namespace HuloToys_Service.Utilities.Middleware
                               $"Query: {context.Request.QueryString}\n" +
                               $"Reason: {reason}\n" +
                               $"Time: {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC";
+
                 LogHelper.InsertLogTelegram(message);
             }
             catch

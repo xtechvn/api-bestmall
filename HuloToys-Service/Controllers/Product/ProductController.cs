@@ -239,8 +239,6 @@ namespace WEB.CMS.Controllers
                         });
                     }
 
-                    LogHelper.InsertLogTelegram("ProductDetail validate: " + (request == null ? "NULL" : request.id));
-
                     ProductDetailResponseModel result = new ProductDetailResponseModel();
                     Label label = new Label();
                     var cache_name = CacheType.PRODUCT_DETAIL + request.id;
@@ -250,8 +248,6 @@ namespace WEB.CMS.Controllers
                         j_data = await _redisService.GetAsync(cache_name, Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
                     }
                     catch { }
-                    LogHelper.InsertLogTelegram("ProductDetail j_data: " + (j_data == null ? "NULL" : j_data));
-
                     if (j_data != null && j_data.Trim() != "")
                     {
                         result = JsonConvert.DeserializeObject<ProductDetailResponseModel>(j_data);
@@ -267,7 +263,6 @@ namespace WEB.CMS.Controllers
                                 j_data_label = await _redisService.GetAsync(cache_name_label, Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
                             }
                             catch { }
-                            LogHelper.InsertLogTelegram("ProductDetail j_data.Trim() != \"\" j_data_label: " + (j_data_label == null ? "NULL" : j_data_label.Substring(0,20)));
 
                             if (j_data_label != null && j_data_label.Trim() != "")
                             {
@@ -285,7 +280,7 @@ namespace WEB.CMS.Controllers
                         }
                         if (result != null)
                         {
-                            LogHelper.InsertLogTelegram("ProductDetail (result != null) j_data_label: " + (result == null ? "NULL" : result.product_main._id));
+                            LogHelper.InsertLogTelegram("ProductDetail (result != null) UpdateFullProductById: " + (result == null ? "NULL" : result.product_main._id));
 
                             result = await _productDetailService.UpdateFullProductById(result);
 

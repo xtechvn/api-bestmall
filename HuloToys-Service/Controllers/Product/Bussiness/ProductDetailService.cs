@@ -52,18 +52,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             flashSaleESRepository = new FlashSaleESRepository(configuration["DataBaseConfig:Elastic:Host"], configuration);
             flashSaleProductESRepository = new FlashSaleProductESRepository(configuration["DataBaseConfig:Elastic:Host"], configuration);
             flashsaleService = _flashsaleService;
-            LogHelper.InsertLogTelegram("ProductDetailService _productDetailMongoAccess: " + (_productDetailMongoAccess == null ? "NULL" : "_productDetailMongoAccess"));
-            LogHelper.InsertLogTelegram("ProductDetailService _cartMongodbService: " + (_cartMongodbService == null ? "NULL" : "_cartMongodbService"));
-            LogHelper.InsertLogTelegram("ProductDetailService groupProductESService: " + (groupProductESService == null ? "NULL" : "groupProductESService"));
-            LogHelper.InsertLogTelegram("ProductDetailService _raitingESService: " + (_raitingESService == null ? "NULL" : "_raitingESService"));
-            LogHelper.InsertLogTelegram("ProductDetailService _clientESService: " + (_clientESService == null ? "NULL" : "_clientESService"));
-            LogHelper.InsertLogTelegram("ProductDetailService _configuration: " + (_configuration == null ? "NULL" : "_configuration"));
-            LogHelper.InsertLogTelegram("ProductDetailService orderDetailESService: " + (orderDetailESService == null ? "NULL" : "orderDetailESService"));
-            LogHelper.InsertLogTelegram("ProductDetailService _productFavouritesMongoAccess: " + (_productFavouritesMongoAccess == null ? "NULL" : "_productFavouritesMongoAccess"));
-            LogHelper.InsertLogTelegram("ProductDetailService flashSaleESRepository: " + (flashSaleESRepository == null ? "NULL" : "flashSaleESRepository"));
-            LogHelper.InsertLogTelegram("ProductDetailService flashSaleProductESRepository: " + (flashSaleProductESRepository == null ? "NULL" : "flashSaleProductESRepository"));
-            LogHelper.InsertLogTelegram("ProductDetailService flashsaleService: " + (_configuration == null ? "NULL" : "flashsaleService"));
-
+         
         }
         public async Task<ProductListResponseFEModel> ProductListing(ProductListRequestModel request)
         {
@@ -159,6 +148,8 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
         {
             try
             {
+                LogHelper.InsertLogTelegram("UpdateFullProductById result.product_main: " + (result.product_main == null ? "NULL" : result.product_main._id));
+
                 result.product_main = await UpdateProductDetail(result.product_main);
                 if (result.product_sub != null && result.product_sub.Count > 0)
                 {
@@ -224,11 +215,17 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             {
 
                 item = JsonConvert.DeserializeObject<ProductMongoDbModelFEResponse>(JsonConvert.SerializeObject(product));
+                LogHelper.InsertLogTelegram("UpdateProductDetail flashSaleESRepository.: " + (flashSaleESRepository == null ? "NULL" : "flashSaleESRepository"));
+
                 var active_flashsale = await flashSaleESRepository.SearchActiveFlashSales();
                 List<FlashSaleProductESModel> list_item = new List<FlashSaleProductESModel>();
                 if (active_flashsale != null && active_flashsale.Count > 0)
                 {
+                    LogHelper.InsertLogTelegram("UpdateProductDetail flashSaleProductESRepository.: " + (flashSaleESRepository == null ? "NULL" : "flashSaleProductESRepository"));
+
                     list_item = await flashSaleProductESRepository.GetByListFlashsaleId(active_flashsale.Select(x => x.flashsale_id).ToList());
+                    LogHelper.InsertLogTelegram("UpdateProductDetail groupProductESService.: " + (groupProductESService == null ? "NULL" : "groupProductESService"));
+
                     var group_type = groupProductESService.GetListGroupProductByParentId(109);
 
                     UpdateProductItem(item, active_flashsale, list_item, group_type);
@@ -387,6 +384,8 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                 if (item == null || item._id == null) return false;
                 if (!ignore_raiting)
                 {
+                    LogHelper.InsertLogTelegram("UpdateProductDetail UpdateProductRaiting.: ");
+
                     UpdateProductRaiting(item);
                 }
                 //if (!ignore_total_sold)
@@ -396,6 +395,8 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                 //}
                 if (active_flashsale != null && active_flashsale.Count > 0 && list_item != null && list_item.Count > 0)
                 {
+                    LogHelper.InsertLogTelegram("UpdateProductDetail UpdateProductFlashsale.: ");
+
                     UpdateProductFlashsale(item, active_flashsale, list_item, group_types);
                 }
             }
@@ -413,6 +414,8 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             try
             {
                 if (item == null || item._id == null) return false;
+                LogHelper.InsertLogTelegram("UpdateProductDetail _raitingESService: " + (_raitingESService == null ? "NULL" : "_raitingESService"));
+
                 var raiting = _raitingESService.GetListByFilter(new Models.Raiting.ProductRaitingRequestModel()
                 {
                     id = item._id,

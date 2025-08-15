@@ -82,22 +82,7 @@ namespace WEB.CMS.Controllers
                 _newsBusiness = new NewsBusiness(configuration, dbContext);
                 _labelRepository = labelRepository;
                 productRaitingService = _productRaitingService;
-            LogHelper.InsertLogTelegram("_productSpecificationMongoAccess: "+(_productSpecificationMongoAccess==null?"NULL": "_productSpecificationMongoAccess"));
-            LogHelper.InsertLogTelegram("_productFavouritesMongoAccess: " + (_productFavouritesMongoAccess == null?"NULL": "_productFavouritesMongoAccess"));
-            LogHelper.InsertLogTelegram("_cartMongodbService: " + (_cartMongodbService == null?"NULL": "_cartMongodbService"));
-            LogHelper.InsertLogTelegram("_productDetailService: " + (_productDetailService == null?"NULL": "_productDetailService"));
-            LogHelper.InsertLogTelegram("orderDetailESService: " + (orderDetailESService == null?"NULL": "orderDetailESService"));
-            LogHelper.InsertLogTelegram("groupProductESService: " + (groupProductESService == null?"NULL": "groupProductESService"));
-            LogHelper.InsertLogTelegram("_raitingESService: " + (_raitingESService == null?"NULL": "_raitingESService"));
-            LogHelper.InsertLogTelegram("_productESRepository: " + (_productESRepository == null?"NULL": "_productESRepository"));
-            LogHelper.InsertLogTelegram("attachFileESModelESRepository: " + (attachFileESModelESRepository == null?"NULL": "attachFileESModelESRepository"));
-            LogHelper.InsertLogTelegram("clientServices: " + (clientServices == null?"NULL": "clientServices"));
-            LogHelper.InsertLogTelegram("_configuration: " + (_configuration == null?"NULL": "_configuration"));
-            LogHelper.InsertLogTelegram("_redisService: " + (_redisService == null?"NULL": "_redisService"));
-            LogHelper.InsertLogTelegram("_newsBusiness: " + (_newsBusiness == null?"NULL": "_newsBusiness"));
-            LogHelper.InsertLogTelegram("_labelRepository: " + (_labelRepository == null?"NULL": "_labelRepository"));
-            LogHelper.InsertLogTelegram("productRaitingService: " + (productRaitingService == null?"NULL": "productRaitingService"));
-
+         
 
 
         }
@@ -242,6 +227,8 @@ namespace WEB.CMS.Controllers
             try
             {
                 JArray objParr = null;
+                LogHelper.InsertLogTelegram("ProductDetail receiver: " + (input == null ? "NULL" : input.token));
+
                 if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, _configuration["KEY:private_key"]))
                 {
                     var request = JsonConvert.DeserializeObject<ProductDetailRequestModel>(objParr[0].ToString());

@@ -301,8 +301,8 @@ namespace WEB.CMS.Controllers
                                 },
                                 cert = result.cert,
                                 favourite = result.favourite,
-                                buywith = (result.product_buy_with_output == null || result.product_buy_with_output.Count <= 0) ? null : result.product_buy_with_output,
-                                label_detail = label==null? null: new
+                                buywith = (result.product_buy_with_output == null || result.product_buy_with_output.Count <= 0) ? [] : result.product_buy_with_output,
+                                label_detail = label==null? null : new
                                 {
                                     label.Id,
                                     label.LabelName,

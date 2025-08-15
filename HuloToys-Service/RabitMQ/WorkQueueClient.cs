@@ -193,6 +193,7 @@ namespace HuloToys_Service.RabitMQ
             }
             catch (Exception ex)
             {
+                LogHelper.InsertLogTelegram("WorkQueueClient - SyncES [ " + configuration["Queue:V_Host_Sync"] + "/" + configuration["Queue:QueueSyncES"] + "] -> [" + id + "][" + store_procedure + "] [" + index_es + "][" + project_id + "]: " + ex);
 
             }
             return false;

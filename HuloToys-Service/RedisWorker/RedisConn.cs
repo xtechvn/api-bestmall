@@ -1,4 +1,6 @@
-﻿using StackExchange.Redis;
+﻿using HuloToys_Service.Utilities.Lib;
+using StackExchange.Redis;
+using Telegram.Bot.Types.Payments;
 namespace HuloToys_Service.RedisWorker
 {
     public class RedisConn
@@ -27,7 +29,7 @@ namespace HuloToys_Service.RedisWorker
             }
             catch (RedisConnectionException err)
             {
-                throw; 
+                LogHelper.InsertLogTelegram("Connect RedisConn.Insert: " +err);
             }
         }
 

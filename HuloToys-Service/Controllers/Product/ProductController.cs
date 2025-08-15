@@ -8,6 +8,7 @@ using HuloToys_Service.Controllers.Flashsale.Bussiness;
 using HuloToys_Service.Controllers.News.Business;
 using HuloToys_Service.Controllers.Product.Bussiness;
 using HuloToys_Service.ElasticSearch;
+using HuloToys_Service.IRepositories;
 using HuloToys_Service.Models.APIRequest;
 using HuloToys_Service.Models.Article;
 using HuloToys_Service.Models.ElasticSearch;
@@ -62,7 +63,8 @@ namespace WEB.CMS.Controllers
         private readonly FlashSaleProductESRepository flashSaleProductESRepository;
         private readonly FlashsaleService flashsaleService;
         public ProductController(IConfiguration configuration, RedisConn redisService, ILabelRepository labelRepository, DataMSContext dbContext, ProductRaitingService _productRaitingService
-            , ProductDetailService productDetailService/*, ProductDetailMongoAccess productDetailMongoAccess*/, ProductFavouritesMongoAccess productFavouritesMongoAccess)
+            , ProductDetailService productDetailService/*, ProductDetailMongoAccess productDetailMongoAccess*/, ProductFavouritesMongoAccess productFavouritesMongoAccess
+            )
         {
                 //_productDetailMongoAccess = productDetailMongoAccess;
                 _productSpecificationMongoAccess = new ProductSpecificationMongoAccess(configuration);
@@ -81,9 +83,6 @@ namespace WEB.CMS.Controllers
                 _newsBusiness = new NewsBusiness(configuration, dbContext);
                 _labelRepository = labelRepository;
                 productRaitingService = _productRaitingService;
-         
-
-
         }
 
         [HttpPost("get-list")]
@@ -380,41 +379,34 @@ namespace WEB.CMS.Controllers
 
                     }
                     catch { }
-                    try{
-                        return Ok(new
-                        {
-                            status = (int)ResponseType.SUCCESS,
-                            msg = "Success",
-                            data = new
-                            {
-                                product_main = result.product_main,
-                                product_sub = result.product_sub
-                            },
-                            cert = result.cert,
-                            favourite = result.favourite,
-                            buywith = result.product_buy_with_output,
-                            label_detail = label == null ? null : new
-                            {
-                                label.Id,
-                                label.LabelName,
-                                label.LabelCode,
-                                label.Icon,
-                                label.Banner,
-                                label.Description,
-                            },
-                            groups = (result.groups == null || result.groups.Count <= 0) ? null : result.groups.Select(x => new {
-                                x.Id,
-                                x.ParentId,
-                                x.ImagePath,
-                                x.Name
-                            })
-                        });
-                    }
-                    catch (Exception ex)
+                    return Ok(new
                     {
-                        string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                        LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
-                    }
+                        status = (int)ResponseType.SUCCESS,
+                        msg = "Success",
+                        data = new
+                        {
+                            product_main = result.product_main,
+                            product_sub = result.product_sub
+                        },
+                        cert = result.cert,
+                        favourite = result.favourite,
+                        buywith = result.product_buy_with_output,
+                        label_detail = label == null ? null : new
+                        {
+                            label.Id,
+                            label.LabelName,
+                            label.LabelCode,
+                            label.Icon,
+                            label.Banner,
+                            label.Description,
+                        },
+                        groups = (result.groups == null || result.groups.Count <= 0) ? null : result.groups.Select(x => new {
+                            x.Id,
+                            x.ParentId,
+                            x.ImagePath,
+                            x.Name
+                        })
+                    });
                 }
 
             }

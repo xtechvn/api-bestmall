@@ -9,6 +9,7 @@ using HuloToys_Service.Controllers.Order.Business;
 using HuloToys_Service.Controllers.Product.Bussiness;
 using HuloToys_Service.Controllers.Shipping.Business;
 using HuloToys_Service.ElasticSearch;
+using HuloToys_Service.IRepositories;
 using HuloToys_Service.Models.APIRequest;
 using HuloToys_Service.Models.APP;
 using HuloToys_Service.Models.Models;
@@ -66,10 +67,11 @@ namespace HuloToys_Service.Controllers
         private readonly ViettelPostService _viettelPostService;
         private readonly SupplierESRepository _supplierESRepository;
         private readonly IOrderRepository _orderRepository;
+        private readonly IOrderMergeRepository _orderMergeRepository;
 
         public OrderController(IConfiguration _configuration, RedisConn redisService, IVoucherRepository voucherRepository, ViettelPostService viettelPostService,
             ProductDetailService _productDetailService, CartMongodbService cartMongodbService, OrderMongodbService _orderMongodbService, SupplierESRepository supplierESRepository,
-            IOrderRepository orderRepository)
+            IOrderRepository orderRepository, IOrderMergeRepository orderMergeRepository)
         {
             configuration = _configuration;
 
@@ -97,6 +99,8 @@ namespace HuloToys_Service.Controllers
             _cartMongodbService = cartMongodbService;
             _supplierESRepository = supplierESRepository;
             _orderRepository= orderRepository;
+            _orderMergeRepository = orderMergeRepository;
+
         }
 
         [HttpPost("history")]
@@ -1113,22 +1117,49 @@ namespace HuloToys_Service.Controllers
 
                     var account_client = accountClientESService.GetById(account_client_id);
                     var client = clientESService.GetById((long)account_client.ClientId);
-                    var model = new
+                   
+                    var order_merge = _orderMergeRepository.GetById(Convert.ToInt64(request.id));
+                    if (order_merge != null && order_merge.Id > 0&& order_merge.OrderStatus != (int)OrderStatus.REFUND)
                     {
-                        OrderId = request.id,
-                        ClientId = (long)account_client.ClientId,
-                        OrderStatus=(int)OrderStatus.REFUND,
-                        RefundStatus = 1,
-                        RefundReason = request.reason,
-                        RefundDate = DateTime.Now
-                    };
-                    var queue_model = new
-                    {
-                        type = QueueType.UPDATE_ORDER,
-                        data_push = JsonConvert.SerializeObject(model)
-                    };
-                    var pushed_queue = work_queue.InsertQueueSimple(JsonConvert.SerializeObject(queue_model), QueueName.queue_app_push);
+                        order_merge.OrderStatus = (int)OrderStatus.REFUND;
+                        order_merge.RefundStatus = 1;
+                        order_merge.RefundReason = request.reason;
+                        order_merge.UpdateLast = DateTime.Now;
+                        await _orderMergeRepository.UpdateOrderMerge(order_merge);
+                        work_queue.SyncES(order_merge.Id, "SP_GetOrderMerge", "hulotoys_sp_getordermerge", 1);
+                    }
+                  
 
+                    var orders = await _orderRepository.GetByOrderMergeId(Convert.ToInt64(request.id));
+                    if (orders != null && orders.Count > 0)
+                    {
+                        foreach (var order in orders)
+                        {
+                            try
+                            {
+
+                                var model = new
+                                {
+                                    OrderId = request.id,
+                                    ClientId = (long)account_client.ClientId,
+                                    OrderStatus = (int)OrderStatus.REFUND,
+                                    RefundStatus = 1,
+                                    RefundReason = request.reason,
+                                    RefundDate = DateTime.Now
+                                };
+                                var queue_model = new
+                                {
+                                    type = QueueType.UPDATE_ORDER,
+                                    data_push = JsonConvert.SerializeObject(model)
+                                };
+                                var pushed_queue = work_queue.InsertQueueSimple(JsonConvert.SerializeObject(queue_model), QueueName.queue_app_push);
+                            }
+                            catch
+                            {
+
+                            }
+                        }
+                    }
                     return Ok(new
                     {
                         status = (int)ResponseType.SUCCESS,
@@ -1208,38 +1239,48 @@ namespace HuloToys_Service.Controllers
                             msg = ResponseMessages.DataInvalid
                         });
                     }
-                    var order = await _orderRepository.GetDetailOrderByOrderId(Convert.ToInt64(request.id));
-                    if(order == null || order.OrderId!= Convert.ToInt64(request.id)||order.ClientId!= (long)account_client.ClientId)
-                    {
-                        return Ok(new
-                        {
-                            status = (int)ResponseType.FAILED,
-                            msg = ResponseMessages.DataInvalid
-                        });
-                    }
-                    try
-                    {
-                        
-                        var result = await _orderRepository.UpdateOrderStatus(new Models.Models.Order()
-                        {
-                            OrderId = Convert.ToInt64(request.id),
-                            OrderStatus = (int)OrderStatus.CANCEL,
-                            UserUpdateId = 1,
-                            RefundStatus=1,
-                            RefundReason= request.reason
-                        });
-                        work_queue.SyncES(Convert.ToInt64(request.id), "SP_GetOrder", "hulotoys_sp_getorder", 1);
-
-                        return Ok(new
-                        {
-                            status = (int)ResponseType.SUCCESS,
-                            msg = "Success",
-                        });
-                    }
-                    catch
+                    var order_merge =  _orderMergeRepository.GetById(Convert.ToInt64(request.id));
+                    if(order_merge != null && order_merge.Id>0 && order_merge.OrderStatus != (int)OrderStatus.CANCEL)
                     {
 
+                        order_merge.OrderStatus = (int)OrderStatus.CANCEL;
+                        order_merge.UserUpdateId = 1;
+                        order_merge.RefundStatus = 1;
+                        order_merge.RefundReason = request.reason;
+                        order_merge.UpdateLast = DateTime.Now;
+                        await _orderMergeRepository.UpdateOrderMerge(order_merge);
+                        work_queue.SyncES(order_merge.Id, "SP_GetOrderMerge", "hulotoys_sp_getordermerge", 1);
                     }
+                    var orders = await _orderRepository.GetByOrderMergeId(Convert.ToInt64(request.id));
+                    if(orders != null && orders.Count>0)
+                    {
+                        foreach(var order in orders)
+                        {
+                            try
+                            {
+
+                                var result = await _orderRepository.UpdateOrderStatus(new Models.Models.Order()
+                                {
+                                    OrderId = order.OrderId,
+                                    OrderStatus = (int)OrderStatus.CANCEL,
+                                    UserUpdateId = 1,
+                                    RefundStatus = 1,
+                                    RefundReason = request.reason
+                                });
+                                work_queue.SyncES(Convert.ToInt64(request.id), "SP_GetOrder", "hulotoys_sp_getorder", 1);
+                               
+                            }
+                            catch
+                            {
+
+                            }
+                        }
+                    }
+                    return Ok(new
+                    {
+                        status = (int)ResponseType.SUCCESS,
+                        msg = "Success",
+                    });
                 }
             }
             catch (Exception ex)
@@ -1298,20 +1339,45 @@ namespace HuloToys_Service.Controllers
 
                     var account_client = accountClientESService.GetById(account_client_id);
                     var client = clientESService.GetById((long)account_client.ClientId);
-                    var model = new
+                   
+                    var order_merge = _orderMergeRepository.GetById(Convert.ToInt64(request.id));
+                    if (order_merge != null && order_merge.Id > 0 && order_merge.OrderStatus != (int)OrderStatus.FINISHED_DELIVERY)
                     {
-                        OrderId = request.id,
-                        ClientId = (long)account_client.ClientId,
-                        OrderStatus=(int)OrderStatus.FINISHED_DELIVERY,
-                       
-                    };
-                    var queue_model = new
+                        order_merge.OrderStatus = (int)OrderStatus.FINISHED_DELIVERY;
+                        order_merge.UpdateLast = DateTime.Now;
+                        await _orderMergeRepository.UpdateOrderMerge(order_merge);
+                        work_queue.SyncES(order_merge.Id, "SP_GetOrderMerge", "hulotoys_sp_getordermerge", 1);
+                    }
+                    var orders = await _orderRepository.GetByOrderMergeId(Convert.ToInt64(request.id));
+                    if (orders != null && orders.Count > 0)
                     {
-                        type = QueueType.UPDATE_ORDER,
-                        data_push = JsonConvert.SerializeObject(model)
-                    };
-                    var pushed_queue = work_queue.InsertQueueSimple(JsonConvert.SerializeObject(queue_model), QueueName.queue_app_push);
+                        foreach (var order in orders)
+                        {
+                            try
+                            {
+                                if (order.OrderStatus == (int)OrderStatus.DELIVERY) {
+                                    var model = new
+                                    {
+                                        OrderId = order.OrderId,
+                                        ClientId = (long)account_client.ClientId,
+                                        OrderStatus = (int)OrderStatus.FINISHED_DELIVERY,
 
+                                    };
+                                    var queue_model = new
+                                    {
+                                        type = QueueType.UPDATE_ORDER,
+                                        data_push = JsonConvert.SerializeObject(model)
+                                    };
+                                    var pushed_queue = work_queue.InsertQueueSimple(JsonConvert.SerializeObject(queue_model), QueueName.queue_app_push);
+
+                                }
+                            }
+                            catch
+                            {
+
+                            }
+                        }
+                    }
                     return Ok(new
                     {
                         status = (int)ResponseType.SUCCESS,

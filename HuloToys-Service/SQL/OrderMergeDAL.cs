@@ -1,8 +1,10 @@
 ﻿using DAL.Generic;
 using DAL.StoreProcedure;
+using Entities.Models;
 using HuloToys_Service.Models.Models;
 using HuloToys_Service.Utilities.Lib;
 using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using System.Data;
 
 namespace DAL
@@ -147,5 +149,22 @@ namespace DAL
                 return null;
             }
         }
+        public OrderMerge GetById(long OrderId)
+        {
+            try
+            {
+                using (var _DbContext = new EntityDataContext(_connection))
+                {
+
+                    return _DbContext.OrderMerges.AsNoTracking().FirstOrDefault(s => s.Id == OrderId);
+                }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram("GetByOrderId - OrderDal: " + ex);
+                return null;
+            }
+        }
+
     }
 }

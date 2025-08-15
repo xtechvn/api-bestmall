@@ -80,7 +80,6 @@ internal class Program
         builder.Services.AddSingleton<NewsMongoService>();
         builder.Services.AddSingleton<ClientContactMongodbService>();
         builder.Services.AddSingleton<SupplierESRepository>();
-        builder.Services.AddSingleton<SupplierESRepository>();
 
 
         builder.Services.AddSingleton<RedisConn>();

@@ -63,23 +63,32 @@ namespace WEB.CMS.Controllers
         public ProductController(IConfiguration configuration, RedisConn redisService, ILabelRepository labelRepository, DataMSContext dbContext, ProductRaitingService _productRaitingService
             , ProductDetailService productDetailService/*, ProductDetailMongoAccess productDetailMongoAccess*/, ProductFavouritesMongoAccess productFavouritesMongoAccess)
         {
-            //_productDetailMongoAccess = productDetailMongoAccess;
-            _productSpecificationMongoAccess = new ProductSpecificationMongoAccess(configuration);
-            _productFavouritesMongoAccess = productFavouritesMongoAccess;
-            _cartMongodbService = new CartMongodbService(configuration);
-            _productDetailService = productDetailService;
-            orderDetailESService = new OrderDetailESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
-            groupProductESService = new GroupProductESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
-            _raitingESService = new RaitingESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
-            _productESRepository = new ProductESRepository(configuration["DataBaseConfig:Elastic:Host"], configuration);
-            attachFileESModelESRepository = new AttachFileESModelESRepository(configuration["DataBaseConfig:Elastic:Host"], configuration);
-            clientServices = new ClientServices(configuration);
-            _configuration = configuration;
-            _redisService = new RedisConn(configuration);
-            _redisService.Connect();
-            _newsBusiness = new NewsBusiness(configuration, dbContext);
-            _labelRepository = labelRepository;
-            productRaitingService=_productRaitingService;
+            try
+            {
+                //_productDetailMongoAccess = productDetailMongoAccess;
+                _productSpecificationMongoAccess = new ProductSpecificationMongoAccess(configuration);
+                _productFavouritesMongoAccess = productFavouritesMongoAccess;
+                _cartMongodbService = new CartMongodbService(configuration);
+                _productDetailService = productDetailService;
+                orderDetailESService = new OrderDetailESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
+                groupProductESService = new GroupProductESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
+                _raitingESService = new RaitingESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
+                _productESRepository = new ProductESRepository(configuration["DataBaseConfig:Elastic:Host"], configuration);
+                attachFileESModelESRepository = new AttachFileESModelESRepository(configuration["DataBaseConfig:Elastic:Host"], configuration);
+                clientServices = new ClientServices(configuration);
+                _configuration = configuration;
+                _redisService = new RedisConn(configuration);
+                _redisService.Connect();
+                _newsBusiness = new NewsBusiness(configuration, dbContext);
+                _labelRepository = labelRepository;
+                productRaitingService = _productRaitingService;
+            }
+            catch (Exception ex)
+            {
+                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
+                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
+            }
+          
 
         }
 

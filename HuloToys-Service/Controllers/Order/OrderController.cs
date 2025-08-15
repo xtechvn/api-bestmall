@@ -199,8 +199,6 @@ namespace HuloToys_Service.Controllers
                     if (result != null && result.data != null && result.data.Count > 0)
                     {
                         var list_order_no = result.data.Select(x => x.OrderNo).ToList();
-                        LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], " orderMongodbService.GetListByOrdersNo:"+JsonConvert.SerializeObject(list_order_no));
-
                         result.data_order = await orderMongodbService.GetListByOrdersNo(list_order_no);
                     }
                     return Ok(new
@@ -1339,12 +1337,13 @@ namespace HuloToys_Service.Controllers
                             msg = ResponseMessages.DataInvalid
                         });
                     }
+                    LogHelper.InsertLogTelegram("ReceivedOrder - received [" + (request == null ? "NULL" : request.id) + "]");
 
                     var account_client = accountClientESService.GetById(account_client_id);
                     var client = clientESService.GetById((long)account_client.ClientId);
                    
                     var order_merge = _orderMergeRepository.GetById(Convert.ToInt64(request.id));
-                    LogHelper.InsertLogTelegram("WorkQueueClient - _orderMergeRepository.GetById(Convert.ToInt64(request.id)) [" + (order_merge == null ? "NULL" : order_merge.Id) + "]");
+                    LogHelper.InsertLogTelegram("ReceivedOrder - _orderMergeRepository.GetById(Convert.ToInt64(request.id)) [" + (order_merge == null ? "NULL" : order_merge.Id) + "]");
 
                     if (order_merge != null && order_merge.Id > 0)
                     {
@@ -1358,7 +1357,7 @@ namespace HuloToys_Service.Controllers
                         catch { }
 
                         var rs_push = work_queue.SyncES(order_merge.Id, "SP_GetOrderMerge", "hulotoys_sp_getordermerge", 1);
-                        LogHelper.InsertLogTelegram("WorkQueueClient - SyncES [SP_GetOrderMerge] -> [hulotoys_sp_getordermerge][" + order_merge.Id + "][" + order_merge.OrderStatus + "][" + rs_push + "]");
+                        LogHelper.InsertLogTelegram("ReceivedOrder - SyncES [SP_GetOrderMerge] -> [hulotoys_sp_getordermerge][" + order_merge.Id + "][" + order_merge.OrderStatus + "][" + rs_push + "]");
 
                     }
                     var orders = await _orderRepository.GetByOrderMergeId(Convert.ToInt64(request.id));

@@ -1236,6 +1236,8 @@ namespace HuloToys_Service.Controllers
                     var order_merge =  _orderMergeRepository.GetById(Convert.ToInt64(request.id));
                     if (order_merge != null && order_merge.Id>0)
                     {
+                        order_merge.UserGroupIds = order_merge.OrderStatus.ToString();
+
                         order_merge.OrderStatus = (int)OrderStatus.CANCEL;
                         order_merge.UserUpdateId = 1;
                         order_merge.RefundStatus = 1;
@@ -1251,7 +1253,17 @@ namespace HuloToys_Service.Controllers
                     var orders = await _orderRepository.GetByOrderMergeId(Convert.ToInt64(request.id));
                     if (orders != null && orders.Count>0)
                     {
-                        foreach(var order in orders)
+                        foreach (var order in orders)
+                        {
+                            order.UserGroupIds = order.OrderStatus.ToString();
+                            order.OrderStatus = (int)OrderStatus.CANCEL;
+                            order.UserUpdateId = 1;
+                            order.RefundStatus = 1;
+                            order.RefundReason = request.reason;
+                            await _orderRepository.UpdateOrder(order);
+                            work_queue.SyncES(order.OrderId, "SP_GetOrder", "hulotoys_sp_getorder", 1);
+                        }
+                        foreach (var order in orders)
                         {
                             var result = await _orderRepository.UpdateOrderStatus(new Models.Models.Order()
                             {

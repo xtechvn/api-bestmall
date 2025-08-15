@@ -29,6 +29,7 @@ using Repositories.IRepositories;
 using System.Drawing.Printing;
 using System.Reflection;
 using System.Xml.Linq;
+using Telegram.Bot.Types;
 using Utilities;
 using Utilities.Contants;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -63,8 +64,6 @@ namespace WEB.CMS.Controllers
         public ProductController(IConfiguration configuration, RedisConn redisService, ILabelRepository labelRepository, DataMSContext dbContext, ProductRaitingService _productRaitingService
             , ProductDetailService productDetailService/*, ProductDetailMongoAccess productDetailMongoAccess*/, ProductFavouritesMongoAccess productFavouritesMongoAccess)
         {
-            try
-            {
                 //_productDetailMongoAccess = productDetailMongoAccess;
                 _productSpecificationMongoAccess = new ProductSpecificationMongoAccess(configuration);
                 _productFavouritesMongoAccess = productFavouritesMongoAccess;
@@ -82,13 +81,23 @@ namespace WEB.CMS.Controllers
                 _newsBusiness = new NewsBusiness(configuration, dbContext);
                 _labelRepository = labelRepository;
                 productRaitingService = _productRaitingService;
-            }
-            catch (Exception ex)
-            {
-                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
-            }
-          
+            LogHelper.InsertLogTelegram("_productSpecificationMongoAccess: "+(_productSpecificationMongoAccess==null?"NULL": "_productSpecificationMongoAccess"));
+            LogHelper.InsertLogTelegram("_productFavouritesMongoAccess: " + (_productFavouritesMongoAccess == null?"NULL": "_productFavouritesMongoAccess"));
+            LogHelper.InsertLogTelegram("_cartMongodbService: " + (_cartMongodbService == null?"NULL": "_cartMongodbService"));
+            LogHelper.InsertLogTelegram("_productDetailService: " + (_productDetailService == null?"NULL": "_productDetailService"));
+            LogHelper.InsertLogTelegram("orderDetailESService: " + (orderDetailESService == null?"NULL": "orderDetailESService"));
+            LogHelper.InsertLogTelegram("groupProductESService: " + (groupProductESService == null?"NULL": "groupProductESService"));
+            LogHelper.InsertLogTelegram("_raitingESService: " + (_raitingESService == null?"NULL": "_raitingESService"));
+            LogHelper.InsertLogTelegram("_productESRepository: " + (_productESRepository == null?"NULL": "_productESRepository"));
+            LogHelper.InsertLogTelegram("attachFileESModelESRepository: " + (attachFileESModelESRepository == null?"NULL": "attachFileESModelESRepository"));
+            LogHelper.InsertLogTelegram("clientServices: " + (clientServices == null?"NULL": "clientServices"));
+            LogHelper.InsertLogTelegram("_configuration: " + (_configuration == null?"NULL": "_configuration"));
+            LogHelper.InsertLogTelegram("_redisService: " + (_redisService == null?"NULL": "_redisService"));
+            LogHelper.InsertLogTelegram("_newsBusiness: " + (_newsBusiness == null?"NULL": "_newsBusiness"));
+            LogHelper.InsertLogTelegram("_labelRepository: " + (_labelRepository == null?"NULL": "_labelRepository"));
+            LogHelper.InsertLogTelegram("productRaitingService: " + (productRaitingService == null?"NULL": "productRaitingService"));
+
+
 
         }
 

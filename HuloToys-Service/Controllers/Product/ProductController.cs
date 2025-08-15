@@ -283,13 +283,13 @@ namespace WEB.CMS.Controllers
                         {
 
                             result = await _productDetailService.UpdateFullProductById(result);
-                            LogHelper.InsertLogTelegram("ProductDetail _productDetailService.product_main: " + (result == null|| result.product_main == null ? "NULL" : result.product_main._id));
-                            LogHelper.InsertLogTelegram("ProductDetail _productDetailService.product_sub: " + (result == null|| result.product_sub == null ? "NULL" : result.product_sub.Count));
-                            LogHelper.InsertLogTelegram("ProductDetail _productDetailService.cert: " + (result == null|| result.cert == null ? "NULL" : " result.cert"));
-                            LogHelper.InsertLogTelegram("ProductDetail _productDetailService.favourite: " + (result == null|| result.favourite == null ? "NULL" : result.favourite.count));
-                            LogHelper.InsertLogTelegram("ProductDetail _productDetailService.product_buy_with_output: " + (result == null|| result.product_buy_with_output == null ? "NULL" : result.product_buy_with_output.Count));
-                            LogHelper.InsertLogTelegram("ProductDetail _productDetailService.label: " + (label == null|| label.Id<=0 ? "NULL" : label.Id));
-                            LogHelper.InsertLogTelegram("ProductDetail _productDetailService.groups: " + (result == null|| result.groups == null ? "NULL" : result.groups.Count));
+                            //LogHelper.InsertLogTelegram("ProductDetail _productDetailService.product_main: " + (result == null|| result.product_main == null ? "NULL" : result.product_main._id));
+                            //LogHelper.InsertLogTelegram("ProductDetail _productDetailService.product_sub: " + (result == null|| result.product_sub == null ? "NULL" : result.product_sub.Count));
+                            //LogHelper.InsertLogTelegram("ProductDetail _productDetailService.cert: " + (result == null|| result.cert == null ? "NULL" : " result.cert"));
+                            //LogHelper.InsertLogTelegram("ProductDetail _productDetailService.favourite: " + (result == null|| result.favourite == null ? "NULL" : result.favourite.count));
+                            //LogHelper.InsertLogTelegram("ProductDetail _productDetailService.product_buy_with_output: " + (result == null|| result.product_buy_with_output == null ? "NULL" : result.product_buy_with_output.Count));
+                            //LogHelper.InsertLogTelegram("ProductDetail _productDetailService.label: " + (label == null|| label.Id<=0 ? "NULL" : label.Id));
+                            //LogHelper.InsertLogTelegram("ProductDetail _productDetailService.groups: " + (result == null|| result.groups == null ? "NULL" : result.groups.Count));
 
                             return Ok(new
                             {
@@ -302,7 +302,7 @@ namespace WEB.CMS.Controllers
                                 },
                                 cert = result.cert,
                                 favourite = result.favourite,
-                                buywith = result.product_buy_with_output,
+                                buywith = (result.product_buy_with_output == null || result.product_buy_with_output.Count <= 0) ? null : result.product_buy_with_output,
                                 label_detail = label==null? null: new
                                 {
                                     label.Id,

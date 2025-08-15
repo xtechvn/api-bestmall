@@ -1141,8 +1141,6 @@ namespace HuloToys_Service.Controllers
                     {
                         foreach (var order in orders)
                         {
-                            order.OrderId = request.id;
-                            order.ClientId = (long)account_client.ClientId;
                             order.OrderStatus = (int)OrderStatus.REFUND;
                             order.RefundStatus = 1;
                             order.RefundReason = request.reason;
@@ -1342,7 +1340,6 @@ namespace HuloToys_Service.Controllers
                     {
                         foreach (var order in orders)
                         {
-                            order.OrderId = order.OrderId;
                             order.OrderStatus = (int)OrderStatus.FINISHED_DELIVERY;
                             await _orderRepository.UpdateOrder(order);
                             work_queue.SyncES(order.OrderId, "SP_GetOrder", "hulotoys_sp_getorder", 1);

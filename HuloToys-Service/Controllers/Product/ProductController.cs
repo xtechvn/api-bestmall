@@ -250,6 +250,8 @@ namespace WEB.CMS.Controllers
                         j_data = await _redisService.GetAsync(cache_name, Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
                     }
                     catch { }
+                    LogHelper.InsertLogTelegram("ProductDetail j_data: " + (j_data == null ? "NULL" : j_data));
+
                     if (j_data != null && j_data.Trim() != "")
                     {
                         result = JsonConvert.DeserializeObject<ProductDetailResponseModel>(j_data);
@@ -262,9 +264,10 @@ namespace WEB.CMS.Controllers
                             var j_data_label = "";
                             try
                             {
-                                j_data = await _redisService.GetAsync(cache_name_label, Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
+                                j_data_label = await _redisService.GetAsync(cache_name_label, Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
                             }
                             catch { }
+                            LogHelper.InsertLogTelegram("ProductDetail j_data.Trim() != \"\" j_data_label: " + (j_data_label == null ? "NULL" : j_data_label.Substring(0,20)));
 
                             if (j_data_label != null && j_data_label.Trim() != "")
                             {
@@ -282,6 +285,8 @@ namespace WEB.CMS.Controllers
                         }
                         if (result != null)
                         {
+                            LogHelper.InsertLogTelegram("ProductDetail (result != null) j_data_label: " + (result == null ? "NULL" : result.product_main._id));
+
                             result = await _productDetailService.UpdateFullProductById(result);
 
                             return Ok(new
@@ -317,6 +322,8 @@ namespace WEB.CMS.Controllers
                     result  = await _productDetailService.GetFullProductById(request.id);
                     if (result == null || result.product_main == null || (result.product_main != null && result.product_main.status != (int)ProductStatus.ACTIVE))
                     {
+                        LogHelper.InsertLogTelegram("ProductDetail result == null: ");
+
                         return Ok(new
                         {
                             status = (int)ResponseType.FAILED,
@@ -358,6 +365,8 @@ namespace WEB.CMS.Controllers
                     if (request.token != null && request.token.Trim() != "")
                     {
                         long account_client_id = await clientServices.GetAccountClientIdFromToken(request.token);
+                        LogHelper.InsertLogTelegram("ProductDetail result == null account_client_id: " + (account_client_id <=0 ? "NULL" : account_client_id));
+
                         if (account_client_id > 0)
                         {
                             var exists = await _productFavouritesMongoAccess.GetByAccountAndProduct(request.id, account_client_id);
@@ -369,6 +378,8 @@ namespace WEB.CMS.Controllers
                         }
                     }
                     result.favourite.count = await _productFavouritesMongoAccess.CountByProductId(request.id);
+                    LogHelper.InsertLogTelegram("ProductDetail _productFavouritesMongoAccess.CountByProductId: " + (result.favourite.count <=0 ? "0" : result.favourite.count));
+
                     if (result.product_main.products_buy_with != null && result.product_main.products_buy_with.Count > 0)
                     {
                         result.product_buy_with = await _productDetailService.ListByProducts(result.product_main.products_buy_with);
@@ -393,11 +404,12 @@ namespace WEB.CMS.Controllers
                         }
                     }
 
-                   
+
                     //--Get Label:
                     if (result.product_main != null && result.product_main.label_id > 0)
                     {
                         var cache_name_label = CacheType.LABEL + result.product_main.label_id;
+                        LogHelper.InsertLogTelegram("ProductDetail cache_name_label: " + (cache_name_label == null ? "NULL" : cache_name_label));
 
                         var j_data_label = "";
                         try
@@ -422,6 +434,8 @@ namespace WEB.CMS.Controllers
                     //--Get group:
                     if (result.product_main != null && result.product_main.group_product_id !=null && result.product_main.group_product_id.Trim()!="")
                     {
+                        LogHelper.InsertLogTelegram("ProductDetail result.product_main.group_product_id: " + (result.product_main == null ? "NULL" : result.product_main.group_product_id));
+
                         result.groups = new List<GroupProductESModel>();
                         try
                         {

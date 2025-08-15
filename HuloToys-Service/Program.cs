@@ -10,6 +10,7 @@ using HuloToys_Service.Models.Article;
 using HuloToys_Service.Models.Models;
 using HuloToys_Service.MongoDb;
 using HuloToys_Service.RedisWorker;
+using HuloToys_Service.Utilities.Middleware;
 using Microsoft.EntityFrameworkCore;
 using Repositories.IRepositories;
 using Repositories.Repositories;
@@ -100,6 +101,8 @@ internal class Program
         app.UseHttpsRedirection();
 
         app.UseAuthorization();
+
+        app.UseMiddleware<GlobalErrorCaptureMiddleware>();
 
         app.MapControllers();
 

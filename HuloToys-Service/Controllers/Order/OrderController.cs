@@ -1121,6 +1121,9 @@ namespace HuloToys_Service.Controllers
 
                     if (order_merge != null && order_merge.Id > 0)
                     {
+
+                        order_merge.UserGroupIds = order_merge.OrderStatus.ToString();
+
                         order_merge.OrderStatus = (int)OrderStatus.REFUND;
                         order_merge.RefundStatus = 1;
                         order_merge.RefundReason = request.reason;
@@ -1141,6 +1144,8 @@ namespace HuloToys_Service.Controllers
                     {
                         foreach (var order in orders)
                         {
+                            order.UserGroupIds = order.OrderStatus.ToString();
+
                             order.OrderStatus = (int)OrderStatus.REFUND;
                             order.RefundStatus = 1;
                             order.RefundReason = request.reason;

@@ -453,9 +453,10 @@ namespace WEB.CMS.Controllers
                 }
 
             }
-            catch
+            catch (Exception ex)
             {
-
+                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
+                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
             }
             return Ok(new
             {
@@ -523,9 +524,10 @@ namespace WEB.CMS.Controllers
 
 
             }
-            catch
+            catch (Exception ex)
             {
-
+                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
+                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
             }
             return Ok(new
             {

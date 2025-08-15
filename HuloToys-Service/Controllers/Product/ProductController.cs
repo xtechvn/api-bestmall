@@ -251,77 +251,22 @@ namespace WEB.CMS.Controllers
                     catch { }
                     if (j_data != null && j_data.Trim() != "")
                     {
-                        result = JsonConvert.DeserializeObject<ProductDetailResponseModel>(j_data);
-
-                        //--Get Label:
-                        if (result!=null && result.product_main != null && result.product_main.label_id > 0)
+                        try
                         {
-                            var cache_name_label = CacheType.LABEL + result.product_main.label_id;
-
-                            var j_data_label = "";
-                            try
-                            {
-                                j_data_label = await _redisService.GetAsync(cache_name_label, Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
-                            }
-                            catch { }
-
-                            if (j_data_label != null && j_data_label.Trim() != "")
-                            {
-                                label = JsonConvert.DeserializeObject<Label>(j_data_label);
-                            }
-                            else
-                            {
-                                label = await _labelRepository.GetById(result.product_main.label_id);
-                                if (label != null && label.Id > 0)
-                                {
-                                    _redisService.Set(cache_name_label, JsonConvert.SerializeObject(label), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
-
-                                }
-                            }
+                            result = JsonConvert.DeserializeObject<ProductDetailResponseModel>(j_data);
                         }
-                        if (result != null && result.product_main!=null)
+                        catch { }
+
+                        if (result != null&&result.product_main != null)
                         {
-
                             result = await _productDetailService.UpdateFullProductById(result);
-                            //LogHelper.InsertLogTelegram("ProductDetail _productDetailService.product_main: " + (result == null|| result.product_main == null ? "NULL" : result.product_main._id));
-                            //LogHelper.InsertLogTelegram("ProductDetail _productDetailService.product_sub: " + (result == null|| result.product_sub == null ? "NULL" : result.product_sub.Count));
-                            //LogHelper.InsertLogTelegram("ProductDetail _productDetailService.cert: " + (result == null|| result.cert == null ? "NULL" : " result.cert"));
-                            //LogHelper.InsertLogTelegram("ProductDetail _productDetailService.favourite: " + (result == null|| result.favourite == null ? "NULL" : result.favourite.count));
-                            //LogHelper.InsertLogTelegram("ProductDetail _productDetailService.product_buy_with_output: " + (result == null|| result.product_buy_with_output == null ? "NULL" : result.product_buy_with_output.Count));
-                            //LogHelper.InsertLogTelegram("ProductDetail _productDetailService.label: " + (label == null|| label.Id<=0 ? "NULL" : label.Id));
-                            //LogHelper.InsertLogTelegram("ProductDetail _productDetailService.groups: " + (result == null|| result.groups == null ? "NULL" : result.groups.Count));
-
-                            return Ok(new
-                            {
-                                status = (int)ResponseType.SUCCESS,
-                                msg = "Success",
-                                data = new
-                                {
-                                    product_main = result.product_main,
-                                    product_sub = result.product_sub
-                                },
-                                cert = result.cert,
-                                favourite = result.favourite,
-                                buywith = (result.product_buy_with_output == null || result.product_buy_with_output.Count <= 0) ? [] : result.product_buy_with_output,
-                                label_detail = label==null? null : new
-                                {
-                                    label.Id,
-                                    label.LabelName,
-                                    label.LabelCode,
-                                    label.Icon,
-                                    label.Banner,
-                                    label.Description,
-                                },
-                                groups = (result.groups == null || result.groups.Count<=0) ? null : result.groups.Select(x=> new {
-                                    x.Id,
-                                    x.ParentId,
-                                    x.ImagePath,
-                                    x.Name
-                                })
-                            });
                         }
                     }
-                    result  = await _productDetailService.GetFullProductById(request.id);
+                    if (result == null || result.product_main == null)
+                    {
+                        result = await _productDetailService.GetFullProductById(request.id);
+
+                    }
                     if (result == null || result.product_main == null || (result.product_main != null && result.product_main.status != (int)ProductStatus.ACTIVE))
                     {
                         LogHelper.InsertLogTelegram("ProductDetail result == null: ");
@@ -343,26 +288,6 @@ namespace WEB.CMS.Controllers
                     {
                         is_favourite = false
                     };
-                    var attach_root = await attachFileESModelESRepository.GetByDataidAndType(result.product_main.supplier_id, (int)AttachmentType.Supplier_Cert_RootProduct);
-                    var attach_product = await attachFileESModelESRepository.GetByDataidAndType(result.product_main.supplier_id, (int)AttachmentType.Supplier_Cert_Product);
-                    var attach_supply = await attachFileESModelESRepository.GetByDataidAndType(result.product_main.supplier_id, (int)AttachmentType.Supplier_Cert_Supply);
-                    var attach_confirm = await attachFileESModelESRepository.GetByDataidAndType(result.product_main.supplier_id, (int)AttachmentType.Supplier_Cert_Confirm);
-                    if (attach_root != null && attach_root.Count > 0)
-                    {
-                        result.cert.root_product = attach_root.Select(x => x.Path).ToList();
-                    }
-                    if (attach_product != null && attach_product.Count > 0)
-                    {
-                        result.cert.product = attach_product.Select(x => x.Path).ToList();
-                    }
-                    if (attach_supply != null && attach_supply.Count > 0)
-                    {
-                        result.cert.supply = attach_supply.Select(x => x.Path).ToList();
-                    }
-                    if (attach_confirm != null && attach_confirm.Count > 0)
-                    {
-                        result.cert.confirm = attach_confirm.Select(x => x.Path).ToList();
-                    }
                     //favourites:
                     if (request.token != null && request.token.Trim() != "")
                     {

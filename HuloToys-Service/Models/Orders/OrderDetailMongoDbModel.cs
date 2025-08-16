@@ -52,6 +52,8 @@ namespace HuloToys_Service.Models.Orders
         public List<OrderDetailMongoDbDelivery>? delivery_order { get; set; }
         public List<int>? list_voucher_id { get; set; }
         public List<string>? list_voucher_code { get; set; }
+        public double? profit_vnpay { get; set; }
+
     }
     public class OrderDetailMongoDbVoucherApply
     {

@@ -30,6 +30,7 @@ using Nest;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Repositories.IRepositories;
+using Repositories.Repositories;
 using REPOSITORIES.IRepositories;
 using StackExchange.Redis;
 using System.Data;
@@ -69,15 +70,16 @@ namespace HuloToys_Service.Controllers
         private readonly SupplierESRepository _supplierESRepository;
         private readonly IOrderRepository _orderRepository;
         private readonly IOrderMergeRepository _orderMergeRepository;
+        private readonly IAllCodeRepository _allCodeRepository;
 
         public OrderController(IConfiguration _configuration, RedisConn redisService, IVoucherRepository voucherRepository, ViettelPostService viettelPostService,
             ProductDetailService _productDetailService, CartMongodbService cartMongodbService, OrderMongodbService _orderMongodbService, SupplierESRepository supplierESRepository,
-            IOrderRepository orderRepository, IOrderMergeRepository orderMergeRepository)
+            IOrderRepository orderRepository, IOrderMergeRepository orderMergeRepository, IAllCodeRepository allCodeRepository)
         {
             configuration = _configuration;
 
             workQueueClient = new WorkQueueClient(configuration);
-           // orderESRepository = new OrderESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
+            // orderESRepository = new OrderESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
             orderMergeESService = new OrderMergeESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
             raitingESService = new RaitingESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
             locationESService = new LocationESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
@@ -99,9 +101,9 @@ namespace HuloToys_Service.Controllers
             productDetailService = _productDetailService;
             _cartMongodbService = cartMongodbService;
             _supplierESRepository = supplierESRepository;
-            _orderRepository= orderRepository;
+            _orderRepository = orderRepository;
             _orderMergeRepository = orderMergeRepository;
-
+            _allCodeRepository = allCodeRepository;
         }
 
         [HttpPost("history")]
@@ -547,6 +549,8 @@ namespace HuloToys_Service.Controllers
                         });
                     }
                     var order_no = await identiferService.buildOrderNo(count);
+                    var allcode_vnpay = _allCodeRepository.GetByType("PROFIT_VNPAY");
+
                     var model = new OrderDetailMongoDbModel()
                     {
                         account_client_id = account_client_id,
@@ -568,7 +572,8 @@ namespace HuloToys_Service.Controllers
                          total_discount=0,
                          total_price=0,
                          total_profit=0,
-                         delivery_type=request.delivery_detail.shipping_type
+                         delivery_type=request.delivery_detail.shipping_type, 
+                        profit_vnpay=allcode_vnpay==null||allcode_vnpay.Id<=0?0:allcode_vnpay.CodeValue,
                          
                          
                     };
@@ -637,7 +642,6 @@ namespace HuloToys_Service.Controllers
                             }
                             cart.quanity = item.quanity;
                             cart.total_price = price * item.quanity;
-                            cart.total_profit = profit * item.quanity;
                             cart.total_profit = cart.product.profit * item.quanity;
                             cart.total_amount = amount * item.quanity;
                             cart.total_discount = cart.product.discount / cart.quanity * item.quanity;

@@ -11,6 +11,7 @@ using Newtonsoft.Json.Linq;
 using REPOSITORIES.IRepositories;
 using Utilities;
 using Utilities.Contants;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace API_CORE.Controllers.VOUCHER
 {
@@ -24,6 +25,7 @@ namespace API_CORE.Controllers.VOUCHER
         private readonly RedisConn redisService;
         private readonly ClientServices clientServices;
         private readonly ClientESService clientESService;
+        private readonly AccountClientESService accountClientESService;
 
         public VoucherController(IConfiguration _Configuration, IVoucherRepository _VoucherRepository, RedisConn _redisService)
         {
@@ -35,6 +37,7 @@ namespace API_CORE.Controllers.VOUCHER
             redisService.Connect();
             clientServices = new ClientServices(configuration);
             clientESService = new ClientESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
+            accountClientESService = new AccountClientESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
 
         }
 
@@ -356,14 +359,14 @@ namespace API_CORE.Controllers.VOUCHER
             try
             {
                 #region Giả lập test
-                var j_param = new Dictionary<string, string>
-                {
-                        {"token", "F08nOlAVBi8vLwxaDGMgagRjYX97aVlkfFt7AmJnTlpFXyNQYmNiUgBpXnt3Q1BJUlZ0WE5BcCxNFysoPCdLQhRzZWoEfmR5Y2pZBHhfcAFnbFhPSQNlQ21wYFppZRI="},
-                };
-                input=new APIRequestGenericModel()
-                {
-                    token = CommonHelper.Encode(JsonConvert.SerializeObject(j_param), configuration["KEY:private_key"])
-                };
+                //var j_param = new Dictionary<string, string>
+                //{
+                //        {"token", "F08nOlAVBi8vLwxaDGMgagRjYX97aVlkfFt7AmJnTlpFXyNQYmNiUgBpXnt3Q1BJUlZ0WE5BcCxNFysoPCdLQhRzZWoEfmR5Y2pZBHhfcAFnbFhPSQNlQ21wYFppZRI="},
+                //};
+                //input=new APIRequestGenericModel()
+                //{
+                //    token = CommonHelper.Encode(JsonConvert.SerializeObject(j_param), configuration["KEY:private_key"])
+                //};
                 #endregion
                 if (input == null || input.token == null || input.token.Trim() == "")
                 {
@@ -376,65 +379,91 @@ namespace API_CORE.Controllers.VOUCHER
                     LogHelper.InsertLogTelegram("[API] VoucherController - GetListVoucher Token invalid!!! => token= " + input.token.ToString() + " voucher name = " + objParr.ToString());
                     return Ok(new { status = (int)ResponseType.FAILED, msg = "Token invalid !!!" });
                 }
-                else
+
+                //-- Get Token để lấy AccountClientId
+                string token_user = objParr[0]["token"].ToString(); //token đăng nhập
+                if (string.IsNullOrEmpty(token_user))
                 {
-                    //-- Get Token để lấy AccountClientId
-                    string token_user = objParr[0]["token"].ToString(); //token đăng nhập
-                    if (string.IsNullOrEmpty(token_user))
-                    {
-                        return Ok(new { status = (int)ResponseType.EMPTY, msg = ResponseMessages.DataInvalid });
-                    }
-                    long account_client_id = await clientServices.GetAccountClientIdFromToken(token_user);
-                    if (account_client_id <= 0)
-                    {
-                        return Ok(new
-                        {
-                            status = (int)ResponseType.FAILED,
-                            msg = ResponseMessages.DataInvalid
-                        });
-                    }
-
-                    //string product_id = objParr[0]["product_id"].ToString(); // tên voucher
-                    //if (product_id == null || product_id.Trim()=="")
-                    //{
-                    //    return Ok(new { status = (int)ResponseType.FAILED, msg = "Dữ liệu gửi lên không chính xác, vui lòng thử lại" });
-                    //}
-                    // -- Read from Cache:
-                    string cache_name = CacheType.VOUCHER + /*product_id + */account_client_id;
-                    var str = redisService.Get(cache_name, Convert.ToInt32(configuration["Redis:Database:db_search_result"]));
-                    if (str != null && str.Trim() != "")
-                    {
-                        List<VoucherFEModel> list = JsonConvert.DeserializeObject<List<VoucherFEModel>>(str);
-                        //list = list.Where(x => x.store_apply.Trim().StartsWith(product_id + ",") || x.store_apply.Trim().EndsWith(","+ product_id)
-                        //|| x.store_apply.Trim().Contains("," + product_id + ",")|| x.store_apply.Trim()== product_id).ToList();
-                        return Ok(new
-                        {
-                            status = (int)ResponseType.SUCCESS,
-                            msg = "success",
-                            data = list
-                        });
-                    }
-                    var data = await voucherRepository.GetVoucherList(null, 1, 1, 100);
-                    if (data != null && data.Count > 0)
-                    {
-                      //  data = data.Where(x => x.store_apply.Trim().StartsWith(product_id + ",") || x.store_apply.Trim().EndsWith("," + product_id)
-                      //|| x.store_apply.Trim().Contains("," + product_id + ",") || x.store_apply.Trim() == product_id).ToList();
-                        int db_index = Convert.ToInt32(configuration["Redis:Database:db_search_result"].ToString());
-                        redisService.Set(cache_name, JsonConvert.SerializeObject(data), DateTime.Now.AddMinutes(15), db_index);
-                        return Ok(new
-                        {
-                            status = (int)ResponseType.SUCCESS,
-                            msg = "success",
-                            data = data
-                        });
-                    }
-
+                    return Ok(new { status = (int)ResponseType.EMPTY, msg = ResponseMessages.DataInvalid });
                 }
+                long account_client_id = await clientServices.GetAccountClientIdFromToken(token_user);
+                if (account_client_id <= 0)
+                {
+                    return Ok(new
+                    {
+                        status = (int)ResponseType.FAILED,
+                        msg = ResponseMessages.DataInvalid
+                    });
+                }
+                var account_client = accountClientESService.GetById(account_client_id);
+                var client = clientESService.GetById((long)account_client.ClientId);
+                List<VoucherFEModel> list = new List<VoucherFEModel>();
+                List<VoucherFEModel> list_global = new List<VoucherFEModel>();
+
+                // -- Read from Cache - global:
+                string cache_name = CacheType.VOUCHER;
+                var str = redisService.Get(cache_name, Convert.ToInt32(configuration["Redis:Database:db_search_result"]));
+                if (str != null && str.Trim() != "")
+                {
+                    try { list_global = JsonConvert.DeserializeObject<List<VoucherFEModel>>(str); } catch { }
+                }
+
+                // -- Read from Cache - by client_id:
+                cache_name = CacheType.VOUCHER + (long)account_client.ClientId;
+                str = redisService.Get(cache_name, Convert.ToInt32(configuration["Redis:Database:db_search_result"]));
+                if (str != null && str.Trim() != "")
+                {
+                    try
+                    {
+                        list = JsonConvert.DeserializeObject<List<VoucherFEModel>>(str);
+                    }
+                    catch { }
+                }
+
+                //-- db - global:
+                if (list_global == null || list_global.Count <= 0)
+                {
+                    list_global = await voucherRepository.GetVoucherList(null, 1, 1, 50, null);
+                    if (list_global != null && list_global.Count > 0)
+                    {
+                        int db_index = Convert.ToInt32(configuration["Redis:Database:db_search_result"].ToString());
+                        cache_name = CacheType.VOUCHER;
+                        redisService.Set(cache_name, JsonConvert.SerializeObject(list_global), db_index);
+
+                    }
+                }
+                //-- db - by client_id:
+                if (list == null || list.Count <= 0)
+                {
+                    list = await voucherRepository.GetVoucherList(null, 1, 1, 100, (long)account_client.ClientId);
+                    if (list != null && list.Count > 0)
+                    {
+                        cache_name = CacheType.VOUCHER + (long)account_client.ClientId;
+                        int db_index = Convert.ToInt32(configuration["Redis:Database:db_search_result"].ToString());
+                        redisService.Set(cache_name, JsonConvert.SerializeObject(list_global), db_index);
+
+                    }
+                }
+
+                var mergedList = new List<VoucherFEModel>();
+                if (list != null && list.Count > 0)
+                {
+                    mergedList.AddRange(list);
+                }
+                if (list_global != null && list_global.Count > 0)
+                {
+                    mergedList.AddRange(list_global);
+                }
+                return Ok(new
+                {
+                    status = (int)ResponseType.SUCCESS,
+                    msg = "success",
+                    data = mergedList
+                });
             }
             catch (Exception ex)
             {
                 LogHelper.InsertLogTelegram("[API] VoucherController - ApplyVoucher ex =  " + ex.ToString() + " token=" + input.token.ToString());
-                return Ok(new { status = (int)ResponseType.ERROR, msg = "Token invalid !!!" });
             }
             return Ok(new { status = (int)ResponseType.FAILED, msg = "Không tìm thấy dữ liệu" });
 

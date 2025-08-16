@@ -45,12 +45,12 @@ namespace REPOSITORIES.Repositories
                 return null;
             }
         }
-        public async Task<List<VoucherFEModel>> GetVoucherList(string keyword, int status = 1, int page_index = 1, int page_size = 10)
+        public async Task<List<VoucherFEModel>> GetVoucherList(string keyword, int status = 1, int page_index = 1, int page_size = 10, long? client_id = null)
         {
             try
             {
                 List<VoucherFEModel> list=new List<VoucherFEModel>();
-                DataTable data = await _VoucherDAL.GetVoucherList(keyword, status,page_index,page_size);
+                DataTable data = await _VoucherDAL.GetVoucherList(keyword, status,page_index,page_size, client_id);
                 if(data!=null && data.Rows.Count > 0)
                 {
                     list = (from row in data.AsEnumerable()

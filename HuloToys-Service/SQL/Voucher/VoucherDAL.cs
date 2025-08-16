@@ -84,7 +84,7 @@ namespace DAL
                 return null;
             }
         }
-        public async Task<DataTable> GetVoucherList(string keyword,int status=1,int page_index=1, int page_size=10)
+        public async Task<DataTable> GetVoucherList(string keyword,int status=1,int page_index=1, int page_size=10,long? client_id=null)
         {
             try
             {
@@ -96,6 +96,7 @@ namespace DAL
                     new SqlParameter("@is_public",  true),
                     new SqlParameter("@page_index", page_index),
                     new SqlParameter("@page_size", page_size),
+                    new SqlParameter("@client_id", client_id??(object)DBNull.Value),
 
                 };
                 return _DbWorker.GetDataTable(StoreProcedureConstant.GetListVoucher, input);

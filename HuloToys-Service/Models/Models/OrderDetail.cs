@@ -44,4 +44,6 @@ public partial class OrderDetail
     public string? ParentProductId { get; set; }
 
     public long? OrderMergeId { get; set; }
+
+    public double? FinalProfit { get; set; }
 }

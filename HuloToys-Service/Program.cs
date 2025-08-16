@@ -60,6 +60,7 @@ internal class Program
         // Register services
         builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
         builder.Services.AddSingleton<IClientRepository, ClientRepository>();
+        builder.Services.AddSingleton<IAllCodeRepository, AllCodeRepository>();
         builder.Services.AddSingleton<IAccountClientRepository, AccountClientRepository>();
         builder.Services.AddSingleton<IProvinceRepository, ProvinceRepository>();
         builder.Services.AddSingleton<IDistrictRepository, DistrictRepository>();

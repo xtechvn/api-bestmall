@@ -613,7 +613,7 @@ namespace HuloToys_Service.Controllers
                             }
                         }
                         LogHelper.InsertLogTelegram("Order Confirm request.voucher_code Added" +
-                                                  "[" + voucher_apply.Count + "]"
+                                                  "[" + (voucher_apply==null ?"NULL":voucher_apply.Count) + "]"
                                                  );
                     }
                     var list_cart =new List<CartItemMongoDbModel>();

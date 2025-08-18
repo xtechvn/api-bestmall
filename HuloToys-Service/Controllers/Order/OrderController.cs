@@ -580,6 +580,9 @@ namespace HuloToys_Service.Controllers
                     List<VoucherFEModel> voucher_apply = new List<VoucherFEModel>();
                     if (request.voucher_code != null && request.voucher_code.Count > 0)
                     {
+                        LogHelper.InsertLogTelegram("Order Confirm request.voucher_code " +
+                                                  "[" + request.voucher_code.Count + "]"
+                                                 );
                         model.list_voucher_code = request.voucher_code.Select(x => x.ToUpper().Trim()).ToList();
                         string cache_name = CacheType.VOUCHER + account_client_id;
                         var str = _redisService.Get(cache_name, Convert.ToInt32(configuration["Redis:Database:db_search_result"]));
@@ -608,7 +611,9 @@ namespace HuloToys_Service.Controllers
                                 voucher_apply = JsonConvert.DeserializeObject<List<VoucherFEModel>>(JsonConvert.SerializeObject(data));
                             }
                         }
-                       
+                        LogHelper.InsertLogTelegram("Order Confirm request.voucher_code Added" +
+                                                  "[" + voucher_apply.Count + "]"
+                                                 );
                     }
                     var list_cart =new List<CartItemMongoDbModel>();
                     foreach (var item in request.carts)
@@ -799,12 +804,7 @@ namespace HuloToys_Service.Controllers
 
 
                     var pushed_queue = work_queue.InsertQueueSimpleDurable(JsonConvert.SerializeObject(queue_model), QueueName.QUEUE_CHECKOUT);
-                    LogHelper.InsertLogTelegram("Order orderMongodbService.Insert: " +
-                                                  "[" + model._id + "]" +
-                                                  "[" + order_no + "]" +
-                                                 "[" + model.total_amount + "]"+
-                                                 "[" + pushed_queue + "]"
-                                                 );
+                    
 
                     return Ok(new
                     {

@@ -502,7 +502,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                         item.flash_sale_todate = exists_flash_sale.todate;
                         item.exists_flashsale_name = exists_flash_sale.name;
                         item.amount_after_flashsale = amount_product - total_discount;
-                        item.profit -= total_discount;
+                        //item.profit -= total_discount;
                         if (item.amount <= 0 && item.amount_min != null && item.amount_min > 0)
                         {
                             item.amount_min -= total_discount;
@@ -517,12 +517,14 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                         }
                         item.discount = Math.Round(((amount_product - (double)item.amount_after_flashsale) / amount_product * 100), 0);
                         item.discount = item.discount <= 0 ? 0 : item.discount;
-                        item.price = amount_product- item.profit;
+                       // item.price = amount_product- item.profit;
                         item.old_price = amount_product;
                         item.amount_after_flashsale = NumberHelpers.RoundUpToHundredsDouble((double)item.amount_after_flashsale);
-                        item.profit = NumberHelpers.RoundUpToHundredsDouble((double)item.profit);
+                        //item.profit = NumberHelpers.RoundUpToHundredsDouble((double)item.profit);
                         //item.flashsale_badge_type = exists_flash_sale_product.badgetype;
                         //has_badge = true;
+                        item.flash_sale_unit = exists_flash_sale_product.valuetype;
+                        item.flash_sale_price_sales = Convert.ToDecimal(exists_flash_sale_product.discountvalue);
                     }
                 }
                 //if (!has_badge) {

@@ -457,7 +457,9 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                 //bool has_badge=false;
                 if (active_flashsale != null && active_flashsale.Count > 0 && list_item != null && list_item.Count > 0)
                 {
-                    var exists_flash_sale_product = list_item.FirstOrDefault(x => x.productid == (item.parent_product_id != null && item.parent_product_id.Trim() != "" ? item.parent_product_id : item._id));
+                    var exists_flash_sale_product = list_item.FirstOrDefault(x => x.productid == (item.parent_product_id != null && item.parent_product_id.Trim() != "" ? item.parent_product_id : item._id) && x.status==1);
+                    LogHelper.InsertLogTelegram("UpdateProductFlashsale ["+ (item.parent_product_id != null && item.parent_product_id.Trim() != "" ? item.parent_product_id : item._id) + "]  exists_flash_sale_product ["+(exists_flash_sale_product==null?"NULL": exists_flash_sale_product.id) +"]");
+
                     if (exists_flash_sale_product != null && exists_flash_sale_product.flashsale_id != null)
                     {
                         var exists_flash_sale = active_flashsale.First(x => x.flashsale_id == exists_flash_sale_product.flashsale_id);

@@ -578,11 +578,12 @@ namespace HuloToys_Service.Controllers
                          
                     };
                     List<VoucherFEModel> voucher_apply = new List<VoucherFEModel>();
+                    LogHelper.InsertLogTelegram("Order Confirm request.voucher_code " +
+                                                 "[" +((request.voucher_code != null && request.voucher_code.Count > 0) ? request.voucher_code.Count: "null") + "]"
+                                                );
                     if (request.voucher_code != null && request.voucher_code.Count > 0)
                     {
-                        LogHelper.InsertLogTelegram("Order Confirm request.voucher_code " +
-                                                  "[" + request.voucher_code.Count + "]"
-                                                 );
+                       
                         model.list_voucher_code = request.voucher_code.Select(x => x.ToUpper().Trim()).ToList();
                         string cache_name = CacheType.VOUCHER + account_client_id;
                         var str = _redisService.Get(cache_name, Convert.ToInt32(configuration["Redis:Database:db_search_result"]));

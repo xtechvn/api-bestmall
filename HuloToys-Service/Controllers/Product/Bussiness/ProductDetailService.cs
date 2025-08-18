@@ -163,7 +163,6 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
                 LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
             }
-            LogHelper.InsertLogTelegram("UpdateFullProductById result: " + (result==null||result.product_main == null ? "NULL" : result.product_main._id));
 
             return result;
         }
@@ -454,6 +453,8 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             try
             {
                 if (item == null || item._id == null) return false;
+                LogHelper.InsertLogTelegram("UpdateProductFlashsale active_flashsale [" + (active_flashsale==null || active_flashsale.Count<=0?"NULL": active_flashsale.Count) + "]");
+
                 //bool has_badge=false;
                 if (active_flashsale != null && active_flashsale.Count > 0 && list_item != null && list_item.Count > 0)
                 {

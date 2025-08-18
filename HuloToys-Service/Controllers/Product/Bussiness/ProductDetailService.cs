@@ -462,6 +462,8 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                     {
                         product_id_compare = item.parent_product_id;
                     }
+                    LogHelper.InsertLogTelegram("UpdateProductFlashsale ["+ item._id + "]["+ product_id_compare + "]");
+
                     var exists_flash_sale_product = list_item.FirstOrDefault(x => x.productid == product_id_compare && x.status==1);
                     if (exists_flash_sale_product != null && exists_flash_sale_product.flashsale_id != null)
                     {

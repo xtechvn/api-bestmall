@@ -578,9 +578,7 @@ namespace HuloToys_Service.Controllers
                          
                     };
                     List<VoucherFEModel> voucher_apply = new List<VoucherFEModel>();
-                    LogHelper.InsertLogTelegram("Order Confirm request.voucher_code " +
-                                                 "[" +((request.voucher_code != null && request.voucher_code.Count > 0) ? request.voucher_code.Count: "null") + "]"
-                                                );
+  
                     if (request.voucher_code != null && request.voucher_code.Count > 0)
                     {
                        
@@ -612,9 +610,7 @@ namespace HuloToys_Service.Controllers
                                 voucher_apply = JsonConvert.DeserializeObject<List<VoucherFEModel>>(JsonConvert.SerializeObject(data));
                             }
                         }
-                        LogHelper.InsertLogTelegram("Order Confirm request.voucher_code Added" +
-                                                  "[" + (voucher_apply==null ?"NULL":voucher_apply.Count) + "]"
-                                                 );
+             
                     }
                     var list_cart =new List<CartItemMongoDbModel>();
                     foreach (var item in request.carts)
@@ -739,6 +735,9 @@ namespace HuloToys_Service.Controllers
                     //--apply voucher to 
                     if (voucher_apply != null && voucher_apply.Count > 0)
                     {
+                        LogHelper.InsertLogTelegram("Order Confirm voucher_apply" +
+                                       "[" + (voucher_apply == null ? "NULL" : voucher_apply.Count) + "]"
+                                      );
                         model.voucher_apply = new List<OrderDetailMongoDbVoucherApply>();
                         foreach (var voucher in voucher_apply)
                         {
@@ -780,6 +779,9 @@ namespace HuloToys_Service.Controllers
                                     default: break;
                                 }
                             }
+                            LogHelper.InsertLogTelegram("Order Confirm voucher_apply" +
+                                     "[" + (voucher == null ? "NULL" : voucher.price_sales) + "][" + total_discount + "]"
+                                    );
                             model.total_discount = total_discount;
                             model.total_amount -= total_discount;
                             //model.total_profit -= total_discount;

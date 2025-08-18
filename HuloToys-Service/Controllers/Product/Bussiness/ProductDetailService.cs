@@ -19,6 +19,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading.Tasks;
 using Utilities;
 using Utilities.Contants;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -217,7 +218,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             {
                 products=JsonConvert.DeserializeObject<List<ProductMongoDbModelFEResponse>>(JsonConvert.SerializeObject(products_original));
                 if (products == null || products.Count <= 0) return products;
-                var active_flashsale = await flashSaleESRepository.SearchActiveFlashSales();
+				var active_flashsale = await flashSaleESRepository.SearchActiveFlashSales();
                 List<FlashSaleProductESModel> list_item = new List<FlashSaleProductESModel>();
                 if (active_flashsale != null && active_flashsale.Count > 0)
                 {
@@ -281,9 +282,10 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             List<FlashSaleProductResposeModel> result = new List<FlashSaleProductResposeModel>();
             try
             {
+
                 if (list_item != null && list_item.Count > 0)
                 {
-                    var list_product_mongo = await _productDetailMongoAccess.ListByProductIgnoreCondition(list_item.Select(x => x.productid).ToList());
+                    var list_product_mongo = await _productDetailMongoAccess.ListByProducts(list_item.Select(x => x.productid).ToList());
 
                     foreach (var selected in list_product_mongo)
                     {
@@ -343,14 +345,37 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             {
                 string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
                 LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
+                LogHelper.InsertLogTelegram("GetFlashSaleProductByProductIds -1-  err=" + ex.ToString());
+
             }
             return result;
         }
-        private bool UpdateProductItem(ProductMongoDbModelFEResponse item, List<FlashSaleESModel> active_flashsale, List<FlashSaleProductESModel> list_item, List<GroupProductESModel> group_types, bool ignore_raiting = false, bool ignore_total_sold = false)
+        public async Task<long> CountFlashSaleProductByProductIds(List<FlashSaleProductESModel> list_item)
+        {
+            long count = 0;
+            try
+            {
+                if (list_item != null && list_item.Count > 0)
+                {
+                    count = await _productDetailMongoAccess.CountListByProducts(list_item.Select(x => x.productid).ToList());
+                }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram("CountFlashSaleProductByProductIds -1-  err=" + ex.ToString());
+
+            }
+            return count;
+        }
+        private async Task<bool> UpdateProductItem(ProductMongoDbModelFEResponse item, List<FlashSaleESModel> active_flashsale, List<FlashSaleProductESModel> list_item, List<GroupProductESModel> group_types, bool ignore_raiting = false, bool ignore_total_sold = false)
         {
             try
             {
                 if (item == null || item._id == null) return false;
+                if (active_flashsale != null && active_flashsale.Count > 0 && list_item != null && list_item.Count > 0)
+                {
+                  await  UpdateProductFlashsale(item, active_flashsale, list_item, group_types);
+                }
                 if (!ignore_raiting)
                 {
                     UpdateProductRaiting(item);
@@ -360,10 +385,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                 //    UpdateProductTotalSold(item);
 
                 //}
-                if (active_flashsale != null && active_flashsale.Count > 0 && list_item != null && list_item.Count > 0)
-                {
-                    UpdateProductFlashsale(item, active_flashsale, list_item, group_types);
-                }
+               
             }
             catch (Exception ex)
             {
@@ -427,7 +449,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             }
             return true;
         }
-        private bool UpdateProductFlashsale(ProductMongoDbModelFEResponse item, List<FlashSaleESModel> active_flashsale, List<FlashSaleProductESModel> list_item,List<GroupProductESModel> group_types)
+        private async Task<bool> UpdateProductFlashsale(ProductMongoDbModelFEResponse item, List<FlashSaleESModel> active_flashsale, List<FlashSaleProductESModel> list_item,List<GroupProductESModel> group_types)
         {
             try
             {
@@ -499,6 +521,14 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                         //has_badge = true;
                         item.flash_sale_unit = exists_flash_sale_product.valuetype;
                         item.flash_sale_price_sales = Convert.ToDecimal(exists_flash_sale_product.discountvalue);
+                    }
+                }
+                else
+                {
+                    var base_product = await _productDetailMongoAccess.GetByID(item._id);
+                    if (base_product != null && base_product._id != null) { 
+                        item  = JsonConvert.DeserializeObject<ProductMongoDbModelFEResponse>(JsonConvert.SerializeObject(base_product));
+
                     }
                 }
                 //if (!has_badge) {
@@ -573,6 +603,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
 
 
         }
+
 
 
     }

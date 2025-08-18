@@ -33,6 +33,7 @@ using Repositories.IRepositories;
 using Repositories.Repositories;
 using REPOSITORIES.IRepositories;
 using StackExchange.Redis;
+using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
 using System.Drawing.Printing;
@@ -590,6 +591,9 @@ namespace HuloToys_Service.Controllers
                             try
                             {
                                 List<VoucherFEModel> list = JsonConvert.DeserializeObject<List<VoucherFEModel>>(str);
+                                LogHelper.InsertLogTelegram("voucher_apply list" +
+                                   "[" + (list == null ? "NULL" : string.Join(",",list.Select(x=>x.code))) + "]"
+                                  );
                                 if (list != null && list.Count > 0)
                                 {
                                     var selected_list = list.Where(x => model.list_voucher_code.Contains(x.code.Trim().ToUpper()));
@@ -605,9 +609,34 @@ namespace HuloToys_Service.Controllers
                         if (voucher_apply == null || voucher_apply.Count <= 0)
                         {
                             var data = await _voucherRepository.GetListVoucher(model.list_voucher_code);
-                            if(data!=null && data.Count > 0)
+                            LogHelper.InsertLogTelegram("voucher_apply list" +
+                                   "[" + (data == null ? "NULL" : string.Join(",", data.Select(x => x.Code))) + "]"
+                                  );
+                            if (data!=null && data.Count > 0)
                             {
-                                voucher_apply = JsonConvert.DeserializeObject<List<VoucherFEModel>>(JsonConvert.SerializeObject(data));
+                                voucher_apply = data.Select(x=>new VoucherFEModel()
+                                {
+                                    campaign_id=x.CampaignId,
+                                    code=x.Code,
+                                    cdate=x.Cdate,
+                                    description=x.Description,
+                                    eDate=x.EDate,
+                                    group_user_priority=x.GroupUserPriority,
+                                    Id=x.Id,    
+                                    IsPublic=x.IsPublic,
+                                    is_limit_voucher=x.IsLimitVoucher,
+                                    is_max_price_product=x.IsMaxPriceProduct,
+                                    limitUse=x.LimitUse,
+                                    limit_total_discount=x.LimitTotalDiscount,
+                                    MinTotalAmount=x.MinTotalAmount,
+                                    price_sales=x.PriceSales,
+                                    project_type=0,
+                                    rule_type=x.RuleType,
+                                    store_apply=x.StoreApply,
+                                    udate=x.Udate,
+                                    unit=x.Unit,
+                                    TotalRow=0
+                                }).ToList();
                             }
                         }
              

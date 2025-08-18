@@ -521,15 +521,16 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                         //has_badge = true;
                         item.flash_sale_unit = exists_flash_sale_product.valuetype;
                         item.flash_sale_price_sales = Convert.ToDecimal(exists_flash_sale_product.discountvalue);
+                        return true;
                     }
+                    
                 }
-                else
-                {
-                    var base_product = await _productDetailMongoAccess.GetByID(item._id);
-                    if (base_product != null && base_product._id != null) { 
-                        item  = JsonConvert.DeserializeObject<ProductMongoDbModelFEResponse>(JsonConvert.SerializeObject(base_product));
 
-                    }
+                var base_product = await _productDetailMongoAccess.GetByID(item._id);
+                if (base_product != null && base_product._id != null)
+                {
+                    item = JsonConvert.DeserializeObject<ProductMongoDbModelFEResponse>(JsonConvert.SerializeObject(base_product));
+
                 }
                 //if (!has_badge) {
                 //    if (group_types != null && group_types.Count>0 && item.group_product_id!=null && item.group_product_id.Trim()!="" ) {
@@ -539,7 +540,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                 //            if (exists != null && exists.Id>0) { item.flashsale_badge_type = exists.Id; }
                 //        }
                 //        catch { }
-                    
+
                 //    }
                 //}
             }

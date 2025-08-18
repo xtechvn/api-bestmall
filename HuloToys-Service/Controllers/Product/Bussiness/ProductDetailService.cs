@@ -225,6 +225,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                 }
                 List<ProductMongoDbModelFEResponse> output=new List<ProductMongoDbModelFEResponse>();
                 var group_type = groupProductESService.GetListGroupProductByParentId(109);
+                LogHelper.InsertLogTelegram("UpdateProductFlashsale active_flashsale [" + (active_flashsale == null || active_flashsale.Count <= 0 ? "NULL" : active_flashsale.Count) + "]");
 
                 foreach (var item in products)
                 {
@@ -245,6 +246,8 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                 if (products == null || products.Count <= 0) return products;
                 var active_flashsale = await flashSaleESRepository.SearchActiveFlashSales();
                 List<FlashSaleProductESModel> list_item = new List<FlashSaleProductESModel>();
+                LogHelper.InsertLogTelegram("UpdateProductFlashsale active_flashsale [" + (active_flashsale == null || active_flashsale.Count <= 0 ? "NULL" : active_flashsale.Count) + "]");
+
                 if (active_flashsale != null && active_flashsale.Count > 0)
                 {
                     list_item = await flashSaleProductESRepository.GetByListFlashsaleId(active_flashsale.Select(x => x.flashsale_id).ToList());
@@ -433,7 +436,6 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             try
             {
                 if (item == null || item._id == null) return false;
-                LogHelper.InsertLogTelegram("UpdateProductFlashsale active_flashsale [" + (active_flashsale==null || active_flashsale.Count<=0?"NULL": active_flashsale.Count) + "]");
 
                 //bool has_badge=false;
                 if (active_flashsale != null && active_flashsale.Count > 0 && list_item != null && list_item.Count > 0)

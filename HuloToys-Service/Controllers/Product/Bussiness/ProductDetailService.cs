@@ -225,8 +225,6 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                 }
                 List<ProductMongoDbModelFEResponse> output=new List<ProductMongoDbModelFEResponse>();
                 var group_type = groupProductESService.GetListGroupProductByParentId(109);
-                LogHelper.InsertLogTelegram("UpdateProductFlashsale active_flashsale [" + (active_flashsale == null || active_flashsale.Count <= 0 ? "NULL" : active_flashsale.Count) + "]");
-
                 foreach (var item in products)
                 {
                     UpdateProductItem(item, active_flashsale, list_item, group_type);
@@ -246,8 +244,6 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                 if (products == null || products.Count <= 0) return products;
                 var active_flashsale = await flashSaleESRepository.SearchActiveFlashSales();
                 List<FlashSaleProductESModel> list_item = new List<FlashSaleProductESModel>();
-                LogHelper.InsertLogTelegram("UpdateProductFlashsale active_flashsale [" + (active_flashsale == null || active_flashsale.Count <= 0 ? "NULL" : active_flashsale.Count) + "]");
-
                 if (active_flashsale != null && active_flashsale.Count > 0)
                 {
                     list_item = await flashSaleProductESRepository.GetByListFlashsaleId(active_flashsale.Select(x => x.flashsale_id).ToList());
@@ -465,10 +461,8 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                     {
                         product_id_compare = item.parent_product_id;
                     }
-                    LogHelper.InsertLogTelegram("UpdateProductFlashsale ["+ item._id + "]["+ product_id_compare + "]");
-
                     var exists_flash_sale_product = list_item.FirstOrDefault(x => x.productid == product_id_compare && x.status==1);
-                    if (exists_flash_sale_product != null && exists_flash_sale_product.flashsale_id != null)
+                    if (exists_flash_sale_product != null && exists_flash_sale_product.flashsale_id != null && exists_flash_sale_product.discountvalue!=null&& exists_flash_sale_product.valuetype!=null)
                     {
                         var exists_flash_sale = active_flashsale.First(x => x.flashsale_id == exists_flash_sale_product.flashsale_id);
                         double total_discount = 0;

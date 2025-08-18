@@ -592,7 +592,7 @@ namespace HuloToys_Service.Controllers
                                 List<VoucherFEModel> list = JsonConvert.DeserializeObject<List<VoucherFEModel>>(str);
                                 if (list != null && list.Count > 0)
                                 {
-                                    var selected_list = list.Where(x => model.voucher_code.Contains(x.code.Trim().ToUpper()));
+                                    var selected_list = list.Where(x => model.list_voucher_code.Contains(x.code.Trim().ToUpper()));
                                     if (selected_list != null && selected_list.Count() > 0)
                                     {
                                         voucher_apply = selected_list.ToList();
@@ -735,9 +735,6 @@ namespace HuloToys_Service.Controllers
                     //--apply voucher to 
                     if (voucher_apply != null && voucher_apply.Count > 0)
                     {
-                        LogHelper.InsertLogTelegram("Order Confirm voucher_apply" +
-                                       "[" + (voucher_apply == null ? "NULL" : voucher_apply.Count) + "]"
-                                      );
                         model.voucher_apply = new List<OrderDetailMongoDbVoucherApply>();
                         foreach (var voucher in voucher_apply)
                         {
@@ -780,7 +777,7 @@ namespace HuloToys_Service.Controllers
                                 }
                             }
                             LogHelper.InsertLogTelegram("Order Confirm voucher_apply" +
-                                     "[" + (voucher == null ? "NULL" : voucher.price_sales) + "][" + total_discount + "]"
+                                     "[" + (voucher.code == null ? "NULL" : voucher.code) + "][" + (voucher.price_sales == null ? "NULL" : voucher.price_sales) + "][" + total_discount + "]"
                                     );
                             model.total_discount = total_discount;
                             model.total_amount -= total_discount;

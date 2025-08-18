@@ -19,6 +19,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading.Tasks;
 using Utilities;
 using Utilities.Contants;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -366,11 +367,15 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             }
             return count;
         }
-        private bool UpdateProductItem(ProductMongoDbModelFEResponse item, List<FlashSaleESModel> active_flashsale, List<FlashSaleProductESModel> list_item, List<GroupProductESModel> group_types, bool ignore_raiting = false, bool ignore_total_sold = false)
+        private async Task<bool> UpdateProductItem(ProductMongoDbModelFEResponse item, List<FlashSaleESModel> active_flashsale, List<FlashSaleProductESModel> list_item, List<GroupProductESModel> group_types, bool ignore_raiting = false, bool ignore_total_sold = false)
         {
             try
             {
                 if (item == null || item._id == null) return false;
+                if (active_flashsale != null && active_flashsale.Count > 0 && list_item != null && list_item.Count > 0)
+                {
+                  await  UpdateProductFlashsale(item, active_flashsale, list_item, group_types);
+                }
                 if (!ignore_raiting)
                 {
                     UpdateProductRaiting(item);
@@ -380,10 +385,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                 //    UpdateProductTotalSold(item);
 
                 //}
-                if (active_flashsale != null && active_flashsale.Count > 0 && list_item != null && list_item.Count > 0)
-                {
-                    UpdateProductFlashsale(item, active_flashsale, list_item, group_types);
-                }
+               
             }
             catch (Exception ex)
             {
@@ -447,7 +449,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             }
             return true;
         }
-        private bool UpdateProductFlashsale(ProductMongoDbModelFEResponse item, List<FlashSaleESModel> active_flashsale, List<FlashSaleProductESModel> list_item,List<GroupProductESModel> group_types)
+        private async Task<bool> UpdateProductFlashsale(ProductMongoDbModelFEResponse item, List<FlashSaleESModel> active_flashsale, List<FlashSaleProductESModel> list_item,List<GroupProductESModel> group_types)
         {
             try
             {
@@ -519,6 +521,14 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                         //has_badge = true;
                         item.flash_sale_unit = exists_flash_sale_product.valuetype;
                         item.flash_sale_price_sales = Convert.ToDecimal(exists_flash_sale_product.discountvalue);
+                    }
+                }
+                else
+                {
+                    var base_product = await _productDetailMongoAccess.GetByID(item._id);
+                    if (base_product != null && base_product._id != null) { 
+                        item  = JsonConvert.DeserializeObject<ProductMongoDbModelFEResponse>(JsonConvert.SerializeObject(base_product));
+
                     }
                 }
                 //if (!has_badge) {

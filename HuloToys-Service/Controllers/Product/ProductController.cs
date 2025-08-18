@@ -257,14 +257,12 @@ namespace WEB.CMS.Controllers
 
                         if (result != null&&result.product_main != null)
                         {
-                            LogHelper.InsertLogTelegram("ProductDetail Get from cache");
 
                             result = await _productDetailService.UpdateFullProductById(result);
                         }
                     }
                     if (result == null || result.product_main == null)
                     {
-                        LogHelper.InsertLogTelegram("ProductDetail Get from mongodb");
 
                         result = await _productDetailService.GetFullProductById(request.id);
 

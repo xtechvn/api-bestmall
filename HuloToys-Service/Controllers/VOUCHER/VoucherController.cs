@@ -321,8 +321,12 @@ namespace API_CORE.Controllers.VOUCHER
                         }
                     }
 
-                    // Nếu số tiền chiết khấu vượt quá 1 triệu thì sẽ chỉ được 1 triệu
-                    // _total_price_sale = Math.Min(limit_total_discount, discount);
+                    //-- limit voucher
+                    if (voucher.IsLimitVoucher==true&& voucher.LimitTotalDiscount != null && (double)voucher.LimitTotalDiscount < total_discount) {
+                        total_discount = (double)voucher.LimitTotalDiscount;
+
+                    }
+
                     total_order_amount_after = total_order_amount_before - total_discount;
                     if (total_order_amount_after > 0)
                     {

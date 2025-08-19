@@ -755,6 +755,7 @@ namespace HuloToys_Service.Controllers
                     //--apply voucher to 
                     if (voucher_apply != null && voucher_apply.Count > 0)
                     {
+                        var amount = model.total_amount;
                         model.voucher_apply = new List<OrderDetailMongoDbVoucherApply>();
                         foreach (var voucher in voucher_apply)
                         {
@@ -802,13 +803,13 @@ namespace HuloToys_Service.Controllers
                                 total_discount = (double)voucher.limit_total_discount;
 
                             }
-                            LogHelper.InsertLogTelegram("voucher_apply apply" +
-                                   "[" + (voucher.code == null ? "NULL" : voucher.code) + "]"
-                                  + "[" + total_discount + "]"
-                                  + "[" + model.total_amount + "]"
-                                   );
+                            //LogHelper.InsertLogTelegram("voucher_apply apply" +
+                            //       "[" + (voucher.code == null ? "NULL" : voucher.code) + "]"
+                            //      + "[" + total_discount + "]"
+                            //      + "[" + model.total_amount + "]"
+                            //       );
                             model.total_discount = total_discount;
-                            model.total_amount -= total_discount;
+                            amount -= total_discount;
                             //model.total_profit -= total_discount;
                             model.voucher_apply.Add(new OrderDetailMongoDbVoucherApply()
                             {
@@ -822,10 +823,11 @@ namespace HuloToys_Service.Controllers
                             });
 
                         }
+                        model.total_amount = amount;
 
                     }
                     //-- Mongodb:
-                   
+
                     var result = await orderMongodbService.Insert(model);
                    
                     //-- Insert Queue:

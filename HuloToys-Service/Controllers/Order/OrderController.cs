@@ -803,14 +803,16 @@ namespace HuloToys_Service.Controllers
                                 total_discount = (double)voucher.limit_total_discount;
 
                             }
-                            LogHelper.InsertLogTelegram("voucher_apply apply" +
-                                   "[" + (voucher.code == null ? "NULL" : voucher.code) + "]"
-                                  + "[" + total_amount_calculate + "]"
-                                  + "[" + total_discount + "]"
-                                  + "[" + model.total_amount + "]"
-                                   );
+                           
                             model.total_discount += total_discount;
                             amount -= total_discount;
+                            LogHelper.InsertLogTelegram("voucher_apply apply" +
+                                  "[" + (voucher.code == null ? "NULL" : voucher.code) + "]"
+                                 + "[" + total_amount_calculate + "]"
+                                 + "[" + total_discount + "]"
+                                 + "[" + amount + "]"
+                                 + "[" + model.total_discount + "]"
+                                  );
                             //model.total_profit -= total_discount;
                             model.voucher_apply.Add(new OrderDetailMongoDbVoucherApply()
                             {

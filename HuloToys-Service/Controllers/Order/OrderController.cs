@@ -805,6 +805,7 @@ namespace HuloToys_Service.Controllers
                             LogHelper.InsertLogTelegram("voucher_apply apply" +
                                    "[" + (voucher.code == null ? "NULL" : voucher.code) + "]"
                                   + "[" + total_discount + "]"
+                                  + "[" + model.total_amount + "]"
                                    );
                             model.total_discount = total_discount;
                             model.total_amount -= total_discount;

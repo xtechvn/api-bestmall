@@ -161,16 +161,21 @@ namespace API_CORE.Controllers.VOUCHER
                     }
 
                     // 4. Kiểm tra nhóm khách hàng thỏa mãn voucher
-                    string[] group_list_user = null;
+                    List<string> group_list_user = null;
                     if (voucher != null && voucher.GroupUserPriority != null && voucher.GroupUserPriority.Trim() != "")
                     {
-                        group_list_user = voucher.GroupUserPriority.Split(',');
+                        try
+                        {
+                            group_list_user = JsonConvert.DeserializeObject<List<string>>(voucher.GroupUserPriority);
+                        }
+                        catch { }
                     }
                     //1 Kiểm tra user đăng nhập có nằm trong nhóm user này không                       
                     if (group_list_user != null && group_list_user.Count()>0)
                     {
-                        var find_email = Array.FindAll(group_list_user, s => s.Equals(email_user_current));
-                        if (find_email.Count() == 0)
+                        var find_email = group_list_user.FirstOrDefault(x => x.ToLower().Trim()== email_user_current.ToLower().Trim());
+
+                        if (find_email==null|| find_email.Trim()=="")
                         {
                             LogHelper.InsertLogTelegram("Mã " + voucher_name + " không hợp lệ. Do email " + email_user_current + " không nằm trong danh sách được hưởng khuyến mãi");
                             return Ok(new { status = (int)ResponseType.FAILED, msg = "Mã " + voucher_name + " không hợp lệ. Vui lòng liên hệ với bộ phận CSKH để được hỗ trợ" });

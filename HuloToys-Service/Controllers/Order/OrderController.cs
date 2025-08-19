@@ -679,8 +679,9 @@ namespace HuloToys_Service.Controllers
                             await _cartMongodbService.Delete(item.id);
                         }
                     }
-                    
-                    if(model.delivery_detail.carrier_id>1)
+                    var amount_apply_voucher = model.total_amount;
+
+                    if (model.delivery_detail.carrier_id>1)
                     {
                         model.delivery_order = new List<OrderDetailMongoDbDelivery>();
                         switch (model.delivery_detail.carrier_id) {
@@ -755,7 +756,6 @@ namespace HuloToys_Service.Controllers
                     //--apply voucher to 
                     if (voucher_apply != null && voucher_apply.Count > 0)
                     {
-                        var amount = model.total_amount;
                         model.voucher_apply = new List<OrderDetailMongoDbVoucherApply>();
                         foreach (var voucher in voucher_apply)
                         {
@@ -766,7 +766,7 @@ namespace HuloToys_Service.Controllers
                             {
                                 case 0: // Giảm giá trên tiền hàng
                                     {
-                                        total_amount_calculate = model.total_amount;
+                                        total_amount_calculate = amount_apply_voucher;
                                     }
                                     break;
                                 case 1: // Giảm giá trên phí ship
@@ -805,12 +805,12 @@ namespace HuloToys_Service.Controllers
                             }
                            
                             model.total_discount += total_discount;
-                            amount -= total_discount;
+                            model.total_amount -= total_discount;
                             LogHelper.InsertLogTelegram("voucher_apply apply" +
                                   "[" + (voucher.code == null ? "NULL" : voucher.code) + "]"
                                  + "[" + total_amount_calculate + "]"
                                  + "[" + total_discount + "]"
-                                 + "[" + amount + "]"
+                                 + "[" + amount_apply_voucher + "]"
                                  + "[" + model.total_discount + "]"
                                   );
                             //model.total_profit -= total_discount;
@@ -826,8 +826,6 @@ namespace HuloToys_Service.Controllers
                             });
 
                         }
-                        model.total_amount = amount;
-
                     }
                     //-- Mongodb:
 

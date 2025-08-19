@@ -231,13 +231,39 @@ namespace API_CORE.Controllers.VOUCHER
                             return Ok(new { status = ((int)ResponseType.FAILED).ToString(), msg = "Mã " + voucher_name + " đã hết số lần sử dụng với tài khoản của bạn. Vui lòng liên hệ với bộ phận CSKH để được hỗ trợ" });
                         }
                     }
-
+                    double total_amount_calculate = 0;
+                    switch (voucher.RuleType)
+                    {
+                        case 0: // Giảm giá trên tiền hàng
+                            {
+                                total_amount_calculate = total_order_amount_before;
+                            }
+                            break;
+                        case 1: // Giảm giá trên phí ship
+                            {
+                                total_amount_calculate = total_shipping_fee_before;
+                            }
+                            break;
+                        case 2: // Giảm giá trên NCC
+                            {
+                                if (voucher.CampaignId != null && voucher.CampaignId > 0 && amount_by_supplier != null && amount_by_supplier.Count > 0)
+                                {
+                                    var selected = amount_by_supplier.FirstOrDefault(x => x.supplier_id == voucher.CampaignId);
+                                    if (selected != null)
+                                    {
+                                        total_amount_calculate = selected.total_amount;
+                                        total_amount_by_supplier_before = selected.total_amount;
+                                    }
+                                }
+                            }
+                            break;
+                    }
                     // Kiểm tra giới hạn số tiền của đơn hàng
                     if (voucher.MinTotalAmount > 0)
                     {
-                        if (total_order_amount_before < voucher.MinTotalAmount)
+                        if (total_amount_calculate < voucher.MinTotalAmount)
                         {
-                            string _msg = "Để sử dụng mã này.Tổng giá trị đơn hàng của bạn phải trên " + (voucher.MinTotalAmount ?? 1000000).ToString("N0") + " đ";
+                            string _msg = "Để sử dụng mã này.Tổng giá trị đơn hàng/ Số tiền vận chuyển của bạn phải trên " + (voucher.MinTotalAmount ?? 1000000).ToString("N0") + " đ";
                             return Ok(new { status = ((int)ResponseType.FAILED).ToString(), msg = _msg + ". Vui lòng liên hệ với bộ phận CSKH để được hỗ trợ" });
                         }
                     }
@@ -261,33 +287,7 @@ namespace API_CORE.Controllers.VOUCHER
                     //}
                     double voucher_discount = 0;
                     double percent = Convert.ToDouble(voucher.PriceSales);
-                    double total_amount_calculate = 0;
-                    switch (voucher.RuleType)
-                    {
-                        case 0: // Giảm giá trên tiền hàng
-                            {
-                                total_amount_calculate = total_order_amount_before;
-                            }
-                            break;
-                        case 1: // Giảm giá trên phí ship
-                            {
-                                total_amount_calculate = total_shipping_fee_before;
-                            }
-                            break;
-                        case 2: // Giảm giá trên NCC
-                            {
-                                if (voucher.CampaignId != null && voucher.CampaignId > 0 && amount_by_supplier!=null && amount_by_supplier.Count>0)
-                                {
-                                    var selected=amount_by_supplier.FirstOrDefault(x=>x.supplier_id==voucher.CampaignId);
-                                    if (selected != null)
-                                    {
-                                        total_amount_calculate = selected.total_amount;
-                                        total_amount_by_supplier_before = selected.total_amount;
-                                    }
-                                }
-                            }
-                            break;
-                    }
+                    
                     if (total_amount_calculate > 0)
                     {
                         switch (voucher.Unit)

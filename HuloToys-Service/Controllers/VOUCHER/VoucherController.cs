@@ -161,7 +161,11 @@ namespace API_CORE.Controllers.VOUCHER
                     }
 
                     // 4. Kiểm tra nhóm khách hàng thỏa mãn voucher
-                    string[]? group_list_user =(voucher!=null && voucher.GroupUserPriority!=null && voucher.GroupUserPriority.Trim()!="") ? null : voucher.GroupUserPriority.Split(',');
+                    string[] group_list_user = null;
+                    if (voucher != null && voucher.GroupUserPriority != null && voucher.GroupUserPriority.Trim() != "")
+                    {
+                        group_list_user = voucher.GroupUserPriority.Split(',');
+                    }
                     //1 Kiểm tra user đăng nhập có nằm trong nhóm user này không                       
                     if (group_list_user != null && group_list_user.Count()>0)
                     {

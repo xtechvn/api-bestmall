@@ -591,9 +591,6 @@ namespace HuloToys_Service.Controllers
                             try
                             {
                                 List<VoucherFEModel> list = JsonConvert.DeserializeObject<List<VoucherFEModel>>(str);
-                                LogHelper.InsertLogTelegram("voucher_apply list" +
-                                   "[" + (list == null ? "NULL" : string.Join(",",list.Select(x=>x.code))) + "]"
-                                  );
                                 if (list != null && list.Count > 0)
                                 {
                                     var selected_list = list.Where(x => model.list_voucher_code.Contains(x.code.Trim().ToUpper()));
@@ -609,9 +606,6 @@ namespace HuloToys_Service.Controllers
                         if (voucher_apply == null || voucher_apply.Count <= 0)
                         {
                             var data = await _voucherRepository.GetListVoucher(model.list_voucher_code);
-                            LogHelper.InsertLogTelegram("voucher_apply list" +
-                                   "[" + (data == null ? "NULL" : string.Join(",", data.Select(x => x.Code))) + "]"
-                                  );
                             if (data!=null && data.Count > 0)
                             {
                                 voucher_apply = data.Select(x=>new VoucherFEModel()
@@ -741,9 +735,6 @@ namespace HuloToys_Service.Controllers
 
                                             if (selected_delivery != null && selected_delivery.Count() > 0)
                                             {
-                                                LogHelper.InsertLogTelegram("Order selected_delivery: [" + string.Join(",", selected_delivery.Select(x => x.MaDvChinh)) + "]" +
-                                                  "[" + string.Join(", ", selected_delivery.Select(x => x.GiaCuoc)) + "]"
-                                                  );
                                                 model.shipping_fee = selected_delivery.Sum(x => x.GiaCuoc);
                                                 model.total_amount += selected_delivery.Sum(x => x.GiaCuoc);
                                             }
@@ -805,9 +796,6 @@ namespace HuloToys_Service.Controllers
                                     default: break;
                                 }
                             }
-                            LogHelper.InsertLogTelegram("Order Confirm voucher_apply" +
-                                     "[" + (voucher.code == null ? "NULL" : voucher.code) + "][" + (voucher.price_sales == null ? "NULL" : voucher.price_sales) + "][" + total_discount + "]"
-                                    );
                             model.total_discount = total_discount;
                             model.total_amount -= total_discount;
                             //model.total_profit -= total_discount;

@@ -129,10 +129,10 @@ namespace API_CORE.Controllers.VOUCHER
 
 
                     ////1. Check hợp lệ
-                    if (voucher_name.Length < 3 /*&& email_user_current.IndexOf("@") == -1*/)
-                    {
-                        return Ok(new { status = (int)ResponseType.EXISTS, msg = "Mã " + voucher_name + " không hợp lệ. Vui lòng liên hệ với bộ phận CSKH để được hỗ trợ" });
-                    }
+                    //if (voucher_name.Length < 3 /*&& email_user_current.IndexOf("@") == -1*/)
+                    //{
+                    //    return Ok(new { status = (int)ResponseType.EXISTS, msg = "Mã " + voucher_name + " không hợp lệ. Vui lòng liên hệ với bộ phận CSKH để được hỗ trợ" });
+                    //}
 
                     //2. Check null
                     var voucher = await voucherRepository.getDetailVoucher(voucher_name);
@@ -148,6 +148,8 @@ namespace API_CORE.Controllers.VOUCHER
 
                     if (voucher == null)
                     {
+                        LogHelper.InsertLogTelegram("Code " + voucher_name + " không hợp lệ. voucher == null");
+
                         return Ok(new { status = (int)ResponseType.EXISTS, msg = "Mã " + voucher_name + " không tồn tại trong hệ thống. Vui lòng liên hệ với bộ phận CSKH để được hỗ trợ" });
                     }
 
@@ -159,9 +161,9 @@ namespace API_CORE.Controllers.VOUCHER
                     }
 
                     // 4. Kiểm tra nhóm khách hàng thỏa mãn voucher
-                    string[] group_list_user = string.IsNullOrEmpty(voucher.GroupUserPriority) ? null : voucher.GroupUserPriority.Split(',');
+                    string[]? group_list_user =(voucher!=null && voucher.GroupUserPriority!=null && voucher.GroupUserPriority.Trim()!="") ? null : voucher.GroupUserPriority.Split(',');
                     //1 Kiểm tra user đăng nhập có nằm trong nhóm user này không                       
-                    if (group_list_user != null)
+                    if (group_list_user != null && group_list_user.Count()>0)
                     {
                         var find_email = Array.FindAll(group_list_user, s => s.Equals(email_user_current));
                         if (find_email.Count() == 0)

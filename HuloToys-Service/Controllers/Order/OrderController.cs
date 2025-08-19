@@ -796,12 +796,16 @@ namespace HuloToys_Service.Controllers
                                     default: break;
                                 }
                             }
-                            //-- limit voucher
-                            if (voucher.is_limit_voucher == true && voucher.limit_total_discount != null && (double)voucher.limit_total_discount < total_discount)
+                            ////-- limit voucher
+                            if (voucher.is_limit_voucher == true && voucher.limit_total_discount != null && voucher.limit_total_discount > 0 && (double)voucher.limit_total_discount < total_discount)
                             {
                                 total_discount = (double)voucher.limit_total_discount;
 
                             }
+                            LogHelper.InsertLogTelegram("voucher_apply apply" +
+                                   "[" + (voucher.code == null ? "NULL" : voucher.code) + "]"
+                                  + "[" + total_discount + "]"
+                                   );
                             model.total_discount = total_discount;
                             model.total_amount -= total_discount;
                             //model.total_profit -= total_discount;
@@ -815,6 +819,7 @@ namespace HuloToys_Service.Controllers
                                 voucher_code=voucher.code,
                                 voucher_id=voucher.Id,
                             });
+
                         }
 
                     }

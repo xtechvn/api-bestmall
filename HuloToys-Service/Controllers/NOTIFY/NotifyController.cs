@@ -29,7 +29,7 @@ namespace API_CORE.Controllers.NOTIFY
         private readonly NotifyServices _notifyMongoDAL;
         private readonly RedisConn _redisService;
 
-        public NotifyController(IConfiguration configuration )
+        public NotifyController(IConfiguration configuration)
         {
             _configuration = configuration;
             //notifyRepository = _notifyRepository;
@@ -39,6 +39,7 @@ namespace API_CORE.Controllers.NOTIFY
 
             _subscriber = connection.GetSubscriber();
             _redisService = new RedisConn(_configuration);
+            _redisService.Connect();
             _notifyMongoDAL = new NotifyServices(configuration);
         }
         /// <summary>
@@ -54,66 +55,80 @@ namespace API_CORE.Controllers.NOTIFY
         {
             try
             {
-                JArray objParr = null;
-                bool is_public_noti = false;
-                //#region Test
-                //var j_param = new Dictionary<string, object>
-                //{
-                //    {"user_id", "50"},
-                //    {"pageindex", "1"},
-                //    {"pagesize", "50"}
-                //};
-                //var data_product = JsonConvert.SerializeObject(j_param);
-
-                //token = CommonHelper.Encode(data_product, _configuration["DataBaseConfig:key_api:b2c"]);
-                //#endregion
-
-                if (CommonHelper.GetParamWithKey(token, out objParr, _configuration["DataBaseConfig:key_api:b2c"]))
+                if (!CommonHelper.GetParamWithKey(token, out JArray objParr, _configuration["DataBaseConfig:key_api:b2c"]))
                 {
-
-                  //  int db_index = Convert.ToInt32(configuration["Redis:Database:db_core"]);
-                    var user_id = Convert.ToInt32(objParr[0]["user_id"]);
-                    var pageindex = Convert.ToInt32(objParr[0]["pageindex"]);
-                    var pagesize = Convert.ToInt32(objParr[0]["pagesize"]);
-                    string cache_name = "NOTIFY_" + user_id;
-                    var obj_notify = new NotifySummeryViewModel();
-                  
-                    //obj_notify = await _notifyMongoDAL.getListNotify(user_id);
-                    obj_notify = await _notifyMongoDAL.getListNotifyPage(user_id, pageindex, pagesize);
-                    if (obj_notify != null)
+                    return Ok(new
                     {
-                        if (!(obj_notify.total_not_seen == 0 && obj_notify.lst_not_seen_detail.Count == 0))
-                        {
-                            is_public_noti = true;
-                            _subscriber.Publish(cache_name, JsonConvert.SerializeObject(obj_notify));
-                        }
+                        status = (int)ResponseType.ERROR,
+                        msg = "Token không hợp lệ"
+                    });
+                }
+
+                // --- Lấy param từ token ---
+                var user_id = Convert.ToInt32(objParr[0]["user_id"]);
+                var pageindex = Convert.ToInt32(objParr[0]["pageindex"]);
+                var pagesize = Convert.ToInt32(objParr[0]["pagesize"]);
+
+                string cacheName = $"NOTIFY_{user_id}";
+                int dbIndex = 14;
+
+                NotifySummeryViewModel objNotify = null;
+
+                // --- Thử lấy từ Redis trước ---
+                var cacheData = _redisService.Get(cacheName, dbIndex);
+                if (!string.IsNullOrEmpty(cacheData))
+                {
+                    objNotify = JsonConvert.DeserializeObject<NotifySummeryViewModel>(cacheData);
+                }
+
+                // --- Nếu cache rỗng thì query DB ---
+                if (objNotify == null)
+                {
+                    objNotify = await _notifyMongoDAL.getListNotifyPage(user_id, pageindex, pagesize);
+
+                    if (objNotify != null)
+                    {
+                        // Set lại cache để lần sau dùng luôn
+                        _redisService.Set(cacheName, JsonConvert.SerializeObject(objNotify), dbIndex);
                     }
+                }
+
+                // --- Check kết quả ---
+                if (objNotify != null && !(objNotify.total_not_seen == 0 && objNotify.lst_not_seen_detail.Count == 0))
+                {
+                    // Có notify thì publish realtime
+                    _subscriber.Publish(cacheName, JsonConvert.SerializeObject(objNotify));
 
                     return Ok(new
                     {
-                        status = is_public_noti ? (int)ResponseType.SUCCESS : (int)ResponseType.EMPTY,
-                        msg = is_public_noti ? "Thông tin notify của user_id" + user_id + " đã public thành công" : "Hiện tại không có notify nào của user này",
-                        total = obj_notify.lst_not_seen_detail.Count,
-                        data= obj_notify
+                        status = (int)ResponseType.SUCCESS,
+                        msg = $"Thông tin notify của user_id {user_id} đã public thành công",
+                        total = objNotify.lst_not_seen_detail.Count,
+                        data = objNotify
                     });
                 }
-                return Ok(new
+                else
                 {
-                    status = (int)ResponseType.ERROR,
-                    msg = "Token khong hop le"
-                });
+                    return Ok(new
+                    {
+                        status = (int)ResponseType.EMPTY,
+                        msg = "Hiện tại không có notify nào của user này",
+                        total = 0,
+                        data = objNotify
+                    });
+                }
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegram("notify/get-list.json" + ex.ToString() + "token =" + token);
+                LogHelper.InsertLogTelegram($"notify/get-list.json error: {ex} | token = {token}");
                 return Ok(new
                 {
                     status = (int)ResponseType.FAILED,
                     msg = "Transaction Error !!!"
                 });
             }
-
         }
+
 
         [HttpPost("notify/message/send.json")]
         public async Task<ActionResult> sendNotify([FromForm] string token) // 👈 thêm [FromForm]
@@ -183,7 +198,7 @@ namespace API_CORE.Controllers.NOTIFY
                 {
                     seen_status = (short)SeenType.NOT_SEEN,
                     notify_id = notifyId,
-                    seen_date = 0, // chưa xem
+                    seen_date = DateTimeOffset.Now.ToUnixTimeSeconds(), // chưa xem
                     user_receiver_id = userReceiverId,
                     link_redirect = linkRedirect,
                     content = content,
@@ -193,15 +208,16 @@ namespace API_CORE.Controllers.NOTIFY
                 await _notifyMongoDAL.pushReceiverReadMessage(receiverModel);
 
                 string cacheName = $"NOTIFY_{userReceiverId}";
-                int dbIndex = Convert.ToInt32(_configuration["Redis:Database:db_core"]);
+                int dbIndex = 14;
 
                 // clear cache cũ
-                //_redisService.clear(cacheName, dbIndex);
+                _redisService.clear(cacheName, dbIndex);
 
                 // update lại cache
                 var objNotify = await _notifyMongoDAL.getListNotify(userReceiverId);
                 if (objNotify != null)
                 {
+                    _redisService.Set(cacheName, JsonConvert.SerializeObject(objNotify), dbIndex);
                     _subscriber.Publish(cacheName, JsonConvert.SerializeObject(objNotify));
                 }
 
@@ -242,14 +258,17 @@ namespace API_CORE.Controllers.NOTIFY
                     {
                         // clear cache
                         string cache_name = "NOTIFY_" + user_seen_id;
-                        int db_index = Convert.ToInt32(_configuration["Redis:Database:db_core"]);
-                       // redisService.clear(cache_name, db_index);
+
+                        int dbIndex = 14;
+
+                        // clear cache cũ
+                        _redisService.clear(cache_name, dbIndex);
 
                         // Update lại cho cache này
                         var obj_notify = await _notifyMongoDAL.getListNotify(user_seen_id);
                         if (obj_notify != null)
                         {
-                            //redisService.Set(cache_name, JsonConvert.SerializeObject(obj_notify), db_index);
+                            _redisService.Set(cache_name, JsonConvert.SerializeObject(obj_notify), dbIndex);
                             _subscriber.Publish(cache_name, JsonConvert.SerializeObject(obj_notify));
                         }
                     }

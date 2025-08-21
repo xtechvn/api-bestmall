@@ -49,7 +49,7 @@ namespace HuloToys_Service.Controllers.NOTIFY.Business
             {
                 data.GenID();
                 await messageCollection.InsertOneAsync(data);
-                return data._id;
+                return data._id.ToString();
             }
             catch (Exception ex)
             {
@@ -116,26 +116,27 @@ namespace HuloToys_Service.Controllers.NOTIFY.Business
                 LogHelper.InsertLogTelegram("NotifyDAL - updateSeenNotify: " + ex);
                 return false;
             }
-        } 
+        }
 
         public async Task<NotifySummeryViewModel> getListNotify(int user_id_send)
         {
             try
             {
-                var filter = Builders<ReceiverMessageViewModel>.Filter.Where(x => x.company_type == 0 && x.user_receiver_id == user_id_send && (x.seen_status == (Int16)SeenType.NOT_SEEN || x.seen_status == (Int16)SeenType.SEEN_ALL));
-                var lst_noti = await receiverCollection.Find(filter).ToListAsync();
+                var filter = Builders<ReceiverMessageViewModel>.Filter.Where(x => x.company_type == 0 && x.user_receiver_id == user_id_send);
+                var lst_noti = await receiverCollection.Find(filter).Sort(Builders<ReceiverMessageViewModel>.Sort.Descending("seen_date")).ToListAsync();
 
                 // Lọc ra những tin chưa dc đọc lần nào
                 var lst_not_seen = lst_noti.FindAll(x => x.seen_status == (Int16)SeenType.NOT_SEEN);
 
                 // Lấy ra id nhóm tin chưa đọc
-                var id_list_not_seen = lst_not_seen.Select(x => x.notify_id).ToList();
+                var id_list_not_seen = lst_noti.Select(x => x.notify_id).ToList();
 
                 var noti = new NotifySummeryViewModel
                 {
-                    total_not_seen = id_list_not_seen.Count, // Tổng số tin chưa xem
+                    total_not_seen = lst_not_seen.Count, // Tổng số tin chưa xem
                     lst_id_not_seen = string.Join(",", id_list_not_seen), //danh sách id tin chưa xem lần nào
-                    lst_not_seen_detail = lst_noti.OrderByDescending(x => x.seen_date).Skip(0).Take(50).ToList()  // ds tin chưa xem lần nào và nhưng tin đã xem
+                    //lst_not_seen_detail = lst_noti.OrderByDescending(x => x.seen_date).Skip((pageIndex - 1) * pageSize).Take(pageSize).ToList()  // ds tin chưa xem lần nào và nhưng tin đã xem
+                    lst_not_seen_detail = lst_noti.ToList()  // ds tin chưa xem lần nào và nhưng tin đã xem
                 };
                 return noti;
             }
@@ -150,18 +151,18 @@ namespace HuloToys_Service.Controllers.NOTIFY.Business
         {
             try
             {
-                var filter = Builders<ReceiverMessageViewModel>.Filter.Where(x => x.company_type == 0 && x.user_receiver_id == user_id_send && (x.seen_status == (Int16)SeenType.NOT_SEEN || x.seen_status == (Int16)SeenType.SEEN_ALL));
+                var filter = Builders<ReceiverMessageViewModel>.Filter.Where(x => x.company_type == 0 && x.user_receiver_id == user_id_send);
                 var lst_noti = await receiverCollection.Find(filter).Sort(Builders<ReceiverMessageViewModel>.Sort.Descending("seen_date")).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToListAsync();
 
                 // Lọc ra những tin chưa dc đọc lần nào
                 var lst_not_seen = lst_noti.FindAll(x => x.seen_status == (Int16)SeenType.NOT_SEEN);
 
                 // Lấy ra id nhóm tin chưa đọc
-                var id_list_not_seen = lst_not_seen.Select(x => x.notify_id).ToList();
+                var id_list_not_seen = lst_noti.Select(x => x.notify_id).ToList();
 
                 var noti = new NotifySummeryViewModel
                 {
-                    total_not_seen = id_list_not_seen.Count, // Tổng số tin chưa xem
+                    total_not_seen = lst_not_seen.Count, // Tổng số tin chưa xem
                     lst_id_not_seen = string.Join(",", id_list_not_seen), //danh sách id tin chưa xem lần nào
                     //lst_not_seen_detail = lst_noti.OrderByDescending(x => x.seen_date).Skip((pageIndex - 1) * pageSize).Take(pageSize).ToList()  // ds tin chưa xem lần nào và nhưng tin đã xem
                     lst_not_seen_detail = lst_noti.ToList()  // ds tin chưa xem lần nào và nhưng tin đã xem

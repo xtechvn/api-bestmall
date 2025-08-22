@@ -211,25 +211,29 @@ namespace API_CORE.Controllers.VOUCHER
                     // Nếu is_limit_voucher  = 0 (false) thì sẽ hiểu là: mỗi 1 tài khoản sẽ được giới hạn số lần sử dụng ở trường limituser
                     //if (voucher.RuleType != VoucherRuleType.AMZ_DISCOUNT_FPF)
                     //{
-                    if (voucher.IsLimitVoucher == true)
+                    //if (voucher.IsLimitVoucher == true)
+                    //{
+                    //    var total_used =  orderESService.CountOrdersByVoucherIdAndClientId(voucher.Id,-1); // Lay  ra so lan voucher da duoc su dung
+                    //    if (total_used == -1)
+                    //    {
+                    //        return Ok(new { status = ((int)ResponseType.FAILED).ToString(), msg = "Mã " + voucher_name + " đã hết số lần sử dụng. Vui lòng liên hệ với bộ phận CSKH để được hỗ trợ" });
+                    //    }
+                    //    else if (total_used >= voucher.LimitUse)
+                    //    {
+                    //        return Ok(new { status = ((int)ResponseType.FAILED).ToString(), msg = "Mã " + voucher_name + " đã hết số lần sử dụng. Vui lòng liên hệ với bộ phận CSKH để được hỗ trợ" });
+                    //    }
+                    //}
+                    //else
+                    //{
+                    //    var total_client_use =  orderESService.CountOrdersByVoucherIdAndClientId(voucher.Id, account_client_id); // lay ra so lan voucher da duoc su dung cua 1 user
+                    //    if (total_client_use >= voucher.LimitUse)
+                    //    {
+                    //        return Ok(new { status = ((int)ResponseType.FAILED).ToString(), msg = "Mã " + voucher_name + " đã hết số lần sử dụng với tài khoản của bạn. Vui lòng liên hệ với bộ phận CSKH để được hỗ trợ" });
+                    //    }
+                    //}
+                    if(voucher.LimitUse <= 0)
                     {
-                        var total_used =  orderESService.CountOrdersByVoucherIdAndClientId(voucher.Id,-1); // Lay  ra so lan voucher da duoc su dung
-                        if (total_used == -1)
-                        {
-                            return Ok(new { status = ((int)ResponseType.FAILED).ToString(), msg = "Mã " + voucher_name + " đã hết số lần sử dụng. Vui lòng liên hệ với bộ phận CSKH để được hỗ trợ" });
-                        }
-                        else if (total_used >= voucher.LimitUse)
-                        {
-                            return Ok(new { status = ((int)ResponseType.FAILED).ToString(), msg = "Mã " + voucher_name + " đã hết số lần sử dụng. Vui lòng liên hệ với bộ phận CSKH để được hỗ trợ" });
-                        }
-                    }
-                    else
-                    {
-                        var total_client_use =  orderESService.CountOrdersByVoucherIdAndClientId(voucher.Id, account_client_id); // lay ra so lan voucher da duoc su dung cua 1 user
-                        if (total_client_use >= voucher.LimitUse)
-                        {
-                            return Ok(new { status = ((int)ResponseType.FAILED).ToString(), msg = "Mã " + voucher_name + " đã hết số lần sử dụng với tài khoản của bạn. Vui lòng liên hệ với bộ phận CSKH để được hỗ trợ" });
-                        }
+                        return Ok(new { status = ((int)ResponseType.FAILED).ToString(), msg = "Mã " + voucher_name + " đã hết số lần sử dụng. Vui lòng liên hệ với bộ phận CSKH để được hỗ trợ" });
                     }
                     double total_amount_calculate = 0;
                     switch (voucher.RuleType)

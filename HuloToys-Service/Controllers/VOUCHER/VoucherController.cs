@@ -442,7 +442,7 @@ namespace API_CORE.Controllers.VOUCHER
                 //-- db - global:
                 if (list_global == null || list_global.Count <= 0)
                 {
-                    list_global = await voucherRepository.GetVoucherList(null, 1, 1, 50, null);
+                    list_global = await voucherRepository.GetVoucherList(null, 1, 1, 50, -1);
                     if (list_global != null && list_global.Count > 0)
                     {
                         int db_index = Convert.ToInt32(configuration["Redis:Database:db_search_result"].ToString());

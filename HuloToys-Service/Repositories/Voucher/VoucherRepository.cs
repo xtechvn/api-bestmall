@@ -51,7 +51,14 @@ namespace REPOSITORIES.Repositories
             {
                 List<VoucherFEModel> list=new List<VoucherFEModel>();
                 DataTable data = await _VoucherDAL.GetVoucherList(keyword, status,page_index,page_size, client_id);
-              
+                LogHelper.InsertLogTelegram("GetVoucherList - VoucherRepository. " 
+                    + (data==null || data.Rows ==null? "NULL": data.Rows.Count)
+                    + "["+ keyword + "]"
+                    + "["+ status + "]"
+                    + "["+ page_index + "]"
+                    + "["+ page_size + "]"
+                    + "["+ client_id + "]"
+                    );
 
                 if (data!=null&& data.Rows != null && data.Rows.Count > 0)
                 {

@@ -51,15 +51,7 @@ namespace REPOSITORIES.Repositories
             {
                 List<VoucherFEModel> list=new List<VoucherFEModel>();
                 DataTable data = await _VoucherDAL.GetVoucherList(keyword, status,page_index,page_size, client_id);
-                LogHelper.InsertLogTelegram("GetVoucherList - VoucherRepository. " 
-                    + (data==null || data.Rows ==null? "NULL": data.Rows.Count)
-                    + "["+ keyword + "]"
-                    + "["+ status + "]"
-                    + "["+ page_index + "]"
-                    + "["+ page_size + "]"
-                    + "["+ client_id + "]"
-                    );
-
+               
                 if (data!=null&& data.Rows != null && data.Rows.Count > 0)
                 {
                     //    list = (from row in data.AsEnumerable()
@@ -87,7 +79,15 @@ namespace REPOSITORIES.Repositories
                     //            }).ToList();
                     list = data.ToList<VoucherFEModel>();
                 }
-                
+                LogHelper.InsertLogTelegram("GetVoucherList - VoucherRepository. "
+                   + (list == null  ? "NULL" : list.Count)
+                   + "[" + keyword + "]"
+                   + "[" + status + "]"
+                   + "[" + page_index + "]"
+                   + "[" + page_size + "]"
+                   + "[" + client_id + "]"
+                   );
+
                 return list;
               
             }
@@ -95,7 +95,7 @@ namespace REPOSITORIES.Repositories
             {
                 LogHelper.InsertLogTelegram("GetContractPayByOrderId - ContractPayDAL. " + ex);
             }
-            return null;
+            return new List<VoucherFEModel>();
         }
         public async Task<List<Voucher>> GetListVoucher(List<string> vouchers)
         {

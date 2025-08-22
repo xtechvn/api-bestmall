@@ -97,6 +97,7 @@ namespace DAL
                     new SqlParameter("@page_index", page_index),
                     new SqlParameter("@page_size", page_size),
                     new SqlParameter("@client_id", client_id??(object)DBNull.Value),
+                    new SqlParameter("@limit_use",0),
 
                 };
                 return _DbWorker.GetDataTable(StoreProcedureConstant.GetListVoucher, input);

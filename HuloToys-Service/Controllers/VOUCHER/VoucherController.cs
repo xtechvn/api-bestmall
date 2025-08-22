@@ -442,7 +442,7 @@ namespace API_CORE.Controllers.VOUCHER
                 //-- db - global:
                 if (list_global == null || list_global.Count <= 0)
                 {
-                    list_global = await voucherRepository.GetVoucherList(null, 1, 1, 50, null);
+                    list_global = await voucherRepository.GetVoucherList(null, 1, 1, 50, null,0);
                     if (list_global != null && list_global.Count > 0)
                     {
                         list_global = list_global.Where(x => x.group_user_priority == null || x.group_user_priority.Trim() == "").ToList();
@@ -455,7 +455,7 @@ namespace API_CORE.Controllers.VOUCHER
                 //-- db - by client_id:
                 if (list == null || list.Count <= 0)
                 {
-                    list = await voucherRepository.GetVoucherList(null, 1, 1, 100, (long)account_client.ClientId);
+                    list = await voucherRepository.GetVoucherList(null, 1, 1, 100, (long)account_client.ClientId,0);
                     if (list != null && list.Count > 0)
                     {
                         list = list.Where(x => x.group_user_priority != null && x.group_user_priority.Trim() != "").ToList();

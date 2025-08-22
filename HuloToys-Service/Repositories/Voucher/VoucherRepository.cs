@@ -45,15 +45,22 @@ namespace REPOSITORIES.Repositories
                 return null;
             }
         }
-        public async Task<List<VoucherFEModel>> GetVoucherList(string keyword, int status = 1, int page_index = 1, int page_size = 10, long? client_id = null)
+        public async Task<List<VoucherFEModel>> GetVoucherList(string keyword, int status = 1, int page_index = 1, int page_size = 10, long? client_id = null, int limit_use = 0)
         {
             try
             {
                 List<VoucherFEModel> list=new List<VoucherFEModel>();
-                DataTable data = await _VoucherDAL.GetVoucherList(keyword, status,page_index,page_size, client_id);
-                LogHelper.InsertLogTelegram("GetVoucherList - VoucherRepository. " + (data==null || data.Rows ==null? "NULL": data.Rows.Count));
+                DataTable data = await _VoucherDAL.GetVoucherList(keyword, status,page_index,page_size, client_id, limit_use);
+                LogHelper.InsertLogTelegram("GetVoucherList - VoucherRepository. " 
+                    + (data==null || data.Rows ==null? "NULL": data.Rows.Count)
+                    + "["+ keyword + "]"
+                    + "["+ status + "]"
+                    + "["+ page_index + "]"
+                    + "["+ page_size + "]"
+                    + "["+ client_id + "]"
+                    );
 
-                if (data!=null && data.Rows.Count > 0)
+                if (data!=null&& data.Rows != null && data.Rows.Count > 0)
                 {
                     //    list = (from row in data.AsEnumerable()
                     //            select new VoucherFEModel

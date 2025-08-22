@@ -442,9 +442,10 @@ namespace API_CORE.Controllers.VOUCHER
                 //-- db - global:
                 if (list_global == null || list_global.Count <= 0)
                 {
-                    list_global = await voucherRepository.GetVoucherList(null, 1, 1, 50, -1);
+                    list_global = await voucherRepository.GetVoucherList(null, 1, 1, 50, null);
                     if (list_global != null && list_global.Count > 0)
                     {
+                        list_global = list_global.Where(x => x.group_user_priority == null || x.group_user_priority.Trim() == "").ToList();
                         int db_index = Convert.ToInt32(configuration["Redis:Database:db_search_result"].ToString());
                         cache_name = CacheType.VOUCHER;
                         redisService.Set(cache_name, JsonConvert.SerializeObject(list_global), db_index);
@@ -457,6 +458,7 @@ namespace API_CORE.Controllers.VOUCHER
                     list = await voucherRepository.GetVoucherList(null, 1, 1, 100, (long)account_client.ClientId);
                     if (list != null && list.Count > 0)
                     {
+                        list = list.Where(x => x.group_user_priority != null && x.group_user_priority.Trim() != "").ToList();
                         cache_name = CacheType.VOUCHER + (long)account_client.ClientId;
                         int db_index = Convert.ToInt32(configuration["Redis:Database:db_search_result"].ToString());
                         redisService.Set(cache_name, JsonConvert.SerializeObject(list_global), db_index);

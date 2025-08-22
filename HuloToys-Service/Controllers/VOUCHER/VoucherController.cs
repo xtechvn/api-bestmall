@@ -443,6 +443,7 @@ namespace API_CORE.Controllers.VOUCHER
                 if (list_global == null || list_global.Count <= 0)
                 {
                     list_global = await voucherRepository.GetVoucherList(null, 1, 1, 50, null);
+                    LogHelper.InsertLogTelegram("GetVoucherList - VoucherController - list_global:  " + JsonConvert.SerializeObject(list_global));
                     list_global = list_global.Where(x => (x.group_user_priority == null || x.group_user_priority.Trim() == "") && x.limitUse > 0).ToList();
                     if (list_global != null && list_global.Count > 0)
                     {
@@ -456,6 +457,8 @@ namespace API_CORE.Controllers.VOUCHER
                 if (list == null || list.Count <= 0)
                 {
                     list = await voucherRepository.GetVoucherList(null, 1, 1, 100, (long)account_client.ClientId);
+                    LogHelper.InsertLogTelegram("GetVoucherList - VoucherController - list:  " + JsonConvert.SerializeObject(list));
+
                     list = list.Where(x => x.group_user_priority != null && x.group_user_priority.Trim() != "" && x.limitUse > 0).ToList();
                     if (list != null && list.Count > 0)
                     {

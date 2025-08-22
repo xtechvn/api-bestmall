@@ -79,14 +79,14 @@ namespace REPOSITORIES.Repositories
                     //            }).ToList();
                     list = data.ToList<VoucherFEModel>();
                 }
-                LogHelper.InsertLogTelegram("GetVoucherList - VoucherRepository. "
-                   + (list == null  ? "NULL" : list.Count)
-                   + "[" + keyword + "]"
-                   + "[" + status + "]"
-                   + "[" + page_index + "]"
-                   + "[" + page_size + "]"
-                   + "[" + client_id + "]"
-                   );
+                //LogHelper.InsertLogTelegram("GetVoucherList - VoucherRepository. "
+                //   + (list == null  ? "NULL" : list.Count)
+                //   + "[" + keyword + "]"
+                //   + "[" + status + "]"
+                //   + "[" + page_index + "]"
+                //   + "[" + page_size + "]"
+                //   + "[" + client_id + "]"
+                //   );
 
                 return list;
               

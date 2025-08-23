@@ -823,6 +823,8 @@ namespace HuloToys_Service.Controllers
                                 Unit=voucher.unit,  
                                 voucher_code=voucher.code,
                                 voucher_id=voucher.Id,
+                                LimitVoucherTotalDiscount=voucher.limit_total_discount,
+                                IsLimitVoucher=voucher.is_limit_voucher
                             });
 
                         }

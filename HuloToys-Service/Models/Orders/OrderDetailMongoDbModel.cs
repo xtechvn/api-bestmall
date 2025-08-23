@@ -63,6 +63,8 @@ namespace HuloToys_Service.Models.Orders
         public decimal? PriceSales { get; set; }
         public string? Unit { get; set; }
         public int? SupplierId { get; set; }
+        public double? LimitVoucherTotalDiscount { get; set; }
+        public bool? IsLimitVoucher { get; set; }
 
         public double TotalDiscount { get; set; }
     }

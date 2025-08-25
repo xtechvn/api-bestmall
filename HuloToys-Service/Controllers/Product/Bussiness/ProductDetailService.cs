@@ -502,20 +502,20 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                         if (item.amount <= 0 && item.amount_min != null && item.amount_min > 0)
                         {
                             item.amount_min -= total_discount;
-                            item.amount_min = NumberHelpers.RoundUpToHundredsDouble((double)item.amount_min);
+                            item.amount_min = Math.Ceiling((double)item.amount_min);
 
                         }
                         if (item.amount <= 0 && item.amount_max != null && item.amount_max > 0)
                         {
                             item.amount_max -= total_discount;
-                            item.amount_max = NumberHelpers.RoundUpToHundredsDouble((double)item.amount_max);
+                            item.amount_max = Math.Ceiling((double)item.amount_max);
 
                         }
                         item.discount = Math.Round(((amount_product - (double)item.amount_after_flashsale) / amount_product * 100), 0);
                         item.discount = item.discount <= 0 ? 0 : item.discount;
                        // item.price = amount_product- item.profit;
                         item.old_price = amount_product;
-                        item.amount_after_flashsale = NumberHelpers.RoundUpToHundredsDouble((double)item.amount_after_flashsale);
+                        item.amount_after_flashsale = Math.Ceiling((double)item.amount_after_flashsale);
                         //item.profit = NumberHelpers.RoundUpToHundredsDouble((double)item.profit);
                         //item.flashsale_badge_type = exists_flash_sale_product.badgetype;
                         //has_badge = true;

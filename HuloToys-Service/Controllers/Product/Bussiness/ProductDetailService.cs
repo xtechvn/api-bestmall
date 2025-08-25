@@ -324,7 +324,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                         result.Add(new FlashSaleProductResposeModel()
                         {
                             amount = old_price,
-                            amount_after_flashsale = NumberHelpers.RoundUpToHundredsDouble(amount_product - total_discount),
+                            amount_after_flashsale = Math.Ceiling(amount_product - total_discount),
                             discountvalue = discount_percent,
                             position = item.position??0,
                             total_discount = total_discount,

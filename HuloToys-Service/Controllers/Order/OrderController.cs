@@ -720,7 +720,7 @@ namespace HuloToys_Service.Controllers
                                             MoneyCollection = 0,
                                             ProductHeight = 0,
                                             ProductLength = 0,
-                                            ProductPrice = Convert.ToInt64(amount),
+                                            ProductPrice = 0,
                                             ProductType = "HH",
                                             ProductWeight = package_weight,
                                             ProductWidth = 0,

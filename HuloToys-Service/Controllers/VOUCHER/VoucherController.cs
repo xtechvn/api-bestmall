@@ -245,7 +245,7 @@ namespace API_CORE.Controllers.VOUCHER
                             break;
                         case 1: // Giảm giá trên phí ship
                             {
-                                total_amount_calculate = total_shipping_fee_before;
+                                total_amount_calculate = total_order_amount_before;
                             }
                             break;
                         case 2: // Giảm giá trên NCC

@@ -29,7 +29,7 @@ namespace HuloToys_Service.RedisWorker
             }
             catch (RedisConnectionException err)
             {
-                LogHelper.InsertLogTelegram("Connect RedisConn.Insert: " +err);
+                LogHelper.InsertLogTelegram("Connect RedisConn.Insert: " + err);
             }
         }
 
@@ -67,6 +67,83 @@ namespace HuloToys_Service.RedisWorker
         {
             var db = _redis.GetDatabase(db_index);
             await db.KeyDeleteAsync(key);
+        }
+        // ==============================
+        // LIST (🔥 thêm mới cho notify paging)
+        // ==============================
+        public void LPush(string key, string value, int db_index)
+        {
+            var db = _redis.GetDatabase(db_index);
+            db.ListLeftPush(key, value);
+        }
+        public void RPush(string key, string value, int dbIndex)
+        {
+            var db = _redis.GetDatabase(dbIndex);
+            db.ListRightPush(key, value);
+        }
+
+
+        public List<string> LRange(string key, long start, long stop, int db_index)
+        {
+            var db = _redis.GetDatabase(db_index);
+            var values = db.ListRange(key, start, stop);
+            return values.Select(x => x.ToString()).ToList();
+        }
+
+        public void LTrim(string key, long start, long stop, int db_index)
+        {
+            var db = _redis.GetDatabase(db_index);
+            db.ListTrim(key, start, stop);
+        }
+        public void LSet(string key, long index, string value, int dbIndex = 0)
+        {
+            var db = _redis.GetDatabase(dbIndex);
+            db.ListSetByIndex(key, index, value);
+        }
+        public void Del(string key, int dbIndex = 0)
+        {
+            var db = _redis.GetDatabase(dbIndex);
+            db.KeyDelete(key);
+        }
+
+
+
+        // ==============================
+        // SET (🔥 thêm mới cho unseen count)
+        // ==============================
+        public void SAdd(string key, string value, int db_index)
+        {
+            var db = _redis.GetDatabase(db_index);
+            db.SetAdd(key, value);
+        }
+
+        public void SRem(string key, string value, int db_index)
+        {
+            var db = _redis.GetDatabase(db_index);
+            db.SetRemove(key, value);
+        }
+
+        public long SCard(string key, int db_index)
+        {
+            var db = _redis.GetDatabase(db_index);
+            return db.SetLength(key);
+        }
+        private IDatabase GetDb(int dbIndex) => _redis.GetDatabase(dbIndex);
+
+        // ==========================
+        // Lấy toàn bộ member trong Set
+        // ==========================
+        public List<string> SMembers(string key, int dbIndex)
+        {
+            var db = GetDb(dbIndex);
+            var members = db.SetMembers(key);
+            return members.Select(x => x.ToString()).ToList();
+        }
+
+        public bool SIsMember(string key, string value, int db_index)
+        {
+            var db = _redis.GetDatabase(db_index);
+            return db.SetContains(key, value);
         }
     }
 }

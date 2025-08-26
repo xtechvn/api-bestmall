@@ -19,7 +19,7 @@ namespace ENTITIES.ViewModels.Notify
 
         public string notify_id { get; set; } // Thông tin notify
 
-        public double seen_date { get; set; } // Ngày mà user đó vào xem notify
+        public long seen_date { get; set; } // Ngày mà user đó vào xem notify
 
         public int user_receiver_id { get; set; } // user sẽ nhận notify
 

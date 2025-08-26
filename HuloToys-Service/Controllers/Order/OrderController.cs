@@ -745,6 +745,11 @@ namespace HuloToys_Service.Controllers
                                                 shipping_fee= selected_delivery.Sum(x => x.GiaCuoc),
                                                 SupplierId=supplier
                                             });
+                                            LogHelper.InsertLogTelegram(" model.delivery_order.Add" +
+                                              "[" + supplier + "]"
+                                             + "[" + selected_delivery.Sum(x => x.GiaCuoc) + "]"
+                                             + "[" + package_weight + "]"
+                                              );
                                         }
                                     }
 
@@ -753,6 +758,9 @@ namespace HuloToys_Service.Controllers
                                 break;
                         }
                     }
+                    LogHelper.InsertLogTelegram(" model.delivery_order" +
+                                             "[" + model.delivery_order.Count + "]"
+                                             );
                     //--apply voucher to 
                     if (voucher_apply != null && voucher_apply.Count > 0)
                     {
@@ -806,14 +814,8 @@ namespace HuloToys_Service.Controllers
                            
                             model.total_discount += total_discount;
                             model.total_amount -= total_discount;
-                            //LogHelper.InsertLogTelegram("voucher_apply apply" +
-                            //      "[" + (voucher.code == null ? "NULL" : voucher.code) + "]"
-                            //     + "[" + total_amount_calculate + "]"
-                            //     + "[" + total_discount + "]"
-                            //     + "[" + amount_apply_voucher + "]"
-                            //     + "[" + model.total_discount + "]"
-                            //      );
-                            //model.total_profit -= total_discount;
+                            
+                            model.total_profit -= total_discount;
                             model.voucher_apply.Add(new OrderDetailMongoDbVoucherApply()
                             {
                                 PriceSales=voucher.price_sales,

@@ -267,7 +267,6 @@ namespace HuloToys_Service.Controllers.Shipping.Business
                 {
                     var list_supplier = carts.Select(x => x.product.supplier_id).Distinct();
                     bool fill_first_supplier = false;
-                    LogHelper.InsertLogTelegram(" GetShippingFeeByListCart " + string.Join(",", list_supplier));
                     foreach (var supplier in list_supplier)
                     {
                         var cart_belong_to_supplier = carts.Where(x => x.product.supplier_id == supplier);
@@ -311,17 +310,18 @@ namespace HuloToys_Service.Controllers.Shipping.Business
                             ReceiverProvince = request.receiver_provinces_id,
                             Type = 1
                         });
-                        LogHelper.InsertLogTelegram(" var response_item = await GetShippingMethods( " +
-                                            "[" + (detail_supplier.provinceid == null ? 1 : (int)detail_supplier.provinceid) + "]"
-                                           + "[" + (detail_supplier.districtid == null ? 4 : (int)detail_supplier.districtid) + "]"
-                                           + "[" + request.receiver_provinces_id + "]"
-                                           + "[" + request.receiver_district_id + "]"
-                                           + "[" + package_weight + "]"
-                                           + "[" + supplier + "]"
-                                           + "[" + (response_item==null?"NULL": response_item.Count) + "]"
-                                            );
                         if (response_item != null && response_item.Count > 0)
                         {
+                            LogHelper.InsertLogTelegram(" response_item " +
+                                     "[" + (detail_supplier.provinceid == null ? 1 : (int)detail_supplier.provinceid) + "]"
+                                    + "[" + (detail_supplier.districtid == null ? 4 : (int)detail_supplier.districtid) + "]"
+                                    + "[" + request.receiver_provinces_id + "]"
+                                    + "[" + request.receiver_district_id + "]"
+                                    + "[" + (string.Join(",", response_item.Select(x => x.MaDvChinh))) + "]"
+                                    + "[" + (string.Join(",", response_item.Select(x => x.GiaCuoc))) + "]"
+                                    + "[" + package_weight + "]"
+                                    + "[" + supplier + "]"
+                                     );
                             if (fill_first_supplier == false)
                             {
                                 response.Add(new VTPServiceListingResponseModel()
@@ -351,16 +351,7 @@ namespace HuloToys_Service.Controllers.Shipping.Business
                                     {
                                         response[0].services.RemoveAll(x => x.service_code.Trim() == delivery.MaDvChinh.Trim());
                                     }
-                                    //LogHelper.InsertLogTelegram(" response_item " +
-                                    //         "[" + (detail_supplier.provinceid == null ? 1 : (int)detail_supplier.provinceid) + "]"
-                                    //        + "[" + (detail_supplier.districtid == null ? 4 : (int)detail_supplier.districtid) + "]"
-                                    //        + "[" + request.receiver_provinces_id + "]"
-                                    //        + "[" + request.receiver_district_id + "]"
-                                    //        + "[" + delivery.MaDvChinh.Trim() + "]"
-                                    //        + "[" + delivery.GiaCuoc + "]"
-                                    //        + "[" + package_weight + "]"
-                                    //        + "[" + supplier + "]"
-                                    //         );
+                                   
                                 }
 
                             }

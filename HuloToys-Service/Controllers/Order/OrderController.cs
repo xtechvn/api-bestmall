@@ -752,6 +752,7 @@ namespace HuloToys_Service.Controllers
                                              + "[" + Convert.ToInt32(request.address.DistrictId) + "]"
                                              + "[" + selected_delivery.Sum(x => x.GiaCuoc) + "]"
                                              + "[" + package_weight + "]"
+                                             + "[" + supplier + "]"
                                               );
                                         }
                                     }

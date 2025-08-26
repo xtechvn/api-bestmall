@@ -267,7 +267,8 @@ namespace WEB.CMS.Controllers
                         result = await _productDetailService.GetFullProductById(request.id);
 
                     }
-                    if (result == null || result.product_main == null || (result.product_main != null && result.product_main.status != (int)ProductStatus.ACTIVE))
+                    if (result == null || result.product_main == null || (result.product_main != null && result.product_main.status != (int)ProductStatus.ACTIVE)
+                        || result.product_main.quanity_of_stock<=0)
                     {
                         return Ok(new
                         {

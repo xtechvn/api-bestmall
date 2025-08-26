@@ -271,6 +271,7 @@ namespace HuloToys_Service.Controllers.Shipping.Business
                 {
                     var list_supplier = carts.Select(x => x.product.supplier_id).Distinct();
                     bool fill_first_supplier = false;
+                    LogHelper.InsertLogTelegram(" GetShippingFeeByListCart " + string.Join(",", list_supplier));
                     foreach (var supplier in list_supplier)
                     {
                         var cart_belong_to_supplier = carts.Where(x => x.product.supplier_id == supplier);

@@ -161,29 +161,25 @@ namespace HuloToys_Service.Controllers.Shipping.Business
                 response.EnsureSuccessStatusCode();
 
                 string responseBody = await response.Content.ReadAsStringAsync();
-                LogHelper.InsertLogTelegram(
-                        "Viettelpost GetShippingMethods: "
-                        + " list_supplier count=" + (responseBody == null ? "NULL" : responseBody)
-
-                        );
+              
                 List<VTPGetPriceAllResponse> shippingServices = JsonConvert.DeserializeObject<List<VTPGetPriceAllResponse>>(responseBody);
 
                 return shippingServices;
             }
             catch (HttpRequestException e)
             {
-                LogHelper.InsertLogTelegram("GetOwnerConnectToken - GetShippingMethods: HttpCall error [" + (DOMAIN + API_GETPRICEALL) + "] [" + e.StatusCode + "][" + e.Message + "]");
+                LogHelper.InsertLogTelegram("ViettelPostService - GetShippingMethods: HttpCall error [" + (DOMAIN + API_GETPRICEALL) + "] [" + e.StatusCode + "][" + e.Message + "]");
 
                 return null;
             }
             catch (JsonException e)
             {
-                LogHelper.InsertLogTelegram("GetOwnerConnectToken - GetShippingMethods: JSON parse error [" + (DOMAIN + API_GETPRICEALL) + "] [" + e.Message + "]");
+                LogHelper.InsertLogTelegram("ViettelPostService - GetShippingMethods: JSON parse error [" + (DOMAIN + API_GETPRICEALL) + "] [" + e.Message + "]");
                 return null;
             }
             catch (Exception e)
             {
-                LogHelper.InsertLogTelegram("GetOwnerConnectToken - GetShippingMethods: error [" + (DOMAIN + API_GETPRICEALL) + "] [" + e.Message + "]");
+                LogHelper.InsertLogTelegram("ViettelPostService - GetShippingMethods: error [" + (DOMAIN + API_GETPRICEALL) + "] [" + e.Message + "]");
                 return null;
             }
         }
@@ -315,6 +311,15 @@ namespace HuloToys_Service.Controllers.Shipping.Business
                             ReceiverProvince = request.receiver_provinces_id,
                             Type = 1
                         });
+                        LogHelper.InsertLogTelegram(" var response_item = await GetShippingMethods( " +
+                                            "[" + (detail_supplier.provinceid == null ? 1 : (int)detail_supplier.provinceid) + "]"
+                                           + "[" + (detail_supplier.districtid == null ? 4 : (int)detail_supplier.districtid) + "]"
+                                           + "[" + request.receiver_provinces_id + "]"
+                                           + "[" + request.receiver_district_id + "]"
+                                           + "[" + package_weight + "]"
+                                           + "[" + supplier + "]"
+                                           + "[" + (response_item==null?"NULL": response_item.Count) + "]"
+                                            );
                         if (response_item != null && response_item.Count > 0)
                         {
                             if (fill_first_supplier == false)
@@ -346,16 +351,16 @@ namespace HuloToys_Service.Controllers.Shipping.Business
                                     {
                                         response[0].services.RemoveAll(x => x.service_code.Trim() == delivery.MaDvChinh.Trim());
                                     }
-                                    LogHelper.InsertLogTelegram(" response_item " +
-                                             "[" + (detail_supplier.provinceid == null ? 1 : (int)detail_supplier.provinceid) + "]"
-                                            + "[" + (detail_supplier.districtid == null ? 4 : (int)detail_supplier.districtid) + "]"
-                                            + "[" + request.receiver_provinces_id + "]"
-                                            + "[" + request.receiver_district_id + "]"
-                                            + "[" + delivery.MaDvChinh.Trim() + "]"
-                                            + "[" + delivery.GiaCuoc + "]"
-                                            + "[" + package_weight + "]"
-                                            + "[" + supplier + "]"
-                                             );
+                                    //LogHelper.InsertLogTelegram(" response_item " +
+                                    //         "[" + (detail_supplier.provinceid == null ? 1 : (int)detail_supplier.provinceid) + "]"
+                                    //        + "[" + (detail_supplier.districtid == null ? 4 : (int)detail_supplier.districtid) + "]"
+                                    //        + "[" + request.receiver_provinces_id + "]"
+                                    //        + "[" + request.receiver_district_id + "]"
+                                    //        + "[" + delivery.MaDvChinh.Trim() + "]"
+                                    //        + "[" + delivery.GiaCuoc + "]"
+                                    //        + "[" + package_weight + "]"
+                                    //        + "[" + supplier + "]"
+                                    //         );
                                 }
 
                             }

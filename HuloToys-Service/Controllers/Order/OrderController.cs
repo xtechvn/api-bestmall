@@ -725,7 +725,7 @@ namespace HuloToys_Service.Controllers
                                             ProductWeight = package_weight,
                                             ProductWidth = 0,
                                             SenderDistrict = detail_supplier.districtid == null ? 4 : (int)detail_supplier.districtid,
-                                            SenderProvince = (int)detail_supplier.provinceid == null ? 1 : (int)detail_supplier.provinceid,
+                                            SenderProvince = detail_supplier.provinceid == null ? 1 : (int)detail_supplier.provinceid,
                                             ReceiverDistrict = Convert.ToInt32(request.address.DistrictId),
                                             ReceiverProvince = Convert.ToInt32(request.address.ProvinceId),
                                             Type = 1
@@ -746,7 +746,10 @@ namespace HuloToys_Service.Controllers
                                                 SupplierId=supplier
                                             });
                                             LogHelper.InsertLogTelegram(" model.delivery_order.Add" +
-                                              "[" + supplier + "]"
+                                              "[" + (detail_supplier.provinceid == null ? 1 : (int)detail_supplier.provinceid) + "]"
+                                             + "[" + (detail_supplier.districtid == null ? 4 : (int)detail_supplier.districtid) + "]"
+                                             + "[" + Convert.ToInt32(request.address.ProvinceId) + "]"
+                                             + "[" + Convert.ToInt32(request.address.DistrictId) + "]"
                                              + "[" + selected_delivery.Sum(x => x.GiaCuoc) + "]"
                                              + "[" + package_weight + "]"
                                               );
@@ -758,9 +761,6 @@ namespace HuloToys_Service.Controllers
                                 break;
                         }
                     }
-                    LogHelper.InsertLogTelegram(" model.delivery_order" +
-                                             "[" + model.delivery_order.Count + "]"
-                                             );
                     //--apply voucher to 
                     if (voucher_apply != null && voucher_apply.Count > 0)
                     {

@@ -345,7 +345,16 @@ namespace HuloToys_Service.Controllers.Shipping.Business
                                     {
                                         response[0].services.RemoveAll(x => x.service_code.Trim() == delivery.MaDvChinh.Trim());
                                     }
-
+                                    LogHelper.InsertLogTelegram(" response_item " +
+                                             "[" + (detail_supplier.provinceid == null ? 1 : (int)detail_supplier.provinceid) + "]"
+                                            + "[" + (detail_supplier.districtid == null ? 4 : (int)detail_supplier.districtid) + "]"
+                                            + "[" + request.receiver_provinces_id + "]"
+                                            + "[" + request.receiver_district_id + "]"
+                                            + "[" + delivery.MaDvChinh.Trim() + "]"
+                                            + "[" + delivery.GiaCuoc + "]"
+                                            + "[" + package_weight + "]"
+                                            + "[" + supplier + "]"
+                                             );
                                 }
 
                             }

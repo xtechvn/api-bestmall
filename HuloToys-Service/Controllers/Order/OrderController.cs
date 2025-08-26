@@ -745,15 +745,7 @@ namespace HuloToys_Service.Controllers
                                                 shipping_fee= selected_delivery.Sum(x => x.GiaCuoc),
                                                 SupplierId=supplier
                                             });
-                                            LogHelper.InsertLogTelegram(" model.delivery_order.Add" +
-                                              "[" + (detail_supplier.provinceid == null ? 1 : (int)detail_supplier.provinceid) + "]"
-                                             + "[" + (detail_supplier.districtid == null ? 4 : (int)detail_supplier.districtid) + "]"
-                                             + "[" + Convert.ToInt32(request.address.ProvinceId) + "]"
-                                             + "[" + Convert.ToInt32(request.address.DistrictId) + "]"
-                                             + "[" + selected_delivery.Sum(x => x.GiaCuoc) + "]"
-                                             + "[" + package_weight + "]"
-                                             + "[" + supplier + "]"
-                                              );
+                                           
                                         }
                                     }
 

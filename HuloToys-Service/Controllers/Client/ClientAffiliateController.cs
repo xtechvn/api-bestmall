@@ -123,6 +123,7 @@ namespace HuloToys_Service.Controllers
                     if (client_sql != null && client_sql.Id>0) { 
                         client_sql.IsRegisterAffiliate = true;
                         client_sql.ReferralId = await clientServices.GenerateRefferalID(client_sql.Id, DateTime.Now);
+                        _clientRepository.SetUpClient(client_sql);
                         var j_param = new Dictionary<string, object>
                         {
                             { "store_name", "SP_GetClient" },

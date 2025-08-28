@@ -129,7 +129,7 @@ namespace HuloToys_Service.Controllers
                             { "store_name", "SP_GetClient" },
                             { "index_es", "hulotoys_sp_getclient"},
                             { "project_type", 1 },
-                            { "id", client_sql.Id}
+                            { "id", -1}
                         };
 
                         var _data_push = JsonConvert.SerializeObject(j_param);

@@ -161,5 +161,21 @@ namespace HuloToys_Service.Controllers.Client.Business
             }
             return true;
         }
+
+        public async Task<string> GenerateRefferalID(long client_id, DateTime created_date)
+        {
+            string token = null;
+            try
+            {
+
+                string data="client_id="+ client_id.ToString()+";created_date"+created_date.ToString("dd/MM/yyyy HH:mm:ss");
+                token = CommonHelper.Encode(data, _configuration["KEY:private_key"]);
+            }
+            catch
+            {
+
+            }
+            return token;
+        }
     }
 }

@@ -387,7 +387,7 @@ namespace API_CORE.Controllers.VOUCHER
                 //{
                 //        {"token", "F08nOlAVBi8vLwxaDGMgagRjYX97aVlkfFt7AmJnTlpFXyNQYmNiUgBpXnt3Q1BJUlZ0WE5BcCxNFysoPCdLQhRzZWoEfmR5Y2pZBHhfcAFnbFhPSQNlQ21wYFppZRI="},
                 //};
-                //input=new APIRequestGenericModel()
+                //input = new APIRequestGenericModel()
                 //{
                 //    token = CommonHelper.Encode(JsonConvert.SerializeObject(j_param), configuration["KEY:private_key"])
                 //};

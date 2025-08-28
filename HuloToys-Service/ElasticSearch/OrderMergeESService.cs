@@ -326,5 +326,95 @@ namespace Caching.Elasticsearch
             long processing = processingResponse.IsValid ? processingResponse.Count : 0;
             return (all, waiting, delvering, finish, refund, cancel, processing);
         }
+        public OrderMergeFEResponseModel GetFEAffiliateByClientID(long client_id, string status, string order_no, int page_index, int page_size,string utm_medium="")
+        {
+            OrderMergeFEResponseModel result = new OrderMergeFEResponseModel();
+
+            try
+            {
+                // Build a list of QueryContainer predicates
+                var mustQueries = new List<Func<QueryContainerDescriptor<OrderMergeESModel>, QueryContainer>>
+                {
+                    // Always add ClientId filter
+                    q => q.Term(m => m.ClientId, client_id)
+                };
+
+                // Add OrderNo containment filter if order_no is provided
+                if (order_no != null && order_no.Trim() != "")
+                {
+                    mustQueries.Add(q => q.Wildcard(w => w.Field(f => f.OrderNo).Value($"*{order_no}*")));
+                }
+
+                // Add OrderStatus filter if status is provided
+                if (!string.IsNullOrWhiteSpace(status))
+                {
+                    List<int> status_value = new List<int>();
+                    try
+                    {
+                        var split = status.Split(",");
+                        if (split.Length > 0)
+                        {
+                            foreach (var item in split)
+                            {
+                                status_value.Add(Convert.ToInt32(item));
+                            }
+
+                        }
+                    }
+                    catch { }
+                    mustQueries.Add(q => q.Terms(t => t.Field(x => x.OrderStatus).Terms(status_value)));
+                }
+                mustQueries.Add(q => q.Terms(t => t.Field(x => x.UtmMedium).Terms(utm_medium)));
+
+                // Combine all 'must' queries using Bool.Must
+                Func<QueryContainerDescriptor<OrderMergeESModel>, QueryContainer> finalQueryContainer = q => q
+                    .Bool(b => b.Must(mustQueries.ToArray())); // Convert list to array for Must method
+
+                var searchRequest = new SearchDescriptor<OrderMergeESModel>()
+                    .Query(finalQueryContainer)
+                    .From((page_index - 1) * page_size)
+                    .Size(page_size)
+                    .Sort(ss => ss.Descending(o => o.CreatedDate));
+
+                var query = elasticClient.Search<OrderMergeESModel>(searchRequest);
+
+                var countRequest = new CountDescriptor<OrderMergeESModel>().Query(finalQueryContainer);
+
+                var query_count = elasticClient.Count(countRequest);
+
+                if (!query.IsValid || !query_count.IsValid)
+                {
+                    // Trả về kết quả rỗng nếu query hoặc count không hợp lệ.
+                    return result;
+                }
+                else
+                {
+                    // Thay đổi cách deserialize để bắt lỗi cụ thể
+                    try
+                    {
+                        result.data = query.Documents.ToList();
+                    }
+                    catch (Exception deserializeEx)
+                    {
+                        string error_msg = "Deserialize error: " + deserializeEx.Message;
+                        LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
+                        // Trả về kết quả rỗng hoặc throw exception tùy theo business logic
+                        return result;
+                    }
+
+                    result.total = query_count.Count;
+                    result.page_index = page_index;
+                    result.page_size = page_size;
+                    return result;
+                }
+            }
+            catch (Exception ex)
+            {
+                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.Message;
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "General error" + error_msg);
+            }
+
+            return null;
+        }
     }
 }

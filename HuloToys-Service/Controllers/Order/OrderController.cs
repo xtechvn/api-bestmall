@@ -575,6 +575,8 @@ namespace HuloToys_Service.Controllers
                          total_profit=0,
                          delivery_type=request.delivery_detail.shipping_type, 
                         profit_vnpay=allcode_vnpay==null||allcode_vnpay.Id<=0?0:allcode_vnpay.CodeValue,
+                         utm_medium=request.utm_medium,
+                         utm_source=request.utm_source,
                          
                          
                     };

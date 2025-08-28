@@ -1,30 +1,31 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json;
-using System.Reflection;
+﻿using Caching.Elasticsearch;
+using Entities.Models;
+using HuloToys_Front_End.Models.Products;
+using HuloToys_Service.Controllers.Client.Business;
+using HuloToys_Service.Controllers.Order.Business;
+using HuloToys_Service.IRepositories;
+using HuloToys_Service.Models.APIRequest;
+using HuloToys_Service.Models.Client;
+using HuloToys_Service.Models.Models;
+using HuloToys_Service.Models.Orders;
+using HuloToys_Service.Models.Queue;
+using HuloToys_Service.MongoDb;
+using HuloToys_Service.RabitMQ;
+using HuloToys_Service.RedisWorker;
+using HuloToys_Service.Utilities.constants;
+using HuloToys_Service.Utilities.lib;
 using HuloToys_Service.Utilities.Lib;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Models.Queue;
+using Nest;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Repositories.IRepositories;
+using System;
+using System.Reflection;
 using Utilities;
 using Utilities.Contants;
-using Models.Queue;
-using HuloToys_Service.RabitMQ;
-using Caching.Elasticsearch;
-using HuloToys_Service.Models.Queue;
-using HuloToys_Service.Utilities.constants;
-using HuloToys_Service.Controllers.Order.Business;
-using HuloToys_Service.Models.Client;
-using HuloToys_Service.Models.APIRequest;
-using HuloToys_Front_End.Models.Products;
-using HuloToys_Service.MongoDb;
-using HuloToys_Service.RedisWorker;
-using Entities.Models;
-using HuloToys_Service.Utilities.lib;
-using HuloToys_Service.Controllers.Client.Business;
-using Nest;
-using HuloToys_Service.IRepositories;
-using Repositories.IRepositories;
-using HuloToys_Service.Models.Models;
-using System;
 
 namespace HuloToys_Service.Controllers
 {
@@ -43,8 +44,9 @@ namespace HuloToys_Service.Controllers
         private readonly EmailService _emailService;
         private readonly IClientRepository _clientRepository;
         private readonly IAccountClientRepository _accountClientRepository;
+        private readonly IBankingAccountRepository bankingAccountRepository;
 
-        public ClientController(IConfiguration _configuration, RedisConn redisService, IClientRepository clientRepository, IAccountClientRepository accountClientRepository)
+        public ClientController(IConfiguration _configuration, RedisConn redisService, IClientRepository clientRepository, IAccountClientRepository accountClientRepository, IBankingAccountRepository bankingAccountRepository)
         {
             configuration = _configuration;
             workQueueClient = new WorkQueueClient(configuration);
@@ -57,6 +59,7 @@ namespace HuloToys_Service.Controllers
             _emailService = new EmailService(configuration);
             _clientRepository = clientRepository;
             _accountClientRepository = accountClientRepository;
+            this.bankingAccountRepository = bankingAccountRepository;
         }
         [HttpPost("login")]
         public async Task<ActionResult> ClientLogin([FromBody] APIRequestGenericModel input)
@@ -1162,5 +1165,6 @@ namespace HuloToys_Service.Controllers
         //    });
 
         //}
+
     }
 }

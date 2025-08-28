@@ -127,7 +127,7 @@ namespace HuloToys_Service.Controllers
                         var j_param = new Dictionary<string, object>
                         {
                             { "store_name", "SP_GetClient" },
-                            { "index_es", "hulotoys_" + "SP_GetClient".ToLower() },
+                            { "index_es", "hulotoys_sp_getclient"},
                             { "project_type", 1 },
                             { "id", client_sql.Id}
                         };

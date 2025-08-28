@@ -49,7 +49,7 @@ namespace HuloToys_Service.Controllers
         private readonly OrderMongodbService orderMongodbService;
 
         public ClientAffiliateController(IConfiguration _configuration, RedisConn redisService, IClientRepository clientRepository, 
-            IAccountClientRepository accountClientRepository, IBankingAccountRepository bankingAccountRepository, OrderMergeESService orderMergeESService, OrderMongodbService orderMongodbService)
+            IAccountClientRepository accountClientRepository, IBankingAccountRepository bankingAccountRepository,  OrderMongodbService orderMongodbService)
         {
             configuration = _configuration;
             workQueueClient = new WorkQueueClient(configuration);
@@ -63,7 +63,7 @@ namespace HuloToys_Service.Controllers
             _clientRepository = clientRepository;
             _accountClientRepository = accountClientRepository;
             this.bankingAccountRepository = bankingAccountRepository;
-            this.orderMergeESService = orderMergeESService;
+            orderMergeESService = new OrderMergeESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
             this.orderMongodbService = orderMongodbService;
         }
 

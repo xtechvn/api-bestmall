@@ -80,7 +80,6 @@ internal class Program
         builder.Services.AddSingleton<ProductRaitingService>();
         builder.Services.AddSingleton<CartMongodbService>();
         builder.Services.AddSingleton<OrderMongodbService>();
-        builder.Services.AddSingleton<OrderMergeESService>();
         builder.Services.AddSingleton<ProductDetailMongoAccess>();
         builder.Services.AddSingleton<ProductFavouritesMongoAccess>();
         builder.Services.AddSingleton<ProductSpecificationMongoAccess>();

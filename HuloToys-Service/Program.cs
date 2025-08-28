@@ -1,3 +1,4 @@
+using Caching.Elasticsearch;
 using Caching.Elasticsearch.FlashSale;
 using Entities.ConfigModels;
 using HuloToys_Service.Controllers.Flashsale.Bussiness;
@@ -79,6 +80,7 @@ internal class Program
         builder.Services.AddSingleton<ProductRaitingService>();
         builder.Services.AddSingleton<CartMongodbService>();
         builder.Services.AddSingleton<OrderMongodbService>();
+        builder.Services.AddSingleton<OrderMergeESService>();
         builder.Services.AddSingleton<ProductDetailMongoAccess>();
         builder.Services.AddSingleton<ProductFavouritesMongoAccess>();
         builder.Services.AddSingleton<ProductSpecificationMongoAccess>();

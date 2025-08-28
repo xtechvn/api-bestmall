@@ -219,24 +219,31 @@ namespace HuloToys_Service.Controllers
 
                         if (accounts != null && accounts.Count>0)
                         {
+                            var detailclient = await clientServices.GetDetailClientIdFromToken(account_client_id);
 
                             return Ok(new
                             {
                                 status = (int)ResponseType.SUCCESS,
                                 msg = "Success",
-                                data = accounts[0]
+                                data = accounts[0],
+                                client=detailclient
                             });
                         }
                     }
                     accounts = bankingAccountRepository.GetBankAccountByClientId(client.Id);
-                    if(accounts != null && accounts.Count > 0)
+
+                    if (accounts != null && accounts.Count > 0)
                     {
                         _redisService.Set(cache_name,JsonConvert.SerializeObject(accounts), Convert.ToInt32(configuration["Redis:Database:db_search_result"]));
+                        var detailclient = await clientServices.GetDetailClientIdFromToken(account_client_id);
+
                         return Ok(new
                         {
                             status = (int)ResponseType.SUCCESS,
                             msg = "Success",
-                            data = accounts[0]
+                            data = accounts[0],
+                            client = detailclient
+
                         });
                     }
                     return Ok(new

@@ -30,7 +30,7 @@ using Utilities.Contants;
 namespace HuloToys_Service.Controllers
 {
     [ApiController]
-    [Route("api/client/aff")]
+    [Route("api/client/affiliate")]
 
     public class ClientAffiliateController : ControllerBase
     {
@@ -67,7 +67,7 @@ namespace HuloToys_Service.Controllers
             this.orderMongodbService = orderMongodbService;
         }
 
-        [HttpPost("affiliate/register")]
+        [HttpPost("register")]
         public async Task<ActionResult> AffiliateRegister([FromBody] APIRequestGenericModel input)
         {
             try
@@ -150,7 +150,7 @@ namespace HuloToys_Service.Controllers
             });
 
         }
-        [HttpPost("affiliate/payment/detail")]
+        [HttpPost("payment/detail")]
         public async Task<ActionResult> AffiliatePayment([FromBody] APIRequestGenericModel input)
         {
             try
@@ -221,7 +221,7 @@ namespace HuloToys_Service.Controllers
             });
 
         }
-        [HttpPost("affiliate/payment/update")]
+        [HttpPost("payment/update")]
         public async Task<ActionResult> AffiliatePaymentUpdate([FromBody] APIRequestGenericModel input)
         {
             try
@@ -310,7 +310,7 @@ namespace HuloToys_Service.Controllers
             });
 
         }
-        [HttpPost("affiliate/order/listing")]
+        [HttpPost("order/listing")]
         public async Task<ActionResult> AffiliateOrderListing([FromBody] APIRequestGenericModel input)
         {
             try

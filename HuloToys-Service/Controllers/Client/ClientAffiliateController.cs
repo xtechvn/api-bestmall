@@ -122,6 +122,16 @@ namespace HuloToys_Service.Controllers
                     if (client_sql != null && client_sql.Id>0) { 
                         client_sql.IsRegisterAffiliate = true;
                         client_sql.ReferralId = await clientServices.GenerateRefferalID(client_sql.Id, DateTime.Now);
+                        var j_param = new Dictionary<string, object>
+                        {
+                            { "store_name", "SP_GetClient" },
+                            { "index_es", "hulotoys_" + "SP_GetClient".ToLower() },
+                            { "project_type", 1 },
+                            { "id", client_sql.Id}
+                        };
+
+                        var _data_push = JsonConvert.SerializeObject(j_param);
+                        var response_queue = workQueueClient.InsertQueueSimpleSyncES(_data_push);
                         return Ok(new
                         {
                             status = (int)ResponseType.SUCCESS,

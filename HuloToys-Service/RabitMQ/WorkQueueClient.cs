@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using RabbitMQ.Client;
 using System.Reflection;
 using System.Text;
+using Utilities.Contants;
 
 namespace HuloToys_Service.RabitMQ
 {
@@ -167,7 +168,7 @@ namespace HuloToys_Service.RabitMQ
                 catch (Exception ex)
                 {
                     string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.Message;
-                    LogHelper.InsertLogTelegramByUrl(configuration["telegram:log_try_catch:bot_token"], configuration["telegram:log_try_catch:group_id"], error_msg);
+                    LogHelper.InsertLogTelegram("WorkQueueClient - InsertQueueSimpleSyncES [ " + configuration["Queue:V_Host_Sync"] + "/" + configuration["Queue:QueueSyncES"] + "] -> [" + message + "][" + configuration["Queue:QueueSyncES"] + "]: " + ex);
                     return false;
                 }
             }

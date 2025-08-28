@@ -126,7 +126,7 @@ namespace HuloToys_Service.Controllers
                         _clientRepository.SetUpClient(client_sql);
                         var j_param = new Dictionary<string, object>
                         {
-                            { "store_name", "SP_GetClient" },
+                            { "store_name", "sp_GetClient" },
                             { "index_es", "hulotoys_sp_getclient"},
                             { "project_type", 1 },
                             { "id", client_sql.Id}

@@ -3,6 +3,7 @@ using Entities.Models;
 using HuloToys_Front_End.Models.Products;
 using HuloToys_Service.Controllers.Client.Business;
 using HuloToys_Service.Controllers.Order.Business;
+using HuloToys_Service.Controllers.Product.Bussiness;
 using HuloToys_Service.IRepositories;
 using HuloToys_Service.Models.APIRequest;
 using HuloToys_Service.Models.Client;
@@ -199,15 +200,42 @@ namespace HuloToys_Service.Controllers
                             msg = ResponseMessages.DataInvalid
                         });
                     }
-                   
-                    var banking_payment = bankingAccountRepository.GetBankAccountByClientId(client.Id);
-                    if(banking_payment!=null && banking_payment.Count > 0)
+                    List<BankingAccount > accounts = new List<BankingAccount>();
+                    var cache_name = CacheType.BANK_ACCOUNT + client.Id;
+                    string j_data = "";
+                    try
                     {
+                        j_data = await _redisService.GetAsync(cache_name, Convert.ToInt32(configuration["Redis:Database:db_search_result"]));
+                    }
+                    catch { }
+                    if (j_data != null && j_data.Trim() != "")
+                    {
+                        try
+                        {
+                            accounts = JsonConvert.DeserializeObject<List<BankingAccount>>(j_data);
+                        }
+                        catch { }
+
+                        if (accounts != null && accounts.Count>0)
+                        {
+
+                            return Ok(new
+                            {
+                                status = (int)ResponseType.SUCCESS,
+                                msg = "Success",
+                                data = accounts[0]
+                            });
+                        }
+                    }
+                    accounts = bankingAccountRepository.GetBankAccountByClientId(client.Id);
+                    if(accounts != null && accounts.Count > 0)
+                    {
+                        _redisService.Set(cache_name,JsonConvert.SerializeObject(accounts), Convert.ToInt32(configuration["Redis:Database:db_search_result"]));
                         return Ok(new
                         {
                             status = (int)ResponseType.SUCCESS,
                             msg = "Success",
-                            data = banking_payment[0]
+                            data = accounts[0]
                         });
                     }
                     return Ok(new
@@ -275,6 +303,7 @@ namespace HuloToys_Service.Controllers
                             msg = ResponseMessages.DataInvalid
                         });
                     }
+                    var cache_name = CacheType.BANK_ACCOUNT + client.Id;
 
                     var banking_payment = bankingAccountRepository.GetBankAccountByClientId(request.detail.Id);
                     int id = 0;
@@ -299,6 +328,8 @@ namespace HuloToys_Service.Controllers
                         request.detail.SupplierId= (int)client.Id;
                         id = bankingAccountRepository.UpsertBankingAccount(request.detail);
                     }
+                    _redisService.clear(cache_name,  Convert.ToInt32(configuration["Redis:Database:db_search_result"]));
+
                     return Ok(new
                     {
                         status = (int)ResponseType.SUCCESS,

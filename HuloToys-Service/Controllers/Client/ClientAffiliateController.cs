@@ -121,6 +121,19 @@ namespace HuloToys_Service.Controllers
                     }
                     var client_sql = await _clientRepository.GetClientDetailByClientId((long)account_client.ClientId);
                     if (client_sql != null && client_sql.Id>0) { 
+                        if(client_sql.IsRegisterAffiliate == true && client_sql.ReferralId!=null && client_sql.ReferralId.Trim() != "")
+                        {
+                            return Ok(new
+                            {
+                                status = (int)ResponseType.SUCCESS,
+                                msg = "Success",
+                                data = new
+                                {
+                                    utm_source = "bestmall",
+                                    utm_medium = client_sql.ReferralId
+                                }
+                            });
+                        }
                         client_sql.IsRegisterAffiliate = true;
                         client_sql.ReferralId = await clientServices.GenerateRefferalID(client_sql.Id, DateTime.Now);
                         _clientRepository.SetUpClient(client_sql);

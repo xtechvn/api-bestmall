@@ -214,6 +214,8 @@ namespace HuloToys_Service.Controllers
                             msg = ResponseMessages.DataInvalid
                         });
                     }
+                    var detailclient = await clientServices.GetDetailClientIdFromToken(account_client_id);
+
                     List<BankingAccount > accounts = new List<BankingAccount>();
                     var cache_name = CacheType.BANK_ACCOUNT + client.Id;
                     string j_data = "";
@@ -232,8 +234,6 @@ namespace HuloToys_Service.Controllers
 
                         if (accounts != null && accounts.Count>0)
                         {
-                            var detailclient = await clientServices.GetDetailClientIdFromToken(account_client_id);
-
                             return Ok(new
                             {
                                 status = (int)ResponseType.SUCCESS,
@@ -248,7 +248,6 @@ namespace HuloToys_Service.Controllers
                     if (accounts != null && accounts.Count > 0)
                     {
                         _redisService.Set(cache_name,JsonConvert.SerializeObject(accounts), Convert.ToInt32(configuration["Redis:Database:db_search_result"]));
-                        var detailclient = await clientServices.GetDetailClientIdFromToken(account_client_id);
 
                         return Ok(new
                         {
@@ -263,7 +262,9 @@ namespace HuloToys_Service.Controllers
                     {
                         status = (int)ResponseType.SUCCESS,
                         msg = "Success",
-                        data = new BankingAccount()
+                        data = new BankingAccount(),
+                        client = detailclient
+
                     });
                 }
 

@@ -7,6 +7,7 @@
         public string name { get; set; }
         public string ip { get; set; }
         public DateTime time_expire { get; set; }
+        public bool? IsRegisterAffiliate { get; set; }
 
     }
 }

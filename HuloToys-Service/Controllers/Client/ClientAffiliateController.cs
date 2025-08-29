@@ -284,9 +284,25 @@ namespace HuloToys_Service.Controllers
         [HttpPost("update")]
         public async Task<ActionResult> AffiliatePaymentUpdate([FromBody] APIRequestGenericModel input)
         {
+            //var model_input = new ClientAffiliatePaymentRequestModel
+            //{
+            //    token = "F08nOlAVBi8vLwxaDGMgagRjYX97aVlkfFt7AmJnTlpFXyNQYmNiUgBpXnt3Q1BJUlZ0WE5BcCxNFysoPCdLQhRzZWoEfmR2Y2hRBHlQcABqbFxBSQZqRm15alppZRI=",
+            //    detail=new BankingAccount()
+            //    {
+            //        Id=0,
+            //        BankId="VIETINBANK",
+            //        AccountName="NGUYEN VAN A",
+            //        AccountNumber= "0123456789",
+            //        Branch= "HOI SO"
+            //    },
+            //};
+            //input = new APIRequestGenericModel()
+            //{
+            //    token = CommonHelper.Encode(JsonConvert.SerializeObject(model_input), configuration["KEY:private_key"])
+            //};
             try
             {
-
+                
 
                 JArray objParr = null;
                 if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, configuration["KEY:private_key"]))

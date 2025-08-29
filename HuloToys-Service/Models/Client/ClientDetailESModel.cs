@@ -9,5 +9,7 @@
         public DateTime? Birthday { get; set; }
         public string Phone { get; set; }
         public string ReferralId { get; set; }
+        public bool? IsRegisterAffiliate { get; set; }
+
     }
 }

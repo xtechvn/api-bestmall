@@ -8,6 +8,7 @@
         public string password { get; set; }
         public string confirm_password { get; set; }
         public string token { get; set; }
+        public string citizenid { get; set; }
         public bool is_receive_email { get; set; }
 
     }

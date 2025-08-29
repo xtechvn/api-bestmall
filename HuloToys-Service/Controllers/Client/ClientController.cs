@@ -343,7 +343,8 @@ namespace HuloToys_Service.Controllers
                         Status = 0,
                         UserName = username_generate,
                         GoogleToken = request.token,
-                        ClientCode = await _identifierServiceRepository.buildClientNo(0)
+                        ClientCode = await _identifierServiceRepository.buildClientNo(0),
+                        CitizenId=request.citizenid
                     };
                     var queue_model = new ClientConsumerQueueModel()
                     {

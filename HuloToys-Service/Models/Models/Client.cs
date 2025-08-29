@@ -52,6 +52,8 @@ public partial class Client
     public string? ReferralId { get; set; }
 
     public int? ParentId { get; set; }
+    public string CitizenId { get; set; }
+
 
     public virtual ICollection<UserAgent> UserAgents { get; set; } = new List<UserAgent>();
 }

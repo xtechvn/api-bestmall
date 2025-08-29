@@ -162,7 +162,7 @@ namespace HuloToys_Service.Controllers
             });
 
         }
-        [HttpPost("payment/detail")]
+        [HttpPost("detail")]
         public async Task<ActionResult> AffiliatePayment([FromBody] APIRequestGenericModel input)
         {
             try
@@ -267,7 +267,7 @@ namespace HuloToys_Service.Controllers
             });
 
         }
-        [HttpPost("payment/update")]
+        [HttpPost("update")]
         public async Task<ActionResult> AffiliatePaymentUpdate([FromBody] APIRequestGenericModel input)
         {
             try
@@ -315,6 +315,14 @@ namespace HuloToys_Service.Controllers
 
                     var banking_payment = bankingAccountRepository.GetBankAccountByClientId(request.detail.Id);
                     int id = 0;
+                    if (banking_payment != null && banking_payment.Count > 0 && request.detail.Id > 0 && (banking_payment[0].Id !=request.detail.Id || banking_payment[0].ClientId != client.Id))
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.FAILED,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
                     if (banking_payment != null && banking_payment.Count > 0)
                     {
                         var exists = banking_payment[0];
@@ -429,5 +437,6 @@ namespace HuloToys_Service.Controllers
             });
 
         }
+      
     }
 }

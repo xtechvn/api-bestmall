@@ -58,7 +58,7 @@ namespace DAL
                 new SqlParameter("@RefundStatus", model.RefundStatus < 0 ? (object)DBNull.Value : model.RefundStatus),
                 new SqlParameter("@RefundReason", model.RefundReason ?? (object)DBNull.Value),
                 new SqlParameter("@RefundDate", model.RefundDate ?? (object)DBNull.Value),
-                new SqlParameter("@ShippingFee", model.ShippingFee ?? (object)DBNull.Value),
+                new SqlParameter("@ShippingFee", model.ShippingFee ?? (object)DBNull.Value), 
                 new SqlParameter("@ProfitAffiliate", model.ProfitAffiliate ?? (object)DBNull.Value)
 
                 };

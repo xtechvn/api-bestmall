@@ -116,6 +116,7 @@ namespace HuloToys_Service.Controllers.Client.Business
                 Detail_Client.Email = client.Email;
                 Detail_Client.Birthday = client.Birthday;
                 Detail_Client.Gender = client.Gender;
+                Detail_Client.ReferralId = client.ReferralId;
                 return Detail_Client;
             }
             catch (Exception ex)

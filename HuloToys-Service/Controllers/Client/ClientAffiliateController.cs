@@ -68,7 +68,7 @@ namespace HuloToys_Service.Controllers
             this.orderMongodbService = orderMongodbService;
         }
 
-        [HttpPost("register")]
+        [HttpPost("get")]
         public async Task<ActionResult> AffiliateRegister([FromBody] APIRequestGenericModel input)
         {
             try
@@ -84,7 +84,7 @@ namespace HuloToys_Service.Controllers
 
                         return Ok(new
                         {
-                            status = (int)ResponseType.FAILED,
+                            status = (int)ResponseType.ERROR,
                             msg = ResponseMessages.DataInvalid
                         });
                     }
@@ -93,7 +93,7 @@ namespace HuloToys_Service.Controllers
                     {
                         return Ok(new
                         {
-                            status = (int)ResponseType.FAILED,
+                            status = (int)ResponseType.ERROR,
                             msg = ResponseMessages.DataInvalid
                         });
                     }
@@ -103,7 +103,7 @@ namespace HuloToys_Service.Controllers
                     {
                         return Ok(new
                         {
-                            status = (int)ResponseType.FAILED,
+                            status = (int)ResponseType.ERROR,
                             msg = ResponseMessages.DataInvalid
                         });
                     }
@@ -134,34 +134,38 @@ namespace HuloToys_Service.Controllers
                                 }
                             });
                         }
-                        client_sql.IsRegisterAffiliate = true;
-                        client_sql.ReferralId = await clientServices.GenerateRefferalID(client_sql.Id, DateTime.Now);
-                        _clientRepository.SetUpClient(client_sql);
-                        var j_param = new Dictionary<string, object>
-                        {
-                            { "store_name", "sp_GetClient" },
-                            { "index_es", "hulotoys_sp_getclient"},
-                            { "project_type", 1 },
-                            { "id", client_sql.Id}
-                        };
+                        //client_sql.IsRegisterAffiliate = true;
+                        //client_sql.ReferralId = await clientServices.GenerateRefferalID(client_sql.Id, DateTime.Now);
+                        //_clientRepository.SetUpClient(client_sql);
+                        //var j_param = new Dictionary<string, object>
+                        //{
+                        //    { "store_name", "sp_GetClient" },
+                        //    { "index_es", "hulotoys_sp_getclient"},
+                        //    { "project_type", 1 },
+                        //    { "id", client_sql.Id}
+                        //};
 
-                        var _data_push = JsonConvert.SerializeObject(j_param);
-                        var response_queue = workQueueClient.InsertQueueSimpleSyncES(_data_push);
-                        return Ok(new
-                        {
-                            status = (int)ResponseType.SUCCESS,
-                            msg = "Success",
-                            data = new
-                            {
-                                utm_source = "bestmall",
-                                utm_medium = client_sql.ReferralId
-                            }
-                        });
+                        //var _data_push = JsonConvert.SerializeObject(j_param);
+                        //var response_queue = workQueueClient.InsertQueueSimpleSyncES(_data_push);
+                        //return Ok(new
+                        //{
+                        //    status = (int)ResponseType.SUCCESS,
+                        //    msg = "Success",
+                        //    data = new
+                        //    {
+                        //        utm_source = "bestmall",
+                        //        utm_medium = client_sql.ReferralId
+                        //    }
+                        //});
                     }
-                    
+                    return Ok(new
+                    {
+                        status = (int)ResponseType.FAILED,
+                        msg = "Tài khoản chưa được đăng ký Affiliate"
+                    });
 
                 }
-
+                
             }
             catch (Exception ex)
             {
@@ -170,7 +174,7 @@ namespace HuloToys_Service.Controllers
             }
             return Ok(new
             {
-                status = (int)ResponseType.FAILED,
+                status = (int)ResponseType.ERROR,
                 msg = ResponseMessages.DataInvalid
             });
 
@@ -375,13 +379,51 @@ namespace HuloToys_Service.Controllers
                         id = bankingAccountRepository.UpsertBankingAccount(request.detail);
                     }
                     _redisService.clear(cache_name,  Convert.ToInt32(configuration["Redis:Database:db_search_result"]));
-
-                    return Ok(new
+                    var client_sql = await _clientRepository.GetClientDetailByClientId((long)account_client.ClientId);
+                    if (client_sql != null && client_sql.Id > 0)
                     {
-                        status = (int)ResponseType.SUCCESS,
-                        msg = "Success",
-                        data = id
-                    });
+                        if (client_sql.IsRegisterAffiliate == true && client_sql.ReferralId != null && client_sql.ReferralId.Trim() != "")
+                        {
+                            return Ok(new
+                            {
+                                status = (int)ResponseType.SUCCESS,
+                                msg = "Success",
+                                data = new
+                                {
+                                    id = id,
+                                    utm_source = "bestmall",
+                                    utm_medium = client_sql.ReferralId
+                                }
+                            });
+                        }
+                        else
+                        {
+                            client_sql.IsRegisterAffiliate = true;
+                            client_sql.ReferralId = await clientServices.GenerateRefferalID(client_sql.Id, DateTime.Now);
+                            _clientRepository.SetUpClient(client_sql);
+                            var j_param = new Dictionary<string, object>
+                            {
+                                { "store_name", "sp_GetClient" },
+                                { "index_es", "hulotoys_sp_getclient"},
+                                { "project_type", 1 },
+                                { "id", client_sql.Id}
+                            };
+
+                            var _data_push = JsonConvert.SerializeObject(j_param);
+                            var response_queue = workQueueClient.InsertQueueSimpleSyncES(_data_push);
+                            return Ok(new
+                            {
+                                status = (int)ResponseType.SUCCESS,
+                                msg = "Success",
+                                data = new
+                                {
+                                    id = id,
+                                    utm_source = "bestmall",
+                                    utm_medium = client_sql.ReferralId
+                                }
+                            });
+                        }
+                    }
                 }
 
             }

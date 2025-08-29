@@ -233,7 +233,7 @@ namespace HuloToys_Service.Controllers
                                             token = token,
                                             ip = ipAddress,
                                             time_expire = clientServices.GetExpiredTimeFromToken(token),
-                                            IsRegisterAffiliate = client.IsRegisterAffiliate
+                                            IsRegisterAffiliate =false
 
                                         },
                                         code = ResponseCode.Success,

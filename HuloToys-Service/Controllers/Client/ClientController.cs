@@ -120,7 +120,8 @@ namespace HuloToys_Service.Controllers
                                                 token = token,
                                                 ip = ipAddress,
                                                 time_expire = clientServices.GetExpiredTimeFromToken(token),
-                                                IsRegisterAffiliate=client.IsRegisterAffiliate
+                                                IsRegisterAffiliate=client.IsRegisterAffiliate,
+                                                CitizenId=client.CitizenId
                                             }
                                         });
                                     }
@@ -149,7 +150,9 @@ namespace HuloToys_Service.Controllers
                                                     token = token,
                                                     ip = ipAddress,
                                                     time_expire = clientServices.GetExpiredTimeFromToken(token),
-                                                    IsRegisterAffiliate = client.IsRegisterAffiliate
+                                                    IsRegisterAffiliate = client.IsRegisterAffiliate,
+                                                    CitizenId = client.CitizenId
+
 
                                                 }
                                             });
@@ -185,7 +188,9 @@ namespace HuloToys_Service.Controllers
                                                         token = token,
                                                         ip = ipAddress,
                                                         time_expire = clientServices.GetExpiredTimeFromToken(token),
-                                                        IsRegisterAffiliate = client.IsRegisterAffiliate
+                                                        IsRegisterAffiliate = client.IsRegisterAffiliate,
+                                                        CitizenId = client.CitizenId
+
 
                                                     }
                                                 });
@@ -233,7 +238,9 @@ namespace HuloToys_Service.Controllers
                                             token = token,
                                             ip = ipAddress,
                                             time_expire = clientServices.GetExpiredTimeFromToken(token),
-                                            IsRegisterAffiliate =false
+                                            IsRegisterAffiliate =false,
+                                            CitizenId = null
+
 
                                         },
                                         code = ResponseCode.Success,

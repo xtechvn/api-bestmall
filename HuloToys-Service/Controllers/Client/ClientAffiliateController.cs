@@ -49,8 +49,8 @@ namespace HuloToys_Service.Controllers
         private readonly OrderMergeESService orderMergeESService;
         private readonly OrderMongodbService orderMongodbService;
 
-        public ClientAffiliateController(IConfiguration _configuration, RedisConn redisService, IClientRepository clientRepository, 
-            IAccountClientRepository accountClientRepository, IBankingAccountRepository bankingAccountRepository,  OrderMongodbService orderMongodbService)
+        public ClientAffiliateController(IConfiguration _configuration, RedisConn redisService, IClientRepository clientRepository,
+            IAccountClientRepository accountClientRepository, IBankingAccountRepository bankingAccountRepository, OrderMongodbService orderMongodbService)
         {
             configuration = _configuration;
             workQueueClient = new WorkQueueClient(configuration);
@@ -99,7 +99,7 @@ namespace HuloToys_Service.Controllers
                     }
                     var account_client = accountClientESService.GetById(account_client_id);
                     var client = clientESService.GetById((long)account_client.ClientId);
-                    if(client == null || client.Id<=0)
+                    if (client == null || client.Id <= 0)
                     {
                         return Ok(new
                         {
@@ -107,21 +107,24 @@ namespace HuloToys_Service.Controllers
                             msg = ResponseMessages.DataInvalid
                         });
                     }
-                    if (client != null && client.IsRegisterAffiliate==true && client.ReferralId!=null && client.ReferralId.Trim()!="") {
+                    if (client != null && client.IsRegisterAffiliate == true && client.ReferralId != null && client.ReferralId.Trim() != "")
+                    {
                         return Ok(new
                         {
                             status = (int)ResponseType.SUCCESS,
                             msg = "Success",
-                            data = new {
-                                utm_source="bestmall",
-                                utm_medium= client.ReferralId
+                            data = new
+                            {
+                                utm_source = "bestmall",
+                                utm_medium = client.ReferralId
                             }
                         });
 
                     }
                     var client_sql = await _clientRepository.GetClientDetailByClientId((long)account_client.ClientId);
-                    if (client_sql != null && client_sql.Id>0) { 
-                        if(client_sql.IsRegisterAffiliate == true && client_sql.ReferralId!=null && client_sql.ReferralId.Trim() != "")
+                    if (client_sql != null && client_sql.Id > 0)
+                    {
+                        if (client_sql.IsRegisterAffiliate == true && client_sql.ReferralId != null && client_sql.ReferralId.Trim() != "")
                         {
                             return Ok(new
                             {
@@ -165,7 +168,7 @@ namespace HuloToys_Service.Controllers
                     });
 
                 }
-                
+
             }
             catch (Exception ex)
             {
@@ -220,7 +223,7 @@ namespace HuloToys_Service.Controllers
                     }
                     var detailclient = await clientServices.GetDetailClientIdFromToken(account_client_id);
 
-                    List<BankingAccount > accounts = new List<BankingAccount>();
+                    List<BankingAccount> accounts = new List<BankingAccount>();
                     var cache_name = CacheType.BANK_ACCOUNT + client.Id;
                     string j_data = "";
                     try
@@ -236,14 +239,14 @@ namespace HuloToys_Service.Controllers
                         }
                         catch { }
 
-                        if (accounts != null && accounts.Count>0)
+                        if (accounts != null && accounts.Count > 0)
                         {
                             return Ok(new
                             {
                                 status = (int)ResponseType.SUCCESS,
                                 msg = "Success",
                                 data = accounts[0],
-                                client=detailclient
+                                client = detailclient
                             });
                         }
                     }
@@ -251,7 +254,7 @@ namespace HuloToys_Service.Controllers
 
                     if (accounts != null && accounts.Count > 0)
                     {
-                        _redisService.Set(cache_name,JsonConvert.SerializeObject(accounts), Convert.ToInt32(configuration["Redis:Database:db_search_result"]));
+                        _redisService.Set(cache_name, JsonConvert.SerializeObject(accounts), Convert.ToInt32(configuration["Redis:Database:db_search_result"]));
 
                         return Ok(new
                         {
@@ -306,14 +309,14 @@ namespace HuloToys_Service.Controllers
             //};
             try
             {
-                
+
 
                 JArray objParr = null;
                 if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, configuration["KEY:private_key"]))
                 {
                     var request = JsonConvert.DeserializeObject<ClientAffiliatePaymentRequestModel>(objParr[0].ToString());
-                    if (request == null || request.token==null || request.token.Trim()==""
-                        ||request.detail==null 
+                    if (request == null || request.token == null || request.token.Trim() == ""
+                        || request.detail == null
                         || request.detail.AccountNumber == null || request.detail.AccountNumber.Trim() == ""
                         || request.detail.BankId == null || request.detail.BankId.Trim() == ""
                         || request.detail.Branch == null || request.detail.Branch.Trim() == ""
@@ -345,45 +348,34 @@ namespace HuloToys_Service.Controllers
                             msg = ResponseMessages.DataInvalid
                         });
                     }
-                    var cache_name = CacheType.BANK_ACCOUNT + client.Id;
 
-                    var banking_payment = bankingAccountRepository.GetBankAccountByClientId(request.detail.Id);
-                    int id = 0;
-                    if (banking_payment != null && banking_payment.Count > 0 && request.detail.Id > 0 && (banking_payment[0].Id !=request.detail.Id || banking_payment[0].ClientId != client.Id))
-                    {
-                        return Ok(new
-                        {
-                            status = (int)ResponseType.FAILED,
-                            msg = ResponseMessages.DataInvalid
-                        });
-                    }
-                    if (banking_payment != null && banking_payment.Count > 0)
-                    {
-                        var exists = banking_payment[0];
-                        exists.Branch = request.detail.Branch;
-                        exists.AccountName = request.detail.AccountName;
-                        exists.AccountNumber = request.detail.AccountNumber;
-                        exists.BankId = request.detail.BankId;
-                        exists.UpdatedBy = (int)client.Id;
-                        exists.UpdatedDate = DateTime.Now;
-                        id=bankingAccountRepository.UpsertBankingAccount(exists);
-                    }
-                    else
-                    {
-                        request.detail.CreatedBy= (int)client.Id;
-                        request.detail.CreatedDate=DateTime.Now;
-                        request.detail.UpdatedBy = (int)client.Id;
-                        request.detail.UpdatedDate = DateTime.Now;
-                        request.detail.ClientId= (int)client.Id;
-                        request.detail.SupplierId= (int)client.Id;
-                        id = bankingAccountRepository.UpsertBankingAccount(request.detail);
-                    }
-                    _redisService.clear(cache_name,  Convert.ToInt32(configuration["Redis:Database:db_search_result"]));
                     var client_sql = await _clientRepository.GetClientDetailByClientId((long)account_client.ClientId);
                     if (client_sql != null && client_sql.Id > 0)
                     {
+                        int id = 0;
                         if (client_sql.IsRegisterAffiliate == true && client_sql.ReferralId != null && client_sql.ReferralId.Trim() != "")
                         {
+                            var banking_payment = bankingAccountRepository.GetBankAccountByClientId(request.detail.Id);
+                            if (banking_payment == null || banking_payment.Count <= 0)
+                            {
+                                return Ok(new
+                                {
+                                    status = (int)ResponseType.FAILED,
+                                    msg = ResponseMessages.DataInvalid
+                                });
+
+                            }
+                            else
+                            {
+                                var exists = banking_payment[0];
+                                exists.Branch = request.detail.Branch;
+                                exists.AccountName = request.detail.AccountName;
+                                exists.AccountNumber = request.detail.AccountNumber;
+                                exists.BankId = request.detail.BankId;
+                                exists.UpdatedBy = (int)client.Id;
+                                exists.UpdatedDate = DateTime.Now;
+                                id = bankingAccountRepository.Update(exists);
+                            }
                             return Ok(new
                             {
                                 status = (int)ResponseType.SUCCESS,
@@ -398,6 +390,14 @@ namespace HuloToys_Service.Controllers
                         }
                         else
                         {
+                            request.detail.CreatedBy = (int)client.Id;
+                            request.detail.CreatedDate = DateTime.Now;
+                            request.detail.UpdatedBy = (int)client.Id;
+                            request.detail.UpdatedDate = DateTime.Now;
+                            request.detail.ClientId = (int)client.Id;
+                            request.detail.SupplierId = (int)client.Id;
+                            id = bankingAccountRepository.Insert(request.detail);
+
                             client_sql.IsRegisterAffiliate = true;
                             client_sql.ReferralId = await clientServices.GenerateRefferalID(client_sql.Id, DateTime.Now);
                             _clientRepository.SetUpClient(client_sql);
@@ -473,8 +473,8 @@ namespace HuloToys_Service.Controllers
                     var client = clientESService.GetById((long)account_client.ClientId);
                     if (request.status == "-1") request.status = "";
                     if (request.order_no == null) request.order_no = "";
-                    if(client.IsRegisterAffiliate==null || client.IsRegisterAffiliate == false 
-                        ||client.ReferralId==null ||client.ReferralId.Trim()=="")
+                    if (client.IsRegisterAffiliate == null || client.IsRegisterAffiliate == false
+                        || client.ReferralId == null || client.ReferralId.Trim() == "")
                     {
                         return Ok(new
                         {
@@ -482,7 +482,7 @@ namespace HuloToys_Service.Controllers
                             msg = "Tài khoản khách hàng chưa được đăng ký Affiliate"
                         });
                     }
-                    var result = orderMergeESService.GetFEAffiliateByClientID((long)account_client.ClientId, request.status, request.order_no, (request.page_index <= 0 ? 1 : request.page_index), (request.page_size <= 0 ? 10 : request.page_size),client.ReferralId);
+                    var result = orderMergeESService.GetFEAffiliateByClientID((long)account_client.ClientId, request.status, request.order_no, (request.page_index <= 0 ? 1 : request.page_index), (request.page_size <= 0 ? 10 : request.page_size), client.ReferralId);
                     if (result != null && result.data != null && result.data.Count > 0)
                     {
                         var list_order_no = result.data.Select(x => x.OrderNo).ToList();
@@ -509,6 +509,6 @@ namespace HuloToys_Service.Controllers
             });
 
         }
-      
+
     }
 }

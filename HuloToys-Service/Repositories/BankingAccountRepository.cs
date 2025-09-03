@@ -60,5 +60,33 @@ namespace Repositories.Repositories
                 throw;
             }
         }
+        public int Insert(BankingAccount model)
+        {
+            try
+            {
+                if (model.Id <= 0)
+                {
+                    return bankingAccountDAL.InsertBankingAccount(model);
+                }
+            }
+            catch
+            {
+            }
+            return -1;
+        }
+        public int Update(BankingAccount model)
+        {
+            try
+            {
+                if (model.Id > 0)
+                {
+                    return bankingAccountDAL.UpdateBankingAccount(model);
+                }
+            }
+            catch
+            {
+            }
+            return -1;
+        }
     }
 }

@@ -37,6 +37,10 @@ namespace Repositories.Repositories
             }
             return data;
         }
+        public async Task<List<BankingAccount>> GetByClientId(long client_id)
+        {
+            return await bankingAccountDAL.GetByClientId(client_id);
+        }
 
         public BankingAccount GetById(int bankAccountId)
         {

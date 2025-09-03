@@ -355,7 +355,7 @@ namespace HuloToys_Service.Controllers
                         int id = 0;
                         if (client_sql.IsRegisterAffiliate == true && client_sql.ReferralId != null && client_sql.ReferralId.Trim() != "")
                         {
-                            var banking_payment = bankingAccountRepository.GetBankAccountByClientId(request.detail.Id);
+                            var banking_payment = bankingAccountRepository.GetBankAccountByClientId((long)account_client.ClientId);
                             if (banking_payment == null || banking_payment.Count <= 0)
                             {
                                 return Ok(new

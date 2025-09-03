@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Utilities;
 using Utilities.Contants;
 
@@ -149,6 +150,21 @@ namespace DAL
             catch (Exception ex)
             {
                 LogHelper.InsertLogTelegram("BankingAccountDAL - GetBankAccountByClientId: " + ex);
+                return null;
+            }
+        }
+        public async Task<List<BankingAccount>> GetByClientId(long client_id)
+        {
+            try
+            {
+                using (var _DbContext = new EntityDataContext(_connection))
+                {
+                    return await _DbContext.BankingAccounts.AsNoTracking().Where(x=>x.ClientId==client_id).ToListAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram("GetAllBankingAccount - BankingAccountDAL: " + ex);
                 return null;
             }
         }

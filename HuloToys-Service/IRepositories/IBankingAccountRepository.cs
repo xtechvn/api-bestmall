@@ -14,5 +14,6 @@ namespace Repositories.IRepositories
         public int UpsertBankingAccount(BankingAccount model);
         public int Insert(BankingAccount model);
         public int Update(BankingAccount model);
+        Task<List<BankingAccount>> GetByClientId(long client_id);
     }
 }

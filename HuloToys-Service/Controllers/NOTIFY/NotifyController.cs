@@ -159,7 +159,43 @@ namespace API_CORE.Controllers.NOTIFY
             }
         }
 
+        [HttpPost("notify/get-count.json")]
+        public async Task<ActionResult> GetCountNotify([FromForm] string token)
+        {
+            try
+            {
+                if (!CommonHelper.GetParamWithKey(token, out JArray objParr, _configuration["DataBaseConfig:key_api:b2c"]))
+                {
+                    return Ok(new { status = (int)ResponseType.ERROR, msg = "Token không hợp lệ" });
+                }
 
+                var user_id = Convert.ToInt32(objParr[0]["user_id"]);
+                int dbIndex = 14;
+                string cacheName = $"NOTIFY_{user_id}";
+
+                // Gọi DAL lấy unseen info
+                var (total, ids) = await _notifyMongoDAL.GetUnseenNotifyInfo(user_id);
+
+                var obj = new
+                {
+                    total_not_seen = total,
+                    lst_id_not_seen = string.Join(",", ids)
+                };
+
+                return Ok(new
+                {
+                    status = (int)ResponseType.SUCCESS,
+                    msg = $"Notify count user_id {user_id} thành công",
+                    total = total,
+                    data = obj
+                });
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram($"notify/get-count.json error: {ex} | token = {token}");
+                return Ok(new { status = (int)ResponseType.FAILED, msg = "Transaction Error !!!" });
+            }
+        }
 
 
         [HttpPost("notify/message/send.json")]

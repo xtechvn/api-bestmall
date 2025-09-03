@@ -105,11 +105,11 @@ namespace DAL
             {
                 using (var _DbContext = new EntityDataContext(_connection))
                 {
-                    var detail = await _DbContext.Clients.AsNoTracking().FirstOrDefaultAsync(x => x.Id == clientId);
-                    if (detail != null)
-                    {
-                        return detail;
-                    }
+                    //var detail = await _DbContext.Clients.AsNoTracking().FirstOrDefaultAsync(x => x.Id == clientId);
+                    //if (detail != null)
+                    //{
+                    //    return detail;
+                    //}
                     SqlParameter[] objParam = [new SqlParameter("@Dataid", Convert.ToInt32(clientId))];
                     DataTable dt = _DbWorker.GetDataTable("SP_GetClient", objParam);
                     if (dt != null && dt.Rows.Count > 0)

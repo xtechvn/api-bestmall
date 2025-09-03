@@ -52,8 +52,8 @@ namespace HuloToys_Service.ElasticSearch
                 var mustQueries = new List<QueryContainer>();
                 var shouldQueries = new List<QueryContainer>();
                 var existsQuery_productid = new BoolQuery
-                {   
-					Should = new List<QueryContainer>
+                {
+                    Should = new List<QueryContainer>
                         {
                             new MatchQuery { Field = Infer.Field<RatingESModel>(x => x.ProductId), Query=request.id },
                             new MatchQuery { Field = Infer.Field<RatingESModel>(x => x.ProductDetailId), Query=request.id }

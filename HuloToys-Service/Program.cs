@@ -1,3 +1,4 @@
+using Caching.Elasticsearch;
 using Caching.Elasticsearch.FlashSale;
 using Entities.ConfigModels;
 using HuloToys_Service.Controllers.Flashsale.Bussiness;
@@ -52,7 +53,7 @@ internal class Program
         builder.Services.Configure<DataBaseConfig>(Configuration.GetSection("DataBaseConfig"));
         builder.Services.Configure<MailConfig>(Configuration.GetSection("MailConfig"));
         builder.Services.Configure<DomainConfig>(Configuration.GetSection("DomainConfig"));
-        // ??ng ký ApplicationDbContext
+        // ??ng kï¿½ ApplicationDbContext
         var connectionString = builder.Configuration.GetSection("DataBaseConfig:SqlServer:ConnectionString").Value;
         builder.Services.AddDbContext<DataMSContext>(options =>
                 options.UseSqlServer(connectionString));
@@ -84,14 +85,13 @@ internal class Program
         builder.Services.AddSingleton<ProductSpecificationMongoAccess>();
         builder.Services.AddSingleton<NewsMongoService>();
         builder.Services.AddSingleton<ClientContactMongodbService>();
-        builder.Services.AddSingleton<ViettelPostService>();
         builder.Services.AddSingleton<SupplierESRepository>();
         builder.Services.AddSingleton<FlashsaleService>();
 
 
         builder.Services.AddSingleton<RedisConn>();
+        builder.Services.AddSingleton<ViettelPostService>();
         builder.Services.AddSingleton<VNPayService>();
-
 
         var app = builder.Build();
 

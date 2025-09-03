@@ -722,12 +722,12 @@ namespace HuloToys_Service.Controllers
                                             MoneyCollection = 0,
                                             ProductHeight = 0,
                                             ProductLength = 0,
-                                            ProductPrice = Convert.ToInt64(amount),
+                                            ProductPrice = 0,
                                             ProductType = "HH",
                                             ProductWeight = package_weight,
                                             ProductWidth = 0,
                                             SenderDistrict = detail_supplier.districtid == null ? 4 : (int)detail_supplier.districtid,
-                                            SenderProvince = (int)detail_supplier.provinceid == null ? 1 : (int)detail_supplier.provinceid,
+                                            SenderProvince = detail_supplier.provinceid == null ? 1 : (int)detail_supplier.provinceid,
                                             ReceiverDistrict = Convert.ToInt32(request.address.DistrictId),
                                             ReceiverProvince = Convert.ToInt32(request.address.ProvinceId),
                                             Type = 1
@@ -747,6 +747,7 @@ namespace HuloToys_Service.Controllers
                                                 shipping_fee= selected_delivery.Sum(x => x.GiaCuoc),
                                                 SupplierId=supplier
                                             });
+                                           
                                         }
                                     }
 
@@ -808,14 +809,8 @@ namespace HuloToys_Service.Controllers
                            
                             model.total_discount += total_discount;
                             model.total_amount -= total_discount;
-                            //LogHelper.InsertLogTelegram("voucher_apply apply" +
-                            //      "[" + (voucher.code == null ? "NULL" : voucher.code) + "]"
-                            //     + "[" + total_amount_calculate + "]"
-                            //     + "[" + total_discount + "]"
-                            //     + "[" + amount_apply_voucher + "]"
-                            //     + "[" + model.total_discount + "]"
-                            //      );
-                            //model.total_profit -= total_discount;
+                            
+                            model.total_profit -= total_discount;
                             model.voucher_apply.Add(new OrderDetailMongoDbVoucherApply()
                             {
                                 PriceSales=voucher.price_sales,

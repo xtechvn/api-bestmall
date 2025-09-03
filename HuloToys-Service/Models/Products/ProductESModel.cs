@@ -27,4 +27,6 @@ public class ProductESModel
     public int status { get; set; }
     [PropertyName("supplier_status")]
     public int? supplier_status { get; set; }
+    [PropertyName("supplier_id")]
+    public int? supplier_id { get; set; }
 }

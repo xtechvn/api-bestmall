@@ -14,7 +14,7 @@ namespace HuloToys_Service.Controllers.Payment.Bussiness
         public readonly string DOMAIN = "https://sandbox.vnpayment.vn/paymentv2/";
         private readonly string API_PAY = "vpcpay.html";
         private readonly string TMN_CODE = "BMTES1TT";
-        private readonly string RETURN_URL = "  https://localhost:61931/order/payment/{url}";
+        private readonly string RETURN_URL = "https://bestmall.com.vn/order/payment/{url}";
         private readonly string SECRET_KEY = "693PXB8X9BOAWRPPOB3DL9IOHPJY8904";
 
 

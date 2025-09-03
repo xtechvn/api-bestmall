@@ -1,4 +1,4 @@
-using HuloToys_Service.Elasticsearch;
+﻿using HuloToys_Service.Elasticsearch;
 using Nest;
 using System.Drawing.Printing;
 using Utilities;

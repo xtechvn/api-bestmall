@@ -27,7 +27,6 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OtpNet;
 using Repositories.IRepositories;
-using System.Collections.Generic;
 using System.Drawing.Printing;
 using System.Reflection;
 using System.Xml.Linq;
@@ -268,7 +267,8 @@ namespace WEB.CMS.Controllers
                         result = await _productDetailService.GetFullProductById(request.id);
 
                     }
-                    if (result == null || result.product_main == null || (result.product_main != null && result.product_main.status != (int)ProductStatus.ACTIVE))
+                    if (result == null || result.product_main == null || (result.product_main != null && result.product_main.status != (int)ProductStatus.ACTIVE)
+                        || result.product_main.quanity_of_stock<=0)
                     {
                         return Ok(new
                         {
@@ -278,10 +278,10 @@ namespace WEB.CMS.Controllers
                     }
                     result.cert = new ProductDetailResponseModelCertificate()
                     {
-                        root_product = [],
-                        product = [],
-                        supply = [],
-                        confirm = []
+                        root_product = result.product_main.attachment_root==null?new List<string>() : result.product_main.attachment_root,
+                        product = result.product_main.attachment_product == null ? new List<string>() : result.product_main.attachment_product,
+                        supply = result.product_main.attachment_supply == null ? new List<string>() : result.product_main.attachment_supply,
+                        confirm = result.product_main.attachment_confirm == null ? new List<string>() : result.product_main.attachment_confirm
                     };
                     result.favourite = new ProductDetailResponseModelFavourite()
                     {
@@ -413,9 +413,10 @@ namespace WEB.CMS.Controllers
                 }
 
             }
-            catch
+            catch (Exception ex)
             {
-
+                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
+                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
             }
             return Ok(new
             {
@@ -483,9 +484,10 @@ namespace WEB.CMS.Controllers
 
 
             }
-            catch
+            catch (Exception ex)
             {
-
+                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
+                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
             }
             return Ok(new
             {
@@ -974,13 +976,17 @@ namespace WEB.CMS.Controllers
                     else
                     {
                         label = await _labelRepository.GetById((int)request.label_id);
-                        if(label!=null && label.Id > 0)
+
+                        if (label != null && label.Id > 0)
                         {
                             _redisService.Set(cache_name_label, JsonConvert.SerializeObject(label), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
 
                         }
                         else
                         {
+
+                            LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], "/api/product/list-by-label Cannot find LabelID=" + (int)request.label_id);
+
                             return Ok(new
                             {
                                 status = (int)ResponseType.FAILED,
@@ -1165,7 +1171,6 @@ namespace WEB.CMS.Controllers
                 msg = ResponseMessages.DataInvalid,
             });
         }
-
 
         [HttpPost("favourites/listing")]
         public async Task<IActionResult> ProductFavouritesListing([FromBody] APIRequestGenericModel input)

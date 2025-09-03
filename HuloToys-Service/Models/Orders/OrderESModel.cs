@@ -223,6 +223,9 @@ namespace HuloToys_Service.Models.Orders
         [PropertyName("ShippingFee")]
 
         public double? ShippingFee { get; set; }
+        [PropertyName("ProfitAffiliate")]
+
+        public double? ProfitAffiliate { get; set; }
 
     }
 }

@@ -79,6 +79,8 @@ namespace HuloToys_Service.Models.Client
         [PropertyName("ParentId")]
 
         public int? ParentId { get; set; }
+        [PropertyName("CitizenId")]
 
+        public string CitizenId { get; set; }
     }
 }

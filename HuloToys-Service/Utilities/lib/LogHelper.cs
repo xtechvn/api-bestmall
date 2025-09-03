@@ -17,6 +17,7 @@ namespace HuloToys_Service.Utilities.Lib
             var rs = 1;
             try
             {
+                InsertLogSlack(message);
                 LoadConfig();
                 TelegramBotClient alertMsgBot = new TelegramBotClient(botToken);
                 var rs_push = alertMsgBot.SendTextMessageAsync(group_Id, "[" + enviromment + "-" + CompanyType + "] - " + message).Result;
@@ -32,6 +33,7 @@ namespace HuloToys_Service.Utilities.Lib
             var rs = 1;
             try
             {
+                InsertLogSlack(message);
                 TelegramBotClient alertMsgBot = new TelegramBotClient(bot_token);
                 var rs_push = alertMsgBot.SendTextMessageAsync(id_group, message).Result;
             }
@@ -47,6 +49,7 @@ namespace HuloToys_Service.Utilities.Lib
             string url_api = "https://api.telegram.org/bot" + bot_token + "/sendMessage?chat_id=" + id_group + "&text=" + msg;
             try
             {
+                InsertLogSlack(msg);
                 using (var webclient = new WebClient())
                 {
                     JsonContent = webclient.DownloadString(url_api);
@@ -117,6 +120,31 @@ namespace HuloToys_Service.Utilities.Lib
 
             }
         }
+        private static async Task InsertLogSlack(string message)
+        {
+            try
+            {
+                using (StreamReader r = new StreamReader("appsettings.json"))
+                {
+                    AppSettings _appconfig = new AppSettings();
+                    string json = r.ReadToEnd();
+                    _appconfig = JsonConvert.DeserializeObject<AppSettings>(json);
+                    var url = _appconfig.BotSetting.slack_n8n;
+                    var contentObj = new logSlackmodel();
+                    contentObj.environment = _appconfig.BotSetting.environment;
+                    contentObj.project_name = _appconfig.BotSetting.project_name;
+                    contentObj.log_content = message;
+                    HttpClient httpClient = new HttpClient();
+                    var content = new StringContent(JsonConvert.SerializeObject(contentObj), Encoding.UTF8, "application/json");
+                    await httpClient.PostAsync(url, content);
+                }
+            }
+            catch (Exception ex)
+            {
+                WriteLogActivity("D://", ex.ToString());
+            }
+
+        }
         public class AppSettings
         {
             public BotSetting BotSetting { get; set; }
@@ -129,6 +157,8 @@ namespace HuloToys_Service.Utilities.Lib
             public string bot_token { get; set; }
             public string bot_group_id { get; set; }
             public string environment { get; set; }
+            public string slack_n8n { get; set; }
+            public string project_name { get; set; }
         }
         public class SystemLog
         {
@@ -140,6 +170,12 @@ namespace HuloToys_Service.Utilities.Lib
             public int CompanyType { get; set; }//dùng để phân biệt company nào
             public string Log { get; set; } // nội dung log
             public DateTime CreatedTime { get; set; } // thời gian tạo
+        }
+        public class logSlackmodel
+        {
+            public string project_name { get; set; }
+            public string log_content { get; set; }
+            public string environment { get; set; }
         }
     }
 }

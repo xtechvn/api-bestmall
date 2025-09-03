@@ -67,5 +67,7 @@ namespace Models.Queue
 
         [JsonProperty("createdate")]
         public DateTime? CreateDate { get; set; }
+        [JsonProperty("citizenid")]
+        public string CitizenId { get; set; }
     }
 }

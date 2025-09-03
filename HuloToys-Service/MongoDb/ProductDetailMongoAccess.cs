@@ -5,6 +5,7 @@ using HuloToys_Service.Utilities.lib;
 using HuloToys_Service.Utilities.Lib;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using System.Collections.Generic;
 using System.Reflection;
 
 namespace HuloToys_Service.MongoDb
@@ -432,7 +433,9 @@ namespace HuloToys_Service.MongoDb
                      Builders<ProductMongoDbModel>.Filter.Regex(p => p.code, new MongoDB.Bson.BsonRegularExpression(keyword.Trim().ToLower(), "i"))
 
                      )
-                & Builders<ProductMongoDbModel>.Filter.Eq(x => x.status, (int)ProductStatus.ACTIVE);
+                ;
+                filter &= Builders<ProductMongoDbModel>.Filter.Eq(x => x.status, (int)ProductStatus.ACTIVE);
+                filter &= Builders<ProductMongoDbModel>.Filter.Eq(p => p.supplier_status, (int)SUPPLIER_STATUS.CONFIRMED);
                 filter &= Builders<ProductMongoDbModel>.Filter.Or(
                                   Builders<ProductMongoDbModel>.Filter.Eq(p => p.parent_product_id, null),
                                   Builders<ProductMongoDbModel>.Filter.Eq(p => p.parent_product_id, "")
@@ -454,7 +457,6 @@ namespace HuloToys_Service.MongoDb
                                         attr => brands.Contains(attr.value)
                                     );
                 }
-                filter &= Builders<ProductMongoDbModel>.Filter.Eq(p => p.supplier_status, (int)SUPPLIER_STATUS.CONFIRMED);
 
                 var sort_filter = Builders<ProductMongoDbModel>.Sort;
                 var sort_filter_definition = sort_filter.Descending(x => x.updated_last);
@@ -491,6 +493,8 @@ namespace HuloToys_Service.MongoDb
             }
             catch (Exception ex)
             {
+                LogHelper.InsertLogTelegram("ListByProducts err=" + ex.ToString());
+
                 return new List<ProductMongoDbModel>();
             }
         }
@@ -501,6 +505,8 @@ namespace HuloToys_Service.MongoDb
                 var filter = Builders<ProductMongoDbModel>.Filter;
                 var filterDefinition = filter.Empty;
                 filterDefinition &= Builders<ProductMongoDbModel>.Filter.In(x => x._id, ids);
+                //filterDefinition &= Builders<ProductMongoDbModel>.Filter.Eq(x => x.status, (int)ProductStatus.ACTIVE);
+                //filterDefinition &= Builders<ProductMongoDbModel>.Filter.Eq(p => p.supplier_status, (int)SUPPLIER_STATUS.CONFIRMED);
 
                 var model = _productDetailCollection.Find(filterDefinition);
                 var result = await model.ToListAsync();
@@ -508,6 +514,8 @@ namespace HuloToys_Service.MongoDb
             }
             catch (Exception ex)
             {
+                LogHelper.InsertLogTelegram("ListByProducts err=" + ex.ToString());
+
                 return new List<ProductMongoDbModel>();
             }
         }
@@ -520,6 +528,25 @@ namespace HuloToys_Service.MongoDb
                 filterDefinition &= Builders<ProductMongoDbModel>.Filter.In(x => x._id, ids);
                 filterDefinition &= Builders<ProductMongoDbModel>.Filter.Eq(x => x.status, (int)ProductStatus.ACTIVE);
                 filterDefinition &= Builders<ProductMongoDbModel>.Filter.Eq(p => p.supplier_status, (int)SUPPLIER_STATUS.CONFIRMED);
+
+                var model = _productDetailCollection.CountDocumentsAsync(filterDefinition);
+                var result = await model;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram("CountListByProducts err=" + ex.ToString());
+
+            }
+            return 0;
+        }
+        public async Task<long> CountListByProductIgnoreCondition(List<string> ids)
+        {
+            try
+            {
+                var filter = Builders<ProductMongoDbModel>.Filter;
+                var filterDefinition = filter.Empty;
+                filterDefinition &= Builders<ProductMongoDbModel>.Filter.In(x => x._id, ids);
 
                 var model = _productDetailCollection.CountDocumentsAsync(filterDefinition);
                 var result = await model;

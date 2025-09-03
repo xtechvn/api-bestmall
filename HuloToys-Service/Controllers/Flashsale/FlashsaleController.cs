@@ -300,6 +300,7 @@ namespace HuloToys_Service.Controllers
                             msg = "No Items"
                         });
                     }
+                    
                     var list_products = await productDetailService.GetFlashSaleProductByProductIds(list);
                    // var all = await flashSaleProductESRepository.GetAllFlashSaleProductByType(list_id, request.type, request.group_id);
                     var total_count = await flashSaleProductESRepository.CountListFlashSaleProductByType(list_id, request.type, request.group_id);

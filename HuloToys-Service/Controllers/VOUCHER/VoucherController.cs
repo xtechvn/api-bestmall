@@ -236,16 +236,20 @@ namespace API_CORE.Controllers.VOUCHER
                         return Ok(new { status = ((int)ResponseType.FAILED).ToString(), msg = "Mã " + voucher_name + " đã hết số lần sử dụng. Vui lòng liên hệ với bộ phận CSKH để được hỗ trợ" });
                     }
                     double total_amount_calculate = 0;
+                    double total_amount_validate = 0;
                     switch (voucher.RuleType)
                     {
                         case 0: // Giảm giá trên tiền hàng
                             {
                                 total_amount_calculate = total_order_amount_before;
+                                total_amount_validate = total_order_amount_before;
                             }
                             break;
                         case 1: // Giảm giá trên phí ship
                             {
                                 total_amount_calculate = total_shipping_fee_before;
+                                total_amount_validate = total_order_amount_before;
+
                             }
                             break;
                         case 2: // Giảm giá trên NCC
@@ -256,6 +260,7 @@ namespace API_CORE.Controllers.VOUCHER
                                     if (selected != null)
                                     {
                                         total_amount_calculate = selected.total_amount;
+                                        total_amount_validate = selected.total_amount;
                                         total_amount_by_supplier_before = selected.total_amount;
                                     }
                                 }
@@ -265,7 +270,7 @@ namespace API_CORE.Controllers.VOUCHER
                     // Kiểm tra giới hạn số tiền của đơn hàng
                     if (voucher.MinTotalAmount > 0)
                     {
-                        if (total_amount_calculate < voucher.MinTotalAmount)
+                        if (total_amount_validate < voucher.MinTotalAmount)
                         {
                             string _msg = "Để sử dụng mã này.Tổng giá trị đơn hàng/ Số tiền vận chuyển của bạn phải trên " + (voucher.MinTotalAmount ?? 1000000).ToString("N0") + " đ";
                             return Ok(new { status = ((int)ResponseType.FAILED).ToString(), msg = _msg + ". Vui lòng liên hệ với bộ phận CSKH để được hỗ trợ" });
@@ -442,7 +447,8 @@ namespace API_CORE.Controllers.VOUCHER
                 //-- db - global:
                 if (list_global == null || list_global.Count <= 0)
                 {
-                    list_global = await voucherRepository.GetVoucherList(null, 1, 1, 50, null);
+                    list_global = await voucherRepository.GetVoucherList(null, 1, 1, 50, -1);
+                    list_global = list_global.Where(x => x.limitUse > 0).ToList();
                     if (list_global != null && list_global.Count > 0)
                     {
                         int db_index = Convert.ToInt32(configuration["Redis:Database:db_search_result"].ToString());
@@ -455,6 +461,7 @@ namespace API_CORE.Controllers.VOUCHER
                 if (list == null || list.Count <= 0)
                 {
                     list = await voucherRepository.GetVoucherList(null, 1, 1, 100, (long)account_client.ClientId);
+                    list = list.Where(x => x.limitUse > 0).ToList();
                     if (list != null && list.Count > 0)
                     {
                         cache_name = CacheType.VOUCHER + (long)account_client.ClientId;

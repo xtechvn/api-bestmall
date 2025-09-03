@@ -33,6 +33,7 @@
 
         public const string PRODUCT_FAVOURITES = "PRODUCT_FAVOURITES_";
         public const string HOMEPAGE_SLIDE = "HOMEPAGE_SLIDE";
+        public const string BANK_ACCOUNT = "BANK_ACCOUNT_";
 
     }
 }

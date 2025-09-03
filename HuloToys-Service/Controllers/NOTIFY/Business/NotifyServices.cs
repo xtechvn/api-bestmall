@@ -147,33 +147,51 @@ namespace HuloToys_Service.Controllers.NOTIFY.Business
             }
         }
 
-        public async Task<NotifySummeryViewModel> getListNotifyPage(int user_id_send, int pageIndex, int pageSize)
+        public async Task<List<ReceiverMessageViewModel>> getListNotifyPage(int user_id_send, int pageIndex, int pageSize)
         {
             try
             {
-                var filter = Builders<ReceiverMessageViewModel>.Filter.Where(x => x.company_type == 0 && x.user_receiver_id == user_id_send);
-                var lst_noti = await receiverCollection.Find(filter).Sort(Builders<ReceiverMessageViewModel>.Sort.Descending("seen_date")).Skip((pageIndex - 1) * pageSize).Limit(pageSize).ToListAsync();
+                var filter = Builders<ReceiverMessageViewModel>.Filter
+     .Where(x => x.company_type == 0 && x.user_receiver_id == user_id_send);
 
-                // Lọc ra những tin chưa dc đọc lần nào
-                var lst_not_seen = lst_noti.FindAll(x => x.seen_status == (Int16)SeenType.NOT_SEEN);
+                var list = await receiverCollection.Find(filter)
+                    .Sort(Builders<ReceiverMessageViewModel>.Sort.Descending("seen_date")) // 👈 mới nhất trước
+                    .Skip((pageIndex - 1) * pageSize)
+                    .Limit(pageSize)
+                    .ToListAsync();
 
-                // Lấy ra id nhóm tin chưa đọc
-                var id_list_not_seen = lst_noti.Select(x => x.notify_id).ToList();
 
-                var noti = new NotifySummeryViewModel
-                {
-                    total_not_seen = lst_not_seen.Count, // Tổng số tin chưa xem
-                    lst_id_not_seen = string.Join(",", id_list_not_seen), //danh sách id tin chưa xem lần nào
-                    //lst_not_seen_detail = lst_noti.OrderByDescending(x => x.seen_date).Skip((pageIndex - 1) * pageSize).Take(pageSize).ToList()  // ds tin chưa xem lần nào và nhưng tin đã xem
-                    lst_not_seen_detail = lst_noti.ToList()  // ds tin chưa xem lần nào và nhưng tin đã xem
-                };
-                return noti;
+                return list;
             }
             catch (Exception ex)
             {
-                LogHelper.InsertLogTelegram("NotifyDAL - getListNotifyPage: " + ex);
-                return null;
+                LogHelper.InsertLogTelegram("NotifyDAL - GetNotifyPage: " + ex);
+                return new List<ReceiverMessageViewModel>();
             }
         }
+        public async Task<(int total, List<string> ids)> GetUnseenNotifyInfo(int userId)
+        {
+            try
+            {
+                var filter = Builders<ReceiverMessageViewModel>.Filter.Where(
+                    x => x.company_type == 0 &&
+                         x.user_receiver_id == userId &&
+                         x.seen_status == (Int16)SeenType.NOT_SEEN);
+
+                var total = (int)await receiverCollection.CountDocumentsAsync(filter);
+
+                var ids = await receiverCollection.Find(filter)
+                    .Project(x => x.notify_id.ToString()) // chỉ lấy id
+                    .ToListAsync();
+
+                return (total, ids);
+            }
+            catch (Exception ex)
+            {
+                LogHelper.InsertLogTelegram("NotifyDAL - GetUnseenNotifyInfo: " + ex);
+                return (0, new List<string>());
+            }
+        }
+
     }
 }

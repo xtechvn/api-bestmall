@@ -26,7 +26,7 @@ namespace HuloToys_Service.Controllers
 {
     [Route("api/news")]
     [ApiController]
-
+    
     public class NewsController : ControllerBase
     {
 
@@ -38,9 +38,9 @@ namespace HuloToys_Service.Controllers
         private readonly DataMSContext _dbContext;
         private readonly NewsMongoService _news_services;
 
-        public NewsController(IConfiguration config, RedisConn redisService, DataMSContext dbContext, NewsMongoService news_services)
+        public NewsController(IConfiguration config, RedisConn redisService , DataMSContext dbContext, NewsMongoService news_services)
         {
-
+          
             configuration = config;
             _articleESRepository = new ArticleESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
             _redisService = redisService;
@@ -102,7 +102,7 @@ namespace HuloToys_Service.Controllers
             //        skip=1,
             //        top=10
             //    }
-
+                    
             //);
             //input = new APIRequestGenericModel()
             //{
@@ -129,7 +129,7 @@ namespace HuloToys_Service.Controllers
                     if (!string.IsNullOrEmpty(j_data))
                     {
                         list_article = JsonConvert.DeserializeObject<List<CategoryArticleModel>>(j_data);
-                        int take = (skip + top > list_article.Count) ? ((list_article.Count - skip) <= 0 ? 0 : (list_article.Count - skip)) : top;
+                        int take = (skip + top > list_article.Count) ? ((list_article.Count - skip)<=0?0 : (list_article.Count - skip)) : top;
                         return Ok(new
                         {
                             status = (int)ResponseType.SUCCESS,
@@ -142,7 +142,7 @@ namespace HuloToys_Service.Controllers
                         list_article = await _newsBusiness.getListNews(category_id);
                         if (list_article != null && list_article.Count > 0)
                         {
-                            _redisService.Set(cache_name, JsonConvert.SerializeObject(list_article), node_redis);
+                            _redisService.Set(cache_name,JsonConvert.SerializeObject(list_article), node_redis);
                         }
                     }
                     if (list_article != null && list_article.Count > 0)
@@ -152,7 +152,7 @@ namespace HuloToys_Service.Controllers
                         {
                             status = (int)ResponseType.SUCCESS,
                             data = list_article.ToList().Skip(skip).Take(take),
-                            total = list_article.Count,
+                            total=list_article.Count,
                         });
                     }
                     else
@@ -161,7 +161,7 @@ namespace HuloToys_Service.Controllers
                         {
                             status = (int)ResponseType.EMPTY,
                             msg = "data empty !!!",
-                            total = 0
+                            total=0
                         });
                     }
                 }
@@ -587,7 +587,7 @@ namespace HuloToys_Service.Controllers
                     string rawKeyword = StringHelper.RemoveSpecialCharacterExceptVietnameseCharacter(title);
                     string normalizedKeyword = StringHelper.NormalizeKeyword(rawKeyword);
 
-
+                    
 
                     var results = await _articleESRepository.SearchNewsByKeywordAsync(rawKeyword, normalizedKeyword);
 
@@ -640,7 +640,7 @@ namespace HuloToys_Service.Controllers
         [HttpPost("get-list-by-categoryid-order.json")]
         public async Task<ActionResult> getListArticleByCategoryIdOrderByDate([FromBody] APIRequestGenericModel input)
         {
-            //var model_input = new
+            //var input_model = new
             //{
             //    category_id = 22,
             //    skip = 0,
@@ -648,7 +648,7 @@ namespace HuloToys_Service.Controllers
             //};
             //input = new APIRequestGenericModel()
             //{
-            //    token = CommonHelper.Encode(JsonConvert.SerializeObject(model_input), configuration["KEY:private_key"])
+            //    token = CommonHelper.Encode(JsonConvert.SerializeObject(input_model), configuration["KEY:private_key"])
             //};
             try
             {
@@ -664,14 +664,14 @@ namespace HuloToys_Service.Controllers
                     if (take <= 0) take = 10;
                     string cache_key = CacheType.ARTICLE_CATEGORY_ID + category_id;
                     var j_data = await _redisService.GetAsync(cache_key, Convert.ToInt32(configuration["Redis:Database:db_common"]));
-                    List<ArticleFeModel> data_list = new List<ArticleFeModel>();
+                    List<ArticleFeModel> data_list=new List<ArticleFeModel>();
                     List<ArticleFeModel> pinned_article = new List<ArticleFeModel>();
                     List<ArticleFeModel> video_article = new List<ArticleFeModel>();
                     int total_count = -1;
                     int total_page = 1;
-                    var group_product = await _newsBusiness.GetGroupProductNameAsync(category_id);
                     if (skip + take > 100)
                     {
+                        var group_product = await _newsBusiness.GetGroupProductNameAsync(category_id);
                         var data = await _newsBusiness.getArticleListByCategoryIdOrderByDate(category_id, skip, take, group_product);
                         data_list = data.list_article_fe;
                         total_count = data.total_item_count;
@@ -693,8 +693,10 @@ namespace HuloToys_Service.Controllers
                     }
                     if (j_data == null || j_data == "")
                     {
+                        var group_product = await _newsBusiness.GetGroupProductNameAsync(category_id);
                         var data_100 = await _newsBusiness.getArticleListByCategoryIdOrderByDate(category_id, 0, 100, group_product);
-                        if (data_100 != null && data_100.list_article_fe != null && data_100.list_article_fe.Count > 0)
+                       
+                        if (data_100!=null && data_100.list_article_fe!=null&& data_100.list_article_fe.Count>0)
                         {
                             data_list = data_100.list_article_fe.Skip(skip == 1 ? 0 : skip).Take(take).ToList();
                             total_count = data_100.total_item_count;
@@ -706,7 +708,12 @@ namespace HuloToys_Service.Controllers
                             }
                             try
                             {
-                                _redisService.Set(cache_key, JsonConvert.SerializeObject(data_100), DateTime.Now.AddMinutes(15), Convert.ToInt32(configuration["Redis:Database:db_common"]));
+                                ArticleByCategoryOrderCacheModel cached = new ArticleByCategoryOrderCacheModel()
+                                {
+                                    data_100 = data_100,
+                                    group_product = group_product
+                                };
+                                _redisService.Set(cache_key, JsonConvert.SerializeObject(cached), DateTime.Now.AddMinutes(15), Convert.ToInt32(configuration["Redis:Database:db_common"]));
                             }
                             catch (Exception ex)
                             {
@@ -718,12 +725,12 @@ namespace HuloToys_Service.Controllers
                     }
                     else
                     {
-                        ArticleFEModelPagnition data_100 = JsonConvert.DeserializeObject<ArticleFEModelPagnition>(j_data);
-                        if (data_100 != null && data_100.list_article_fe != null && data_100.list_article_fe.Count > 0)
+                        ArticleByCategoryOrderCacheModel cached = JsonConvert.DeserializeObject<ArticleByCategoryOrderCacheModel>(j_data);
+                        if (cached!=null && cached.data_100 != null && cached.data_100.list_article_fe != null && cached.data_100.list_article_fe.Count > 0)
                         {
-                            data_list = data_100.list_article_fe.Skip(skip == 1 ? 0 : skip).Take(take).ToList();
-                            total_count = data_100.total_item_count;
-                            pinned_article = data_100.list_article_pinned;
+                            data_list = cached.data_100.list_article_fe.Skip(skip == 1 ? 0 : skip).Take(take).ToList();
+                            total_count = cached.data_100.total_item_count;
+                            pinned_article = cached.data_100.list_article_pinned;
                             total_page = Convert.ToInt32(total_count / take);
                             if (total_page < ((float)total_count / take))
                             {
@@ -773,8 +780,8 @@ namespace HuloToys_Service.Controllers
         public async Task<ActionResult> GetAllCategory([FromBody] APIRequestGenericModel input)
         {
             try
-            {
-                //string j_param = "{'category_id':1}";
+            {	
+				//string j_param = "{'category_id':1}";
                 //input = new APIRequestGenericModel()
                 //{
                 //    token = CommonHelper.Encode(j_param, configuration["KEY:private_key"])
@@ -859,7 +866,7 @@ namespace HuloToys_Service.Controllers
                     var categoryList = await _newsBusiness.GetParentIdFromChild(categoryId); // lấy tất cả nhóm gốc (hoặc thay đổi nếu có API get detail)
 
                     // Tìm category hiện tại
-
+                    
 
                     if (categoryList == null)
                     {
@@ -1037,7 +1044,7 @@ namespace HuloToys_Service.Controllers
             }
         }
         [HttpPost("find-all-article.json")]
-        public async Task<ActionResult> FindArticleByBody([FromBody] APIRequestGenericModel input)
+         public async Task<ActionResult> FindArticleByBody([FromBody] APIRequestGenericModel input)
         {
             try
             {

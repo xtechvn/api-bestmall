@@ -293,13 +293,13 @@ namespace Caching.Elasticsearch
                 .Index(index)
                 .Query(q => baseClientQuery(q) && q.Terms(t => t.Field(f => f.OrderStatus).Terms(new[] { 0 })))
             );
-            long waiting = allCountResponse.IsValid ? allCountResponse.Count : 0;
+            long waiting = waitingResponse.IsValid ? waitingResponse.Count : 0;
 
             var delveringResponse = elasticClient.Count<OrderMergeESModel>(c => c
                 .Index(index)
                 .Query(q => baseClientQuery(q) && q.Terms(t => t.Field(f => f.OrderStatus).Terms(new[] { 2,5})))
             );
-            long delvering = allCountResponse.IsValid ? allCountResponse.Count : 0;
+            long delvering = delveringResponse.IsValid ? delveringResponse.Count : 0;
 
             var finishResponse = elasticClient.Count<OrderMergeESModel>(c => c
                 .Index(index)

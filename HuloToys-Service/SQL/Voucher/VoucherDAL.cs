@@ -84,11 +84,11 @@ namespace DAL
                 return null;
             }
         }
-        public async Task<DataTable> GetVoucherList(string keyword,int status=1,int page_index=1, int page_size=10,long? client_id=null)
+        public async Task<DataTable> GetVoucherList(string keyword,int status=1,int page_index=1, int page_size=10,long? client_id=null,int? limit_use = 0)
         {
             try
             {
-
+                
                 SqlParameter[] input = new SqlParameter[]
                 {
                     new SqlParameter("@keyword",keyword??(object)DBNull.Value),

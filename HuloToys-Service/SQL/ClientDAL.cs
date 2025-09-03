@@ -2,6 +2,7 @@
 using DAL.StoreProcedure;
 using Entities.Models;
 using HuloToys_Service.Models.Models;
+using HuloToys_Service.Utilities.Common;
 using HuloToys_Service.Utilities.Lib;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -108,6 +109,13 @@ namespace DAL
                     if (detail != null)
                     {
                         return detail;
+                    }
+                    SqlParameter[] objParam = [new SqlParameter("@Dataid", Convert.ToInt32(clientId))];
+                    DataTable dt = _DbWorker.GetDataTable("SP_GetClient", objParam);
+                    if (dt != null && dt.Rows.Count > 0)
+                    {
+                        var data = dt.ToList<Client>();
+                        return data[0];
                     }
                 }
                 return null;

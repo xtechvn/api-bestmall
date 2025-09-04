@@ -55,5 +55,6 @@ public partial class Client
     public string CitizenId { get; set; }
 
 
+
     public virtual ICollection<UserAgent> UserAgents { get; set; } = new List<UserAgent>();
 }

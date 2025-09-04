@@ -364,7 +364,10 @@ namespace Caching.Elasticsearch
                     catch { }
                     mustQueries.Add(q => q.Terms(t => t.Field(x => x.OrderStatus).Terms(status_value)));
                 }
-                mustQueries.Add(q => q.Terms(t => t.Field(x => x.UtmMedium).Terms(utm_medium)));
+                if (utm_medium != null && utm_medium.Trim() != "")
+                {
+                    mustQueries.Add(q => q.Terms(t => t.Field(x => x.UtmMedium).Terms(utm_medium)));
+                }
 
                 // Combine all 'must' queries using Bool.Must
                 Func<QueryContainerDescriptor<OrderMergeESModel>, QueryContainer> finalQueryContainer = q => q

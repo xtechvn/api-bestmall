@@ -29,6 +29,10 @@ public partial class DataMSContext : DbContext
 
     public virtual DbSet<AllCode> AllCodes { get; set; }
 
+    public virtual DbSet<AllotmentFund> AllotmentFunds { get; set; }
+
+    public virtual DbSet<AllotmentUse> AllotmentUses { get; set; }
+
     public virtual DbSet<Article> Articles { get; set; }
 
     public virtual DbSet<ArticleCategory> ArticleCategories { get; set; }
@@ -284,6 +288,31 @@ public partial class DataMSContext : DbContext
             entity.Property(e => e.UpdateTime).HasColumnType("datetime");
         });
 
+        modelBuilder.Entity<AllotmentFund>(entity =>
+        {
+            entity.ToTable("AllotmentFund");
+
+            entity.Property(e => e.CreateDate).HasColumnType("datetime");
+            entity.Property(e => e.UpdateTime).HasColumnType("datetime");
+        });
+
+        modelBuilder.Entity<AllotmentUse>(entity =>
+        {
+            entity.ToTable("AllotmentUse");
+
+            entity.Property(e => e.AllomentFundId).HasComment("Thông tin số tiền của quỹ đã được phân bổ");
+            entity.Property(e => e.AmountUse).HasComment("Số tiền đã sử dụng cho dịch vụ");
+            entity.Property(e => e.CreateDate)
+                .HasComment("Ngày tạo đơn hàng")
+                .HasColumnType("datetime");
+            entity.Property(e => e.DataId).HasComment("Là lưu trữ id dịch vụ");
+
+            entity.HasOne(d => d.AllomentFund).WithMany(p => p.AllotmentUses)
+                .HasForeignKey(d => d.AllomentFundId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_AllotmentUse_AllotmentFund");
+        });
+
         modelBuilder.Entity<Article>(entity =>
         {
             entity.ToTable("Article");
@@ -410,6 +439,7 @@ public partial class DataMSContext : DbContext
                 .IsUnicode(false);
             entity.Property(e => e.Birthday).HasColumnType("datetime");
             entity.Property(e => e.BusinessAddress).HasMaxLength(200);
+            entity.Property(e => e.CitizenId).HasMaxLength(200);
             entity.Property(e => e.ClientCode)
                 .HasMaxLength(20)
                 .IsUnicode(false);

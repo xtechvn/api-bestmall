@@ -1,4 +1,5 @@
 ﻿using Caching.Elasticsearch;
+using DAL;
 using Entities.Models;
 using HuloToys_Front_End.Models.Products;
 using HuloToys_Service.Controllers.Client.Business;
@@ -23,6 +24,7 @@ using Nest;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Repositories.IRepositories;
+using StackExchange.Redis;
 using System;
 using System.Reflection;
 using Utilities;
@@ -46,11 +48,14 @@ namespace HuloToys_Service.Controllers
         private readonly IClientRepository _clientRepository;
         private readonly IAccountClientRepository _accountClientRepository;
         private readonly IBankingAccountRepository bankingAccountRepository;
+        private readonly IAllotmentUseRepository _allotmentUseRepository;
+        private readonly IAllotmentFundRepository _allotmentFundRepository;
         private readonly OrderMergeESService orderMergeESService;
         private readonly OrderMongodbService orderMongodbService;
 
         public ClientAffiliateController(IConfiguration _configuration, RedisConn redisService, IClientRepository clientRepository,
-            IAccountClientRepository accountClientRepository, IBankingAccountRepository bankingAccountRepository, OrderMongodbService orderMongodbService)
+                    IAccountClientRepository accountClientRepository, IBankingAccountRepository bankingAccountRepository, OrderMergeESService orderMergeESService,
+                    OrderMongodbService orderMongodbService, IAllotmentUseRepository allotmentUseRepository, IAllotmentFundRepository allotmentFundRepository)
         {
             configuration = _configuration;
             workQueueClient = new WorkQueueClient(configuration);
@@ -66,6 +71,8 @@ namespace HuloToys_Service.Controllers
             this.bankingAccountRepository = bankingAccountRepository;
             orderMergeESService = new OrderMergeESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
             this.orderMongodbService = orderMongodbService;
+            _allotmentUseRepository=allotmentUseRepository;
+            _allotmentFundRepository=allotmentFundRepository;
         }
 
         [HttpPost("get")]
@@ -509,6 +516,253 @@ namespace HuloToys_Service.Controllers
             });
 
         }
+        [HttpPost("payment/detail")]
+        public async Task<ActionResult> AffiliatePaymentDetail([FromBody] APIRequestGenericModel input)
+        {
+            try
+            {
 
+
+                JArray objParr = null;
+                if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, configuration["KEY:private_key"]))
+                {
+                    var request = JsonConvert.DeserializeObject<OrderHistoryRequestModel>(objParr[0].ToString());
+                    if (request == null || request.token == null || request.token.Trim() == "")
+                    {
+
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.ERROR,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+                    long account_client_id = await clientServices.GetAccountClientIdFromToken(request.token);
+                    if (account_client_id <= 0)
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.ERROR,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+                    var account_client = accountClientESService.GetById(account_client_id);
+                    var client = clientESService.GetById((long)account_client.ClientId);
+                    if (client == null || client.Id <= 0)
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.ERROR,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+                    if (request.status ==null|| request.status == "-1") request.status = "";
+                    if (request.order_no == null) request.order_no = "";
+                    if (request.page_size <= 0) request.page_size = 10;
+                    if (request.page_index <= 0) request.page_index = 1;
+                    if (client != null && client.IsRegisterAffiliate == true && client.ReferralId != null && client.ReferralId.Trim() != "")
+                    {
+                        var result =   _allotmentFundRepository.GetByAccountClientId(account_client_id);
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.SUCCESS,
+                            msg = "Success",
+                            data = result,
+                        });
+
+                    }
+                 
+                    return Ok(new
+                    {
+                        status = (int)ResponseType.FAILED,
+                        msg = "Tài khoản chưa được đăng ký Affiliate"
+                    });
+
+                }
+
+            }
+            catch (Exception ex)
+            {
+                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
+            }
+            return Ok(new
+            {
+                status = (int)ResponseType.ERROR,
+                msg = ResponseMessages.DataInvalid
+            });
+
+        }
+        [HttpPost("payment/listing")]
+        public async Task<ActionResult> AffiliatePaymentListing([FromBody] APIRequestGenericModel input)
+        {
+            try
+            {
+
+
+                JArray objParr = null;
+                if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, configuration["KEY:private_key"]))
+                {
+                    var request = JsonConvert.DeserializeObject<OrderHistoryRequestModel>(objParr[0].ToString());
+                    if (request == null || request.token == null || request.token.Trim() == "")
+                    {
+
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.ERROR,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+                    long account_client_id = await clientServices.GetAccountClientIdFromToken(request.token);
+                    if (account_client_id <= 0)
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.ERROR,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+                    var account_client = accountClientESService.GetById(account_client_id);
+                    var client = clientESService.GetById((long)account_client.ClientId);
+                    if (client == null || client.Id <= 0)
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.ERROR,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+                    if (request.status == null || request.status == "-1") request.status = "";
+                    if (request.order_no == null) request.order_no = "";
+                    if (request.page_size <= 0) request.page_size = 10;
+                    if (request.page_index <= 0) request.page_index = 1;
+                    if (client != null && client.IsRegisterAffiliate == true && client.ReferralId != null && client.ReferralId.Trim() != "")
+                    {
+                        var listing = _allotmentUseRepository.GetByAccountClientId(account_client_id);
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.SUCCESS,
+                            msg = "Success",
+                            data = listing,
+                        });
+
+                    }
+
+                    return Ok(new
+                    {
+                        status = (int)ResponseType.FAILED,
+                        msg = "Tài khoản chưa được đăng ký Affiliate"
+                    });
+
+                }
+
+            }
+            catch (Exception ex)
+            {
+                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
+            }
+            return Ok(new
+            {
+                status = (int)ResponseType.ERROR,
+                msg = ResponseMessages.DataInvalid
+            });
+
+        }
+        [HttpPost("payment/checkout")]
+        public async Task<ActionResult> AffiliatePaymentCheckout([FromBody] APIRequestGenericModel input)
+        {
+            try
+            {
+
+
+                JArray objParr = null;
+                if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, configuration["KEY:private_key"]))
+                {
+                    var request = JsonConvert.DeserializeObject<ClientAddressGeneralRequestModel>(objParr[0].ToString());
+                    if (request == null || request.token == null || request.token.Trim() == "")
+                    {
+
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.ERROR,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+                    long account_client_id = await clientServices.GetAccountClientIdFromToken(request.token);
+                    if (account_client_id <= 0)
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.ERROR,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+                    var account_client = accountClientESService.GetById(account_client_id);
+                    var client = clientESService.GetById((long)account_client.ClientId);
+                    if (client == null || client.Id <= 0)
+                    {
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.ERROR,
+                            msg = ResponseMessages.DataInvalid
+                        });
+                    }
+                    if (client != null && client.IsRegisterAffiliate == true && client.ReferralId != null && client.ReferralId.Trim() != "")
+                    {
+                        var result = _allotmentFundRepository.GetByAccountClientId(account_client_id);
+                        if (result == null || result.Id<=0|| result.AccountBalance<=5000) {
+                            return Ok(new
+                            {
+                                status = (int)ResponseType.FAILED,
+                                msg = "Tài khoản chưa được đăng ký Affiliate / Số dư tài khoản không đủ để rút tiền"
+                            });
+                        }
+                        var fund_use = new HuloToys_Service.Models.Models.AllotmentUse()
+                        {
+                            AllomentFundId = result.Id,
+                            AccountClientId = (long)result.AccountClientId,
+                            AmountUse = result.AccountBalance,
+                            ClientId = client.Id,
+                            CreateDate = DateTime.Now,
+                            DataId = 0,
+                            ServiceType = 1,
+                        };
+                        var id=  _allotmentUseRepository.Insert(fund_use);
+                        var payment_amout = result.AccountBalance;
+                        result.AccountBalance -= payment_amout;
+                        _allotmentFundRepository.Update(result);
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.SUCCESS,
+                            msg = "Success",
+                            data = new  {
+                                id_payment= id,
+                                payment_amount= payment_amout
+                            }
+                        });
+
+                    }
+
+                    return Ok(new
+                    {
+                        status = (int)ResponseType.FAILED,
+                        msg = "Tài khoản chưa được đăng ký Affiliate"
+                    });
+
+                }
+
+            }
+            catch (Exception ex)
+            {
+                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
+                LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
+            }
+            return Ok(new
+            {
+                status = (int)ResponseType.ERROR,
+                msg = ResponseMessages.DataInvalid
+            });
+
+        }
     }
 }

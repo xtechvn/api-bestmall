@@ -29,6 +29,8 @@ namespace Repositories.Repositories
             try
             {
                 var dt = bankingAccountDAL.GetBankAccountByClientId(clientId);
+                LogHelper.InsertLogTelegram("GetBankAccountByClientId - BankingAccountRepository ["+clientId+"]["+ (dt != null && dt.Rows != null && dt.Rows.Count > 0?dt.Rows.Count:"0/NULL") + "] ");
+
                 if (dt != null &&dt.Rows!=null && dt.Rows.Count>0) {
                     data = dt.ToList<BankingAccount>();
                 }

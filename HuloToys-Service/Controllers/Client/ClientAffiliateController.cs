@@ -251,7 +251,7 @@ namespace HuloToys_Service.Controllers
                             return Ok(new
                             {
                                 status = (int)ResponseType.SUCCESS,
-                                msg = "Success",
+                                msg = "Success [Cached]",
                                 data = accounts[0],
                                 client = detailclient
                             });
@@ -266,7 +266,7 @@ namespace HuloToys_Service.Controllers
                         return Ok(new
                         {
                             status = (int)ResponseType.SUCCESS,
-                            msg = "Success",
+                            msg = "Success [Direct]",
                             data = accounts[0],
                             client = detailclient
 

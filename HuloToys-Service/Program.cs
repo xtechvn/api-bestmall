@@ -12,6 +12,7 @@ using HuloToys_Service.Models.Article;
 using HuloToys_Service.Models.Models;
 using HuloToys_Service.MongoDb;
 using HuloToys_Service.RedisWorker;
+using HuloToys_Service.Repositories;
 using HuloToys_Service.Utilities.Middleware;
 using Microsoft.EntityFrameworkCore;
 using Repositories.IRepositories;
@@ -76,6 +77,9 @@ internal class Program
         builder.Services.AddSingleton<IVoucherRepository, VoucherRepository>();
         builder.Services.AddSingleton<IOrderMergeRepository, OrderMergeRepository>();
         builder.Services.AddSingleton<IBankingAccountRepository, BankingAccountRepository>();
+        builder.Services.AddSingleton<IAllotmentFundRepository, AllotmentFundRepository>();
+        builder.Services.AddSingleton<IAllotmentUseRepository, AllotmentUseRepository>();
+        builder.Services.AddSingleton<OrderMergeESService>();
         builder.Services.AddSingleton<ProductDetailService>();
         builder.Services.AddSingleton<ProductRaitingService>();
         builder.Services.AddSingleton<CartMongodbService>();

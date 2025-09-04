@@ -25,15 +25,17 @@ namespace Repositories.Repositories
 
         public List<BankingAccount> GetBankAccountByClientId(long clientId)
         {
-            List<BankingAccount> data;
+            List<BankingAccount> data = new List<BankingAccount>();
             try
             {
-                data = bankingAccountDAL.GetBankAccountByClientId(clientId).ToList<BankingAccount>();
+                var dt = bankingAccountDAL.GetBankAccountByClientId(clientId);
+                if (dt != null &&dt.Rows!=null && dt.Rows.Count>0) {
+                    data = dt.ToList<BankingAccount>();
+                }
             }
             catch (Exception ex)
             {
                 LogHelper.InsertLogTelegram("GetBankAccountByClientId - BankingAccountRepository: " + ex);
-                data = new List<BankingAccount>();
             }
             return data;
         }

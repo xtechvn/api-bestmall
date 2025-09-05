@@ -261,8 +261,12 @@ namespace HuloToys_Service.Controllers
 
                     if (accounts != null && accounts.Count > 0)
                     {
-                        _redisService.Set(cache_name, JsonConvert.SerializeObject(accounts), Convert.ToInt32(configuration["Redis:Database:db_search_result"]));
+                        try
+                        {
+                            _redisService.Set(cache_name, JsonConvert.SerializeObject(accounts), Convert.ToInt32(configuration["Redis:Database:db_search_result"]));
 
+                        }
+                        catch { }
                         return Ok(new
                         {
                             status = (int)ResponseType.SUCCESS,

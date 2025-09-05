@@ -25,7 +25,7 @@ public partial class AllotmentUse
     /// <summary>
     /// Thông tin số tiền của quỹ đã được phân bổ
     /// </summary>
-    public int AllomentFundId { get; set; }
+    public int AllotmentFundId { get; set; }
 
     public long AccountClientId { get; set; }
 

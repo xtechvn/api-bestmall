@@ -723,7 +723,7 @@ namespace HuloToys_Service.Controllers
                         }
                         var fund_use = new HuloToys_Service.Models.Models.AllotmentUse()
                         {
-                            AllomentFundId = result.Id,
+                            AllotmentFundId = result.Id,
                             AccountClientId = (long)result.AccountClientId,
                             AmountUse = result.AccountBalance,
                             ClientId = client.Id,
@@ -733,7 +733,7 @@ namespace HuloToys_Service.Controllers
                         };
                         var id=  _allotmentUseRepository.Insert(fund_use);
                         var payment_amout = result.AccountBalance;
-                        result.AccountBalance -= payment_amout;
+                        result.AccountBalance = payment_amout *-1;
                         _allotmentFundRepository.Update(result);
                         return Ok(new
                         {

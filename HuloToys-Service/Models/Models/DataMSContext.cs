@@ -300,7 +300,7 @@ public partial class DataMSContext : DbContext
         {
             entity.ToTable("AllotmentUse");
 
-            entity.Property(e => e.AllomentFundId).HasComment("Thông tin số tiền của quỹ đã được phân bổ");
+            entity.Property(e => e.AllotmentFundId).HasComment("Thông tin số tiền của quỹ đã được phân bổ");
             entity.Property(e => e.AmountUse).HasComment("Số tiền đã sử dụng cho dịch vụ");
             entity.Property(e => e.CreateDate)
                 .HasComment("Ngày tạo đơn hàng")
@@ -308,7 +308,7 @@ public partial class DataMSContext : DbContext
             entity.Property(e => e.DataId).HasComment("Là lưu trữ id dịch vụ");
 
             entity.HasOne(d => d.AllomentFund).WithMany(p => p.AllotmentUses)
-                .HasForeignKey(d => d.AllomentFundId)
+                .HasForeignKey(d => d.AllotmentFundId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_AllotmentUse_AllotmentFund");
         });

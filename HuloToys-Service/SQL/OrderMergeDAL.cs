@@ -135,14 +135,18 @@ namespace DAL
         /// <param name="pageSize">Kích thước trang.</param>
         /// <param name="keyword">Từ khóa tìm kiếm theo OrderNo.</param>
         /// <returns>Trả về DataTable chứa kết quả.</returns>
-        public async Task<DataTable> GetOrderMergePaging( string keyword)
+        public async Task<DataTable> GetOrderMergePaging(int pageIndex, int pageSize, string keyword)
         {
             try
             {
-                SqlParameter[] objParam = new SqlParameter[3];
-                objParam[1] = new SqlParameter("@keyword", string.IsNullOrEmpty(keyword) ? (object)DBNull.Value : keyword);
+                SqlParameter[] objParam = new SqlParameter[]
+                {
+                    new SqlParameter("@keyword", string.IsNullOrEmpty(keyword) ? DBNull.Value : keyword),
+                    new SqlParameter("@page_index", pageIndex),
+                    new SqlParameter("@page_size", pageSize)
+                };
 
-                return _DbWorker.GetDataTable("sp_GetOrderMergePaging", objParam);
+                return _DbWorker.GetDataTable("sp_GetListOrderMerge", objParam);
             }
             catch (Exception ex)
             {

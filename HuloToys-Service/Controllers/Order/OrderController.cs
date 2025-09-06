@@ -342,8 +342,14 @@ namespace HuloToys_Service.Controllers
         {
             try
             {
-
-
+                //var model_input = new OrdersGeneralRequestModel()
+                //{
+                //    id= "68bbf384024e855a3002579c"
+                //};
+                //input = new APIRequestGenericModel()
+                //{
+                //    token = CommonHelper.Encode(JsonConvert.SerializeObject(model_input), configuration["KEY:private_key"])
+                //};
                 JArray objParr = null;
                 if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, configuration["KEY:private_key"]))
                 {
@@ -832,16 +838,13 @@ namespace HuloToys_Service.Controllers
                     model.utm_medium = request.utm_medium;
                     model.utm_source = request.utm_source;
                   
-                    var result = await orderMongodbService.Insert(model);
-                  
-                    var exists= await orderMongodbService.GetByOrderNo(model.order_no);
-                    var exists_by_id= await orderMongodbService.FindById(result);
+                   await orderMongodbService.Insert(model);
                     LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"],
-                    "Order/Confirm 2:[" + model._id + "][" + model.utm_source + "][" + model.utm_medium + "] Exists: [" + exists.utm_source + "][" + exists.utm_medium + "]exists_by_id: [" + exists_by_id.utm_source + "][" + exists_by_id.utm_medium + "]");
+                    "Order/Confirm 2:[" + model._id + "][" + model.utm_source + "][" + model.utm_medium + "]");
                     //-- Insert Queue:
                     var queue_model = new CheckoutQueueModel() { 
                         event_id = (int)CheckoutEventID.CREATE_ORDER, 
-                        order_mongo_id = result,
+                        order_mongo_id = model._id,
                         utm_source = request.utm_source,
                         utm_medium=request.utm_medium,
                     };
@@ -854,7 +857,7 @@ namespace HuloToys_Service.Controllers
                     {
                         status = (int)ResponseType.SUCCESS,
                         msg = "Success",
-                        data = new OrderConfirmResponseModel { order_no = order_no, id = result, pushed = pushed_queue }
+                        data = new OrderConfirmResponseModel { order_no = order_no, id = model._id, pushed = pushed_queue }
                     });
                 }
             }

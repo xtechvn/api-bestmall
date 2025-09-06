@@ -514,7 +514,7 @@ namespace HuloToys_Service.Controllers
                             msg = "Tài khoản khách hàng chưa được đăng ký Affiliate"
                         });
                     }
-                    var result = orderMergeESService.GetFEAffiliateByClientID((DateTime)request.fromdate, (DateTime)request.todate, request.page_index, request.page_size, new List<string>() { client.ReferralId });
+                    var result = orderMergeESService.GetFEAffiliateByClientID((DateTime)request.fromdate, (DateTime)request.todate, request.page_index, request.page_size, client.ReferralId);
                     LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], 
                         "orderMergeESService.GetFEAffiliateByClientID " +
                         "["+ (DateTime)request.fromdate + "]" +

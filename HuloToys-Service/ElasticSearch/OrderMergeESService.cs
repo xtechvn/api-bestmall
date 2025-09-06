@@ -331,7 +331,7 @@ namespace Caching.Elasticsearch
      DateTime todate,
      int page_index,
      int page_size,
-     List<string> utm_medium = null)
+     string utm_medium = null)
         {
             OrderMergeFEResponseModel result = new OrderMergeFEResponseModel();
 
@@ -340,9 +340,12 @@ namespace Caching.Elasticsearch
                 var mustQueries = new List<Func<QueryContainerDescriptor<OrderMergeESModel>, QueryContainer>>();
 
                 // Filter utm_medium
-                if (utm_medium != null && utm_medium.Count > 0)
+                if (utm_medium != null && utm_medium.Trim()!="")
                 {
-                    mustQueries.Add(q => q.Terms(t => t.Field(x => x.UtmMedium).Terms(utm_medium)));
+                    mustQueries.Add(q => q.Match(m => m
+                            .Field(f => f.UtmMedium)
+                            .Query(utm_medium)
+                        ));
                 }
 
                 // Filter CreatedDate trong khoảng fromdate - todate

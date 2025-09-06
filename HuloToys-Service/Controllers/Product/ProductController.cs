@@ -1008,9 +1008,7 @@ namespace WEB.CMS.Controllers
                         {
                             request.supplier_id = -1;
                             result = await _productDetailService.ProductListingByLabelAndSupplier(request);
-                            LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], 
-                                "await _productDetailService.ProductListingByLabelAndSupplier("+
-                                 JsonConvert.SerializeObject(request)+"): "+(result == null ? "NULL" : result.count));
+                           
 
                             _redisService.Set(cache_name, JsonConvert.SerializeObject(result), Convert.ToInt32(_configuration["Redis:Database:db_search_result"]));
                         }

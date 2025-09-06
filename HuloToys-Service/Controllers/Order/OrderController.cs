@@ -837,7 +837,12 @@ namespace HuloToys_Service.Controllers
                       "Order/Confirm 2:[" + model._id + "][" + request.utm_source + "][" + request.utm_medium + "] [" + model.utm_source + "][" + model.utm_medium + "]");
 
                     //-- Insert Queue:
-                    var queue_model = new CheckoutQueueModel() { event_id = (int)CheckoutEventID.CREATE_ORDER, order_mongo_id = result };
+                    var queue_model = new CheckoutQueueModel() { 
+                        event_id = (int)CheckoutEventID.CREATE_ORDER, 
+                        order_mongo_id = result,
+                        utm_source = request.utm_source,
+                        utm_medium=request.utm_medium,
+                    };
 
 
                     var pushed_queue = work_queue.InsertQueueSimpleDurable(JsonConvert.SerializeObject(queue_model), QueueName.QUEUE_CHECKOUT);

@@ -494,7 +494,7 @@ namespace HuloToys_Service.Controllers
                     }
                     var account_client = accountClientESService.GetById(account_client_id);
                     var client = clientESService.GetById((long)account_client.ClientId);
-                    if (request.page_index <= 0) request.page_index = 1;
+                    if (request.page_index <= 1) request.page_index = 1;
                     if (request.page_size <= 0) request.page_size = 10;
                     if(request.fromdate==null || request.fromdate == DateTime.MinValue)
                     {
@@ -503,7 +503,7 @@ namespace HuloToys_Service.Controllers
                     if (request.todate == null || request.todate == DateTime.MinValue)
                     {
                         DateTime now = DateTime.Now;
-                        request.todate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.DaysInMonth(now.Year, now.Month), 0, 0, 0);
+                        request.todate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.DaysInMonth(now.Year, now.Month), 23, 59, 59);
                     }
                     if (client.IsRegisterAffiliate == null || client.IsRegisterAffiliate == false
                         || client.ReferralId == null || client.ReferralId.Trim() == "")
@@ -520,6 +520,9 @@ namespace HuloToys_Service.Controllers
                         "["+ (DateTime)request.fromdate + "]" +
                         "["+ (DateTime)request.todate + "]" +
                         "["+ client.ReferralId + "]" +
+                        "["+ request.page_index + "]" +
+                        "[" + request.page_size + "]" +
+                        "[" + client.ReferralId + "]" +
                         "["+ (result==null || result.data==null?"NULL": result.data.Count) + "]"
                         );
 

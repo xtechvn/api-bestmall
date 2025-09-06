@@ -501,6 +501,7 @@ namespace HuloToys_Service.Controllers
                     {
                         var list_order_no = result.data.Select(x => x.OrderNo).ToList();
                         result.data_order = await orderMongodbService.GetListByOrdersNo(list_order_no);
+                        if (result.data_order == null) result.data_order = new List<OrderDetailMongoDbModel>();
                     }
                     return Ok(new
                     {

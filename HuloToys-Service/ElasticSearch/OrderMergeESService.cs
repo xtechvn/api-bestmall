@@ -326,7 +326,7 @@ namespace Caching.Elasticsearch
             long processing = processingResponse.IsValid ? processingResponse.Count : 0;
             return (all, waiting, delvering, finish, refund, cancel, processing);
         }
-        public OrderMergeFEResponseModel GetFEAffiliateByClientID(long client_id, string status, string order_no, int page_index, int page_size,string utm_medium="")
+        public OrderMergeFEResponseModel GetFEAffiliateByClientID(long client_id, string status, string order_no, int page_index, int page_size,List<string> utm_medium=null)
         {
             OrderMergeFEResponseModel result = new OrderMergeFEResponseModel();
 
@@ -364,7 +364,7 @@ namespace Caching.Elasticsearch
                     catch { }
                     mustQueries.Add(q => q.Terms(t => t.Field(x => x.OrderStatus).Terms(status_value)));
                 }
-                if (utm_medium != null && utm_medium.Trim() != "")
+                if (utm_medium != null && utm_medium.Count>0)
                 {
                     mustQueries.Add(q => q.Terms(t => t.Field(x => x.UtmMedium).Terms(utm_medium)));
                 }

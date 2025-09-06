@@ -461,7 +461,7 @@ namespace HuloToys_Service.Controllers
                 //{
                 //    fromdate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1, 0, 0, 0),
                 //    todate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.DaysInMonth(DateTime.Now.Year, DateTime.Now.Month), 0, 0, 0),
-                //    token = "F08nOlAVBi8vLwxaDGMgagRjYX97aVlkfFt7AmJnTlpFXyNQYmNiUgBpXnt3Q1BJUlZ0WE5BcCxNFysoPCdLQhRzZWoEfmR2Y2hRBHlQcABqbFxBSQZqRm15alppZRI=",
+                //    token = "F08nOlAVBi8vLwxaDGMgagVjbX57aV9heVxyAmJnTlpFXyNQYmNiUgBpXnt3Q1BJUlZ0WE5BcCxNFysoPCdLQhRzZWoEfmV+Y2heBHlRcAFrbFlBSQZlSm5xa1tpZRI=",
                 //    page_size = 10,
                 //    page_index = 1
                 //};
@@ -515,7 +515,13 @@ namespace HuloToys_Service.Controllers
                         });
                     }
                     var result = orderMergeESService.GetFEAffiliateByClientID((DateTime)request.fromdate, (DateTime)request.todate, request.page_index, request.page_size, new List<string>() { client.ReferralId });
-                    LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "orderMergeESService.GetFEAffiliateByClientID ["+ client.ReferralId + "]["+ (result==null || result.data==null?"NULL": result.data.Count) + "]");
+                    LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], 
+                        "orderMergeESService.GetFEAffiliateByClientID " +
+                        "["+ (DateTime)request.fromdate + "]" +
+                        "["+ (DateTime)request.todate + "]" +
+                        "["+ client.ReferralId + "]" +
+                        "["+ (result==null || result.data==null?"NULL": result.data.Count) + "]"
+                        );
 
                     if (result != null && result.data != null && result.data.Count > 0)
                     {

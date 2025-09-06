@@ -831,9 +831,10 @@ namespace HuloToys_Service.Controllers
                     //-- Mongodb:
                     model.utm_medium = request.utm_medium;
                     model.utm_source = request.utm_source;
+                  
                     var result = await orderMongodbService.Insert(model);
                     LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"],
-                        "Order/Confirm 2: [" + model.utm_source + "][" + model.utm_medium + "]");
+                      "Order/Confirm 2:[" + model._id + "][" + request.utm_source + "][" + request.utm_medium + "] [" + model.utm_source + "][" + model.utm_medium + "]");
 
                     //-- Insert Queue:
                     var queue_model = new CheckoutQueueModel() { event_id = (int)CheckoutEventID.CREATE_ORDER, order_mongo_id = result };

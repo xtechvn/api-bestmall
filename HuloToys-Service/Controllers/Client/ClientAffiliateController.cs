@@ -566,6 +566,19 @@ namespace HuloToys_Service.Controllers
                     if (client != null && client.IsRegisterAffiliate == true && client.ReferralId != null && client.ReferralId.Trim() != "")
                     {
                         var result =   _allotmentFundRepository.GetByAccountClientId(account_client_id);
+                        if (result == null ||result.Id<=0)
+                        {
+                            var fund = new HuloToys_Service.Models.Models.AllotmentFund()
+                            {
+                                UpdateTime = DateTime.Now,
+                                AccountBalance = 0,
+                                AccountClientId = account_client_id,
+                                CreateDate = DateTime.Now,
+                                FundType = 1,
+
+                            };
+                            fund.Id = _allotmentFundRepository.Insert(fund);
+                        }
                         return Ok(new
                         {
                             status = (int)ResponseType.SUCCESS,

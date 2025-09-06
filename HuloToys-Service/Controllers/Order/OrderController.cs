@@ -581,7 +581,9 @@ namespace HuloToys_Service.Controllers
                          
                     };
                     List<VoucherFEModel> voucher_apply = new List<VoucherFEModel>();
-  
+                    LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], 
+                        "Order/Confirm: ["+request.utm_source+"]["+request.utm_source+"]["+ model.utm_source+"]["+ model.utm_source+"]");
+
                     if (request.voucher_code != null && request.voucher_code.Count > 0)
                     {
                        
@@ -829,7 +831,9 @@ namespace HuloToys_Service.Controllers
                     //-- Mongodb:
 
                     var result = await orderMongodbService.Insert(model);
-                   
+                    LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"],
+                        "Order/Confirm 2: [" + model.utm_source + "][" + model.utm_source + "]");
+
                     //-- Insert Queue:
                     var queue_model = new CheckoutQueueModel() { event_id = (int)CheckoutEventID.CREATE_ORDER, order_mongo_id = result };
 

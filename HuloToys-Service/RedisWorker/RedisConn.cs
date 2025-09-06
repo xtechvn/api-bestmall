@@ -145,5 +145,19 @@ namespace HuloToys_Service.RedisWorker
             var db = _redis.GetDatabase(db_index);
             return db.SetContains(key, value);
         }
+        public async Task DeleteCacheByKeyword(string keyword, int db_index)
+        {
+            var db = _redis.GetDatabase(db_index);
+            var server = _redis.GetServer(_redisHost, _redisPort);
+            var keys = server.Keys(db_index, pattern: "*" + keyword + "*").ToList();
+            foreach (var key in keys)
+            {
+                try
+                {
+                    await db.KeyDeleteAsync(key);
+                }
+                catch { }
+            }
+        }
     }
 }

@@ -34,6 +34,8 @@
         public const string PRODUCT_FAVOURITES = "PRODUCT_FAVOURITES_";
         public const string HOMEPAGE_SLIDE = "HOMEPAGE_SLIDE";
         public const string BANK_ACCOUNT = "BANK_ACCOUNT_";
+        public const string ALLOTMENT_FUND = "ALLOTMENT_FUND_";
+        public const string ALLOTMENT_USE = "ALLOTMENT_USE_";
 
     }
 }

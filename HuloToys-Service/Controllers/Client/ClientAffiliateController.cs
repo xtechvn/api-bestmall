@@ -7,6 +7,7 @@ using HuloToys_Service.Controllers.Order.Business;
 using HuloToys_Service.Controllers.Product.Bussiness;
 using HuloToys_Service.IRepositories;
 using HuloToys_Service.Models.APIRequest;
+using HuloToys_Service.Models.Article;
 using HuloToys_Service.Models.Client;
 using HuloToys_Service.Models.Models;
 using HuloToys_Service.Models.Orders;
@@ -71,8 +72,8 @@ namespace HuloToys_Service.Controllers
             this.bankingAccountRepository = bankingAccountRepository;
             orderMergeESService = new OrderMergeESService(configuration["DataBaseConfig:Elastic:Host"], configuration);
             this.orderMongodbService = orderMongodbService;
-            _allotmentUseRepository=allotmentUseRepository;
-            _allotmentFundRepository=allotmentFundRepository;
+            _allotmentUseRepository = allotmentUseRepository;
+            _allotmentFundRepository = allotmentFundRepository;
         }
 
         [HttpPost("get")]
@@ -461,7 +462,7 @@ namespace HuloToys_Service.Controllers
                 if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, configuration["KEY:private_key"]))
                 {
                     var request = JsonConvert.DeserializeObject<OrderHistoryRequestModel>(objParr[0].ToString());
-                    if (request == null || request.token ==null || request.token.Trim()=="")
+                    if (request == null || request.token == null || request.token.Trim() == "")
                     {
 
                         return Ok(new
@@ -483,8 +484,8 @@ namespace HuloToys_Service.Controllers
                     var client = clientESService.GetById((long)account_client.ClientId);
                     if (request.status == "-1") request.status = "";
                     if (request.order_no == null) request.order_no = "";
-                    if(request.page_index <= 0) request.page_index = 1;
-                    if(request.page_size <= 0) request.page_size = 10;
+                    if (request.page_index <= 0) request.page_index = 1;
+                    if (request.page_size <= 0) request.page_size = 10;
 
                     if (client.IsRegisterAffiliate == null || client.IsRegisterAffiliate == false
                         || client.ReferralId == null || client.ReferralId.Trim() == "")
@@ -561,22 +562,66 @@ namespace HuloToys_Service.Controllers
                             msg = ResponseMessages.DataInvalid
                         });
                     }
-                    if (request.status ==null|| request.status == "-1") request.status = "";
+                    if (request.status == null || request.status == "-1") request.status = "";
                     if (request.order_no == null) request.order_no = "";
                     if (request.page_size <= 0) request.page_size = 10;
                     if (request.page_index <= 0) request.page_index = 1;
                     if (client != null && client.IsRegisterAffiliate == true && client.ReferralId != null && client.ReferralId.Trim() != "")
                     {
-                        var result =   _allotmentFundRepository.GetByAccountClientId(account_client_id);
+                        var cache_name = CacheType.ALLOTMENT_FUND + client.Id;
+                        AllotmentFund result = new AllotmentFund();
+                        string j_data = "";
+                        try
+                        {
+                            j_data = await _redisService.GetAsync(cache_name, Convert.ToInt32(configuration["Redis:Database:db_search_result"]));
+                        }
+                        catch { }
+                        if (j_data != null && j_data.Trim() != "")
+                        {
+                            try
+                            {
+                                result = JsonConvert.DeserializeObject<AllotmentFund>(j_data);
+                            }
+                            catch { }
+                        }
+                        if (result == null || result.Id <= 0)
+                        {
+                            result = _allotmentFundRepository.GetByAccountClientId(account_client_id);
+                        }
+                        if (result == null || result.Id <= 0)
+                        {
+                            result = new HuloToys_Service.Models.Models.AllotmentFund()
+                            {
+                                UpdateTime = DateTime.Now,
+                                AccountBalance = 0,
+                                AccountClientId = account_client_id,
+                                CreateDate = DateTime.Now,
+                                FundType = 1,
+
+                            };
+                            result.Id = _allotmentFundRepository.Insert(result);
+                        }
+                        var (totalCount, totalAmount) = orderMergeESService.GetOrderStatsByUtmMedium(new List<string>() { client.ReferralId });
+                        if(result!=null && result.Id > 0)
+                        {
+                            try
+                            {
+                                _redisService.Set(cache_name, JsonConvert.SerializeObject(result), Convert.ToInt32(configuration["Redis:Database:db_search_result"]));
+
+                            }
+                            catch { }
+                        }
                         return Ok(new
                         {
                             status = (int)ResponseType.SUCCESS,
                             msg = "Success",
-                            data = result,
+                            data = result.AccountBalance,
+                            total_amount = totalAmount,
+                            count = totalCount,
                         });
 
                     }
-                 
+
                     return Ok(new
                     {
                         status = (int)ResponseType.FAILED,
@@ -643,12 +688,41 @@ namespace HuloToys_Service.Controllers
                     if (request.page_index <= 0) request.page_index = 1;
                     if (client != null && client.IsRegisterAffiliate == true && client.ReferralId != null && client.ReferralId.Trim() != "")
                     {
-                        var listing = _allotmentUseRepository.GetByAccountClientId(account_client_id);
+
+                        var cache_name = CacheType.ALLOTMENT_USE + client.Id+ request.page_index+ request.page_size;
+                        GenericViewModel<AllotmentUse> result = new GenericViewModel<AllotmentUse>();
+                        string j_data = "";
+                        try
+                        {
+                            j_data = await _redisService.GetAsync(cache_name, Convert.ToInt32(configuration["Redis:Database:db_search_result"]));
+                        }
+                        catch { }
+                        if (j_data != null && j_data.Trim() != "")
+                        {
+                            try
+                            {
+                                result = JsonConvert.DeserializeObject<GenericViewModel<AllotmentUse>>(j_data);
+                            }
+                            catch { }
+                        }
+                        if (result == null || result.ListData == null || result.ListData.Count <= 0)
+                        {
+                            result = _allotmentUseRepository.GetByAccountClientId(account_client_id);
+                            if (result != null && result.ListData.Count > 0)
+                            {
+                                try
+                                {
+                                    _redisService.Set(cache_name, JsonConvert.SerializeObject(result), Convert.ToInt32(configuration["Redis:Database:db_search_result"]));
+
+                                }
+                                catch { }
+                            }
+                        }                        
                         return Ok(new
                         {
                             status = (int)ResponseType.SUCCESS,
                             msg = "Success",
-                            data = listing,
+                            data = result,
                         });
 
                     }
@@ -716,7 +790,8 @@ namespace HuloToys_Service.Controllers
                     if (client != null && client.IsRegisterAffiliate == true && client.ReferralId != null && client.ReferralId.Trim() != "")
                     {
                         var result = _allotmentFundRepository.GetByAccountClientId(account_client_id);
-                        if (result == null || result.Id<=0|| result.AccountBalance<=5000) {
+                        if (result == null || result.Id <= 0 || result.AccountBalance <= 5000)
+                        {
                             return Ok(new
                             {
                                 status = (int)ResponseType.FAILED,
@@ -732,18 +807,32 @@ namespace HuloToys_Service.Controllers
                             CreateDate = DateTime.Now,
                             DataId = 0,
                             ServiceType = 1,
+                            PaymentStatus=0
                         };
-                        var id=  _allotmentUseRepository.Insert(fund_use);
+                        var id = _allotmentUseRepository.Insert(fund_use);
                         var payment_amout = result.AccountBalance;
-                        result.AccountBalance = payment_amout *-1;
+                        result.AccountBalance = payment_amout * -1;
                         _allotmentFundRepository.Update(result);
+                        var cache_name = CacheType.ALLOTMENT_USE + client.Id;
+                        try
+                        {
+                           await _redisService.DeleteCacheByKeyword(cache_name, Convert.ToInt32(configuration["Redis:Database:db_search_result"]));
+                        }
+                        catch { }
+                        cache_name = CacheType.ALLOTMENT_FUND + client.Id;
+                        try
+                        {
+                             _redisService.clear(cache_name, Convert.ToInt32(configuration["Redis:Database:db_search_result"]));
+                        }
+                        catch { }
                         return Ok(new
                         {
                             status = (int)ResponseType.SUCCESS,
                             msg = "Success",
-                            data = new  {
-                                id_payment= id,
-                                payment_amount= payment_amout
+                            data = new
+                            {
+                                id_payment = id,
+                                payment_amount = payment_amout
                             }
                         });
 

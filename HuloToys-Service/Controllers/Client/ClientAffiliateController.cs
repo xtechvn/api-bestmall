@@ -791,12 +791,20 @@ namespace HuloToys_Service.Controllers
                     if (client != null && client.IsRegisterAffiliate == true && client.ReferralId != null && client.ReferralId.Trim() != "")
                     {
                         var result = _allotmentFundRepository.GetByAccountClientId(account_client_id);
-                        if (result == null || result.Id <= 0 || result.AccountBalance <= 5000)
+                        if (result == null || result.Id <= 0)
                         {
                             return Ok(new
                             {
                                 status = (int)ResponseType.FAILED,
-                                msg = "Tài khoản chưa được đăng ký Affiliate / Số dư tài khoản không đủ để rút tiền"
+                                msg = "Tài khoản chưa được đăng ký Affiliate "
+                            });
+                        }
+                        else if (result.AccountBalance < request.Amount)
+                        {
+                            return Ok(new
+                            {
+                                status = (int)ResponseType.FAILED,
+                                msg = "Số dư tài khoản không đủ để rút số tiền đã nhập"
                             });
                         }
                         var fund_use = new HuloToys_Service.Models.Models.AllotmentUse()

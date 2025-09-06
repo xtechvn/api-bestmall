@@ -81,7 +81,9 @@ namespace DAL
                 {
                     new SqlParameter("@AccountClientId", accountClientId),
                     new SqlParameter("@page_index", pageIndex),
-                    new SqlParameter("@page_size", pageSize)
+                    new SqlParameter("@page_size", pageSize),
+                    new SqlParameter("@service_type", 1),
+
                 };
 
                 var dt= _DbWorker.GetDataTable("SP_GetAllotmentUseByAccountClientId", objParam);

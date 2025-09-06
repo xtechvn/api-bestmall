@@ -54,7 +54,7 @@ namespace HuloToys_Service.Controllers
         private readonly OrderMongodbService orderMongodbService;
 
         public ClientAffiliateController(IConfiguration _configuration, RedisConn redisService, IClientRepository clientRepository,
-                    IAccountClientRepository accountClientRepository, IBankingAccountRepository bankingAccountRepository, OrderMergeESService orderMergeESService,
+                    IAccountClientRepository accountClientRepository, IBankingAccountRepository bankingAccountRepository,
                     OrderMongodbService orderMongodbService, IAllotmentUseRepository allotmentUseRepository, IAllotmentFundRepository allotmentFundRepository)
         {
             configuration = _configuration;

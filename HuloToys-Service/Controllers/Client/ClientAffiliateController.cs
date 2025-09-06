@@ -570,7 +570,7 @@ namespace HuloToys_Service.Controllers
                     if (client != null && client.IsRegisterAffiliate == true && client.ReferralId != null && client.ReferralId.Trim() != "")
                     {
                         var result =   _allotmentFundRepository.GetByAccountClientId(account_client_id);
-                        if (result == null || result.Id<=0)
+                        if (result != null && result.Id>0)
                         {
                            
                         }
@@ -587,11 +587,14 @@ namespace HuloToys_Service.Controllers
                             };
                             result.Id = _allotmentFundRepository.Insert(result);
                         }
+                        var (totalCount, totalAmount) = orderMergeESService.GetOrderStatsByUtmMedium(new List<string>() { client.ReferralId });
                         return Ok(new
                         {
                             status = (int)ResponseType.SUCCESS,
                             msg = "Success",
                             data = result,
+                            total_amount=totalAmount,
+                            count=totalCount,
                         });
                     }
                  

@@ -835,8 +835,9 @@ namespace HuloToys_Service.Controllers
                     var result = await orderMongodbService.Insert(model);
                   
                     var exists= await orderMongodbService.GetByOrderNo(model.order_no);
+                    var exists_by_id= await orderMongodbService.FindById(result);
                     LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"],
-                    "Order/Confirm 2:[" + model._id + "][" + model.utm_source + "][" + model.utm_medium + "] Exists: [" + exists.utm_source + "][" + exists.utm_medium + "]");
+                    "Order/Confirm 2:[" + model._id + "][" + model.utm_source + "][" + model.utm_medium + "] Exists: [" + exists.utm_source + "][" + exists.utm_medium + "]exists_by_id: [" + exists_by_id.utm_source + "][" + exists_by_id.utm_medium + "]");
                     //-- Insert Queue:
                     var queue_model = new CheckoutQueueModel() { 
                         event_id = (int)CheckoutEventID.CREATE_ORDER, 

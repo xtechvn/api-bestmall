@@ -759,8 +759,8 @@ namespace HuloToys_Service.Controllers
                 JArray objParr = null;
                 if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, configuration["KEY:private_key"]))
                 {
-                    var request = JsonConvert.DeserializeObject<ClientAddressGeneralRequestModel>(objParr[0].ToString());
-                    if (request == null || request.token == null || request.token.Trim() == "")
+                    var request = JsonConvert.DeserializeObject<ClientAffiliateRequestModel>(objParr[0].ToString());
+                    if (request == null || request.token == null || request.token.Trim() == ""|| request.Amount<=0)
                     {
 
                         return Ok(new
@@ -803,7 +803,7 @@ namespace HuloToys_Service.Controllers
                         {
                             AllotmentFundId = result.Id,
                             AccountClientId = (long)result.AccountClientId,
-                            AmountUse = result.AccountBalance,
+                            AmountUse = request.Amount,
                             ClientId = client.Id,
                             CreateDate = DateTime.Now,
                             DataId = 0,
@@ -811,8 +811,7 @@ namespace HuloToys_Service.Controllers
                             PaymentStatus=0
                         };
                         var id = _allotmentUseRepository.Insert(fund_use);
-                        var payment_amout = result.AccountBalance;
-                        result.AccountBalance = payment_amout * -1;
+                        result.AccountBalance = request.Amount * -1;
                         _allotmentFundRepository.Update(result);
                         var cache_name = CacheType.ALLOTMENT_USE + client.Id;
                         try
@@ -833,7 +832,7 @@ namespace HuloToys_Service.Controllers
                             data = new
                             {
                                 id_payment = id,
-                                payment_amount = payment_amout
+                                payment_amount = request.Amount
                             }
                         });
 

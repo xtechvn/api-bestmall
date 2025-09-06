@@ -494,7 +494,7 @@ namespace HuloToys_Service.Controllers
                             msg = "Tài khoản khách hàng chưa được đăng ký Affiliate"
                         });
                     }
-                    var result = orderMergeESService.GetFEAffiliateByClientID((long)account_client.ClientId, request.status, request.order_no, (request.page_index <= 0 ? 1 : request.page_index), (request.page_size <= 0 ? 10 : request.page_size), client.ReferralId);
+                    var result = orderMergeESService.GetFEAffiliateByClientID((long)account_client.ClientId, request.status, request.order_no, (request.page_index <= 0 ? 1 : request.page_index), (request.page_size <= 0 ? 10 : request.page_size),new List<string>() { client.ReferralId });
                     if (result != null && result.data != null && result.data.Count > 0)
                     {
                         var list_order_no = result.data.Select(x => x.OrderNo).ToList();

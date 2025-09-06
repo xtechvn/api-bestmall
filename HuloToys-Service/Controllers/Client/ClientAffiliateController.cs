@@ -570,18 +570,13 @@ namespace HuloToys_Service.Controllers
                     if (client != null && client.IsRegisterAffiliate == true && client.ReferralId != null && client.ReferralId.Trim() != "")
                     {
                         var result =   _allotmentFundRepository.GetByAccountClientId(account_client_id);
-                        if (result != null && result.Id>0)
+                        if (result == null || result.Id<=0)
                         {
-                            return Ok(new
-                            {
-                                status = (int)ResponseType.SUCCESS,
-                                msg = "Success",
-                                data = result,
-                            });
+                           
                         }
                         else
                         {
-                           var fund = new HuloToys_Service.Models.Models.AllotmentFund()
+                            result = new HuloToys_Service.Models.Models.AllotmentFund()
                             {
                                 UpdateTime = DateTime.Now,
                                 AccountBalance = 0,
@@ -590,9 +585,14 @@ namespace HuloToys_Service.Controllers
                                 FundType = 1,
 
                             };
-                            fund.Id = _allotmentFundRepository.Insert(fund);
+                            result.Id = _allotmentFundRepository.Insert(result);
                         }
-
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.SUCCESS,
+                            msg = "Success",
+                            data = result,
+                        });
                     }
                  
                     return Ok(new

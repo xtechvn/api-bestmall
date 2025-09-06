@@ -79,7 +79,6 @@ internal class Program
         builder.Services.AddSingleton<IBankingAccountRepository, BankingAccountRepository>();
         builder.Services.AddSingleton<IAllotmentFundRepository, AllotmentFundRepository>();
         builder.Services.AddSingleton<IAllotmentUseRepository, AllotmentUseRepository>();
-        builder.Services.AddSingleton<OrderMergeESService>();
         builder.Services.AddSingleton<ProductDetailService>();
         builder.Services.AddSingleton<ProductRaitingService>();
         builder.Services.AddSingleton<CartMongodbService>();

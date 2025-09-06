@@ -326,50 +326,34 @@ namespace Caching.Elasticsearch
             long processing = processingResponse.IsValid ? processingResponse.Count : 0;
             return (all, waiting, delvering, finish, refund, cancel, processing);
         }
-        public OrderMergeFEResponseModel GetFEAffiliateByClientID(string status, string order_no, int page_index, int page_size,List<string> utm_medium=null)
+        public OrderMergeFEResponseModel GetFEAffiliateByClientID(
+     DateTime fromdate,
+     DateTime todate,
+     int page_index,
+     int page_size,
+     List<string> utm_medium = null)
         {
             OrderMergeFEResponseModel result = new OrderMergeFEResponseModel();
 
             try
             {
-                // Build a list of QueryContainer predicates
-                var mustQueries = new List<Func<QueryContainerDescriptor<OrderMergeESModel>, QueryContainer>>
-                {
-                };
+                var mustQueries = new List<Func<QueryContainerDescriptor<OrderMergeESModel>, QueryContainer>>();
 
-                // Add OrderNo containment filter if order_no is provided
-                if (order_no != null && order_no.Trim() != "")
-                {
-                    mustQueries.Add(q => q.Wildcard(w => w.Field(f => f.OrderNo).Value($"*{order_no}*")));
-                }
-
-                // Add OrderStatus filter if status is provided
-                if (!string.IsNullOrWhiteSpace(status))
-                {
-                    List<int> status_value = new List<int>();
-                    try
-                    {
-                        var split = status.Split(",");
-                        if (split.Length > 0)
-                        {
-                            foreach (var item in split)
-                            {
-                                status_value.Add(Convert.ToInt32(item));
-                            }
-
-                        }
-                    }
-                    catch { }
-                    mustQueries.Add(q => q.Terms(t => t.Field(x => x.OrderStatus).Terms(status_value)));
-                }
-                if (utm_medium != null && utm_medium.Count>0)
+                // Filter utm_medium
+                if (utm_medium != null && utm_medium.Count > 0)
                 {
                     mustQueries.Add(q => q.Terms(t => t.Field(x => x.UtmMedium).Terms(utm_medium)));
                 }
 
-                // Combine all 'must' queries using Bool.Must
+                // Filter CreatedDate trong khoảng fromdate - todate
+                mustQueries.Add(q => q.DateRange(r => r
+                    .Field(f => f.CreatedDate)
+                    .GreaterThanOrEquals(fromdate)
+                    .LessThanOrEquals(todate)));
+
+                // Combine all 'must' queries
                 Func<QueryContainerDescriptor<OrderMergeESModel>, QueryContainer> finalQueryContainer = q => q
-                    .Bool(b => b.Must(mustQueries.ToArray())); // Convert list to array for Must method
+                    .Bool(b => b.Must(mustQueries.ToArray()));
 
                 var searchRequest = new SearchDescriptor<OrderMergeESModel>()
                     .Query(finalQueryContainer)
@@ -380,17 +364,14 @@ namespace Caching.Elasticsearch
                 var query = elasticClient.Search<OrderMergeESModel>(searchRequest);
 
                 var countRequest = new CountDescriptor<OrderMergeESModel>().Query(finalQueryContainer);
-
                 var query_count = elasticClient.Count(countRequest);
 
                 if (!query.IsValid || !query_count.IsValid)
                 {
-                    // Trả về kết quả rỗng nếu query hoặc count không hợp lệ.
                     return result;
                 }
                 else
                 {
-                    // Thay đổi cách deserialize để bắt lỗi cụ thể
                     try
                     {
                         result.data = query.Documents.ToList();
@@ -399,7 +380,6 @@ namespace Caching.Elasticsearch
                     {
                         string error_msg = "Deserialize error: " + deserializeEx.Message;
                         LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], error_msg);
-                        // Trả về kết quả rỗng hoặc throw exception tùy theo business logic
                         return result;
                     }
 
@@ -417,6 +397,7 @@ namespace Caching.Elasticsearch
 
             return null;
         }
+
         // Hàm 1: Đếm tổng số lượng order theo utm_medium
         public long CountOrdersByUtmMedium(List<string> utm_medium)
         {

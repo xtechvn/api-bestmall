@@ -457,12 +457,23 @@ namespace HuloToys_Service.Controllers
         {
             try
             {
-
+                //var model_json = new OrderAffiliateRequestModel()
+                //{
+                //    fromdate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1, 0, 0, 0),
+                //    todate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.DaysInMonth(DateTime.Now.Year, DateTime.Now.Month), 0, 0, 0),
+                //    token = "F08nOlAVBi8vLwxaDGMgagRjYX97aVlkfFt7AmJnTlpFXyNQYmNiUgBpXnt3Q1BJUlZ0WE5BcCxNFysoPCdLQhRzZWoEfmR2Y2hRBHlQcABqbFxBSQZqRm15alppZRI=",
+                //    page_size = 10,
+                //    page_index = 1
+                //};
+                //input = new APIRequestGenericModel()
+                //{
+                //    token = CommonHelper.Encode(JsonConvert.SerializeObject(model_json), configuration["KEY:private_key"])
+                //};
 
                 JArray objParr = null;
                 if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, configuration["KEY:private_key"]))
                 {
-                    var request = JsonConvert.DeserializeObject<OrderHistoryRequestModel>(objParr[0].ToString());
+                    var request = JsonConvert.DeserializeObject<OrderAffiliateRequestModel>(objParr[0].ToString());
                     if (request == null || request.token == null || request.token.Trim() == "")
                     {
 
@@ -483,11 +494,17 @@ namespace HuloToys_Service.Controllers
                     }
                     var account_client = accountClientESService.GetById(account_client_id);
                     var client = clientESService.GetById((long)account_client.ClientId);
-                    if (request.status == "-1") request.status = "";
-                    if (request.order_no == null) request.order_no = "";
                     if (request.page_index <= 0) request.page_index = 1;
                     if (request.page_size <= 0) request.page_size = 10;
-
+                    if(request.fromdate==null || request.fromdate == DateTime.MinValue)
+                    {
+                        request.fromdate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1, 0, 0, 0);
+                    }
+                    if (request.todate == null || request.todate == DateTime.MinValue)
+                    {
+                        DateTime now = DateTime.Now;
+                        request.todate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.DaysInMonth(now.Year, now.Month), 0, 0, 0);
+                    }
                     if (client.IsRegisterAffiliate == null || client.IsRegisterAffiliate == false
                         || client.ReferralId == null || client.ReferralId.Trim() == "")
                     {
@@ -497,7 +514,9 @@ namespace HuloToys_Service.Controllers
                             msg = "Tài khoản khách hàng chưa được đăng ký Affiliate"
                         });
                     }
-                    var result = orderMergeESService.GetFEAffiliateByClientID(request.status, request.order_no, request.page_index, request.page_size, new List<string>() { client.ReferralId });
+                    var result = orderMergeESService.GetFEAffiliateByClientID((DateTime)request.fromdate, (DateTime)request.todate, request.page_index, request.page_size, new List<string>() { client.ReferralId });
+                    LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "orderMergeESService.GetFEAffiliateByClientID ["+ client.ReferralId + "]["+ (result==null || result.data==null?"NULL": result.data.Count) + "]");
+
                     if (result != null && result.data != null && result.data.Count > 0)
                     {
                         var list_order_no = result.data.Select(x => x.OrderNo).ToList();

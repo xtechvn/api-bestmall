@@ -33,6 +33,7 @@ namespace DAL
                     new SqlParameter("@AccountClientId", model.AccountClientId),
                     new SqlParameter("@ServiceType", model.ServiceType),
                     new SqlParameter("@ClientId", model.ClientId),
+                    new SqlParameter("@PaymentStatus", model.PaymentStatus),
                 };
 
                 return Convert.ToInt32(_DbWorker.ExecuteScalar("SP_InsertAllotmentUse", objParam));
@@ -58,6 +59,8 @@ namespace DAL
                     new SqlParameter("@ServiceType", model.ServiceType),
                     new SqlParameter("@ClientId", model.ClientId),
                     new SqlParameter("@CreateDate", model.CreateDate==null||model.CreateDate<=DateTime.MinValue ? DBNull.Value:model.CreateDate),
+                    new SqlParameter("@PaymentStatus", model.PaymentStatus),
+
                 };
 
                 return _DbWorker.ExecuteNonQuery("SP_UpdateAllotmentUse", objParam);

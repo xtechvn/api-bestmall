@@ -387,6 +387,7 @@ namespace HuloToys_Service.Controllers
                                 exists.UpdatedDate = DateTime.Now;
                                 id = bankingAccountRepository.Update(exists);
                             }
+                           
                             return Ok(new
                             {
                                 status = (int)ResponseType.SUCCESS,
@@ -566,9 +567,18 @@ namespace HuloToys_Service.Controllers
                     if (client != null && client.IsRegisterAffiliate == true && client.ReferralId != null && client.ReferralId.Trim() != "")
                     {
                         var result =   _allotmentFundRepository.GetByAccountClientId(account_client_id);
-                        if (result == null ||result.Id<=0)
+                        if (result != null && result.Id>0)
                         {
-                            var fund = new HuloToys_Service.Models.Models.AllotmentFund()
+                            return Ok(new
+                            {
+                                status = (int)ResponseType.SUCCESS,
+                                msg = "Success",
+                                data = result,
+                            });
+                        }
+                        else
+                        {
+                           var fund = new HuloToys_Service.Models.Models.AllotmentFund()
                             {
                                 UpdateTime = DateTime.Now,
                                 AccountBalance = 0,
@@ -579,12 +589,6 @@ namespace HuloToys_Service.Controllers
                             };
                             fund.Id = _allotmentFundRepository.Insert(fund);
                         }
-                        return Ok(new
-                        {
-                            status = (int)ResponseType.SUCCESS,
-                            msg = "Success",
-                            data = result,
-                        });
 
                     }
                  

@@ -326,7 +326,7 @@ namespace Caching.Elasticsearch
             long processing = processingResponse.IsValid ? processingResponse.Count : 0;
             return (all, waiting, delvering, finish, refund, cancel, processing);
         }
-        public OrderMergeFEResponseModel GetFEAffiliateByClientID(long client_id, string status, string order_no, int page_index, int page_size,List<string> utm_medium=null)
+        public OrderMergeFEResponseModel GetFEAffiliateByClientID(string status, string order_no, int page_index, int page_size,List<string> utm_medium=null)
         {
             OrderMergeFEResponseModel result = new OrderMergeFEResponseModel();
 
@@ -335,8 +335,6 @@ namespace Caching.Elasticsearch
                 // Build a list of QueryContainer predicates
                 var mustQueries = new List<Func<QueryContainerDescriptor<OrderMergeESModel>, QueryContainer>>
                 {
-                    // Always add ClientId filter
-                    q => q.Term(m => m.ClientId, client_id)
                 };
 
                 // Add OrderNo containment filter if order_no is provided

@@ -461,8 +461,7 @@ namespace HuloToys_Service.Controllers
                 if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, configuration["KEY:private_key"]))
                 {
                     var request = JsonConvert.DeserializeObject<OrderHistoryRequestModel>(objParr[0].ToString());
-                    if (request == null || request.page_index <= 0 || request.page_size <= 0
-                       )
+                    if (request == null || request.token ==null || request.token.Trim()=="")
                     {
 
                         return Ok(new
@@ -484,6 +483,9 @@ namespace HuloToys_Service.Controllers
                     var client = clientESService.GetById((long)account_client.ClientId);
                     if (request.status == "-1") request.status = "";
                     if (request.order_no == null) request.order_no = "";
+                    if(request.page_index <= 0) request.page_index = 1;
+                    if(request.page_size <= 0) request.page_size = 10;
+
                     if (client.IsRegisterAffiliate == null || client.IsRegisterAffiliate == false
                         || client.ReferralId == null || client.ReferralId.Trim() == "")
                     {
@@ -493,7 +495,7 @@ namespace HuloToys_Service.Controllers
                             msg = "Tài khoản khách hàng chưa được đăng ký Affiliate"
                         });
                     }
-                    var result = orderMergeESService.GetFEAffiliateByClientID((long)account_client.ClientId, request.status, request.order_no, (request.page_index <= 0 ? 1 : request.page_index), (request.page_size <= 0 ? 10 : request.page_size), client.ReferralId);
+                    var result = orderMergeESService.GetFEAffiliateByClientID((long)account_client.ClientId, request.status, request.order_no, request.page_index, request.page_size, client.ReferralId);
                     if (result != null && result.data != null && result.data.Count > 0)
                     {
                         var list_order_no = result.data.Select(x => x.OrderNo).ToList();

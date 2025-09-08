@@ -466,15 +466,15 @@ namespace Caching.Elasticsearch
         }
 
         // Hàm gộp: trả về count + sum
-        public (long totalCount, double totalAmount) GetOrderStatsByUtmMedium(List<string> utm_medium)
+        public (long totalCount, double totalAmount) GetOrderStatsByUtmMedium(string utm_medium)
         {
             try
             {
                 var mustQueries = new List<Func<QueryContainerDescriptor<OrderMergeESModel>, QueryContainer>>();
 
-                if (utm_medium != null && utm_medium.Count > 0)
+                if (utm_medium != null && utm_medium.Trim()!="")
                 {
-                    mustQueries.Add(q => q.Terms(t => t.Field(x => x.UtmMedium).Terms(utm_medium)));
+                    mustQueries.Add(q => q.Match(t => t.Field(x => x.UtmMedium).Query(utm_medium)));
                 }
 
                 Func<QueryContainerDescriptor<OrderMergeESModel>, QueryContainer> finalQuery = q => q

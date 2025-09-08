@@ -640,8 +640,8 @@ namespace HuloToys_Service.Controllers
 
                         }
                         LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"],
-                              "_allotmentFundRepository.GetByAccountClientId(" + JsonConvert.SerializeObject(result) + ")");
-                        var (totalCount, totalAmount) = orderMergeESService.GetOrderStatsByUtmMedium(new List<string>() { client.ReferralId });
+                              "_allotmentFundRepository.GetByAccountClientId(" + JsonConvert.SerializeObject(result) + ")(" + client.ReferralId + ")");
+                        var (totalCount, totalAmount) = orderMergeESService.GetOrderStatsByUtmMedium(client.ReferralId);
                         if(result!=null && result.Id > 0)
                         {
                             try

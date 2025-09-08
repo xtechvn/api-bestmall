@@ -656,7 +656,7 @@ namespace HuloToys_Service.Controllers
                         {
                             status = (int)ResponseType.SUCCESS,
                             msg = "Success",
-                            data = result.AccountBalance,
+                            data = Math.Ceiling(result.AccountBalance),
                             total_amount = totalAmount,
                             count = totalCount,
                         });

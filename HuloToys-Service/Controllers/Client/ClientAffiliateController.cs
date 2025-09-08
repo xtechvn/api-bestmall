@@ -558,9 +558,15 @@ namespace HuloToys_Service.Controllers
         {
             try
             {
-
-
-                JArray objParr = null;
+                //var model_input = new OrderHistoryRequestModel
+                //{
+                //    token = "F08nOlAVBi8vLwxaDGMgagVjbX57aV9heVxyAmJnTlpFXyNQYmNiUgBpXnt3Q1BJUlZ0WE5BcCxNFysoPCdLQhRzZWoEfmV+Y2heBHlRcAFrbFlBSQZlSm5xa1tpZRI=",
+                //};
+                //input = new APIRequestGenericModel()
+                //{
+                //    token = CommonHelper.Encode(JsonConvert.SerializeObject(model_input), configuration["KEY:private_key"])
+                //};
+               JArray objParr = null;
                 if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, configuration["KEY:private_key"]))
                 {
                     var request = JsonConvert.DeserializeObject<OrderHistoryRequestModel>(objParr[0].ToString());
@@ -616,7 +622,7 @@ namespace HuloToys_Service.Controllers
                         }
                         if (result == null || result.Id <= 0)
                         {
-                            result = _allotmentFundRepository.GetByAccountClientId(account_client_id);
+                            result = _allotmentFundRepository.GetByAccountClientId((long)account_client.ClientId);
                         }
                         if (result == null || result.Id <= 0)
                         {
@@ -624,7 +630,7 @@ namespace HuloToys_Service.Controllers
                             {
                                 UpdateTime = DateTime.Now,
                                 AccountBalance = 0,
-                                AccountClientId = account_client_id,
+                                AccountClientId = (long)account_client.ClientId,
                                 CreateDate = DateTime.Now,
                                 FundType = 1,
 

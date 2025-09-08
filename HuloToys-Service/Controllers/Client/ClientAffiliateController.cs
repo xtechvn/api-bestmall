@@ -630,7 +630,11 @@ namespace HuloToys_Service.Controllers
 
                             };
                             result.Id = _allotmentFundRepository.Insert(result);
+                          
+
                         }
+                        LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"],
+                              "_allotmentFundRepository.GetByAccountClientId(" + JsonConvert.SerializeObject(result) + ")");
                         var (totalCount, totalAmount) = orderMergeESService.GetOrderStatsByUtmMedium(new List<string>() { client.ReferralId });
                         if(result!=null && result.Id > 0)
                         {
@@ -641,6 +645,7 @@ namespace HuloToys_Service.Controllers
                             }
                             catch { }
                         }
+                        
                         return Ok(new
                         {
                             status = (int)ResponseType.SUCCESS,

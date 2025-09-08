@@ -172,7 +172,7 @@ namespace HuloToys_Service.Controllers.Client.Business
             {
 
                 string data="client_id="+ client_id.ToString()+";created_date"+created_date.ToString("dd/MM/yyyy HH:mm:ss");
-                token = CommonHelper.Encode(data, _configuration["KEY:private_key"]);
+                token = CommonHelper.Encode(data, "lmRI5gYANBix6AUX1STNNXhPIhJ2RVlvg6SrXASb3GoMDmbxdxAa");
             }
             catch
             {

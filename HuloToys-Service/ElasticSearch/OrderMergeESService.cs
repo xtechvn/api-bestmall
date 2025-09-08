@@ -491,6 +491,7 @@ namespace Caching.Elasticsearch
 
                 var searchResponse = elasticClient.Search<OrderMergeESModel>(searchRequest);
                 var countResponse = elasticClient.Count(countRequest);
+                LogHelper.InsertLogTelegram("GetOrderStatsByUtmMedium countResponse: " + countResponse);
 
                 if (!searchResponse.IsValid || !countResponse.IsValid)
                     return (0, 0);

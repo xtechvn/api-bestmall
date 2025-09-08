@@ -331,6 +331,7 @@ namespace Caching.Elasticsearch
      DateTime todate,
      int page_index,
      int page_size,
+     string status,
      string utm_medium = null)
         {
             OrderMergeFEResponseModel result = new OrderMergeFEResponseModel();
@@ -353,6 +354,26 @@ namespace Caching.Elasticsearch
                     .Field(f => f.CreatedDate)
                     .GreaterThanOrEquals(fromdate)
                     .LessThanOrEquals(todate)));
+
+                // Add OrderStatus filter if status is provided
+                if (!string.IsNullOrWhiteSpace(status))
+                {
+                    List<int> status_value = new List<int>();
+                    try
+                    {
+                        var split = status.Split(",");
+                        if (split.Length > 0)
+                        {
+                            foreach (var item in split)
+                            {
+                                status_value.Add(Convert.ToInt32(item));
+                            }
+
+                        }
+                    }
+                    catch { }
+                    mustQueries.Add(q => q.Terms(t => t.Field(x => x.OrderStatus).Terms(status_value)));
+                }
 
                 // Combine all 'must' queries
                 Func<QueryContainerDescriptor<OrderMergeESModel>, QueryContainer> finalQueryContainer = q => q

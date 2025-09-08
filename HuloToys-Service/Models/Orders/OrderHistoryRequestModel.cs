@@ -17,7 +17,7 @@ namespace HuloToys_Service.Models.Orders
     public class OrderAffiliateRequestModel
     {
         public string token { get; set; }
-
+        public string order_status { get; set; }
         public DateTime? fromdate { get; set; }
         public DateTime? todate { get; set; }
         public int page_index { get; set; }

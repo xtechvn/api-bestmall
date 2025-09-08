@@ -496,6 +496,7 @@ namespace HuloToys_Service.Controllers
                     var client = clientESService.GetById((long)account_client.ClientId);
                     if (request.page_index <= 1) request.page_index = 1;
                     if (request.page_size <= 0) request.page_size = 10;
+                    if (request.order_status==null ||request.order_status.Trim()=="") request.order_status = "";
                     if(request.fromdate==null || request.fromdate == DateTime.MinValue)
                     {
                         request.fromdate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1, 0, 0, 0);
@@ -514,17 +515,8 @@ namespace HuloToys_Service.Controllers
                             msg = "Tài khoản khách hàng chưa được đăng ký Affiliate"
                         });
                     }
-                    var result = orderMergeESService.GetFEAffiliateByClientID((DateTime)request.fromdate, (DateTime)request.todate, request.page_index, request.page_size, client.ReferralId);
-                    LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], 
-                        "orderMergeESService.GetFEAffiliateByClientID " +
-                        "["+ (DateTime)request.fromdate + "]" +
-                        "["+ (DateTime)request.todate + "]" +
-                        "["+ client.ReferralId + "]" +
-                        "["+ request.page_index + "]" +
-                        "[" + request.page_size + "]" +
-                        "[" + client.ReferralId + "]" +
-                        "["+ (result==null || result.data==null?"NULL": result.data.Count) + "]"
-                        );
+                    var result = orderMergeESService.GetFEAffiliateByClientID((DateTime)request.fromdate, (DateTime)request.todate, request.page_index, request.page_size,request.order_status, client.ReferralId);
+                    
 
                     if (result != null && result.data != null && result.data.Count > 0)
                     {

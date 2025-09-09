@@ -664,7 +664,7 @@ namespace HuloToys_Service.Controllers
                             list_cart.Add(cart);
 
                             cart.product = await productDetailService.GetByID(cart.product._id);
-                            cart.product.images = cart.product.images.Where(x => !x.Contains("https://static-image.adavigo.com/9j/")).ToList();
+                            cart.product.images = cart.product.images.Where(x => x.Trim().Length<250).ToList();
                             var amount = cart.product.amount;
                             var price = cart.product.price;
                             var profit = cart.product.profit;

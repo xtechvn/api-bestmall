@@ -36,6 +36,7 @@
         public const string BANK_ACCOUNT = "BANK_ACCOUNT_";
         public const string ALLOTMENT_FUND = "ALLOTMENT_FUND_";
         public const string ALLOTMENT_USE = "ALLOTMENT_USE_";
+        public const string AFFILIATE_ORDER_LISTING = "AFFILIATE_ORDER_LISTING_";
 
     }
 }

@@ -1,9 +1,10 @@
-﻿using HuloToys_Service.Utilities.Lib;
-using MongoDB.Driver;
-using System.Reflection;
+﻿using Azure.Core;
 using HuloToys_Service.Models.Orders;
-using Azure.Core;
+using HuloToys_Service.Utilities.Lib;
+using Models.MongoDb;
+using MongoDB.Driver;
 using Nest;
+using System.Reflection;
 
 namespace HuloToys_Service.MongoDb
 {
@@ -172,6 +173,26 @@ namespace HuloToys_Service.MongoDb
                 LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
             }
             return false;
+        }
+        public async Task<string> Update(OrderDetailMongoDbModel data)
+        {
+            try
+            {
+                var id=data._id;
+                var filter = Builders<OrderDetailMongoDbModel>.Filter;
+                var filterDefinition = filter.Empty;
+                filterDefinition &= Builders<OrderDetailMongoDbModel>.Filter.Eq(x => x._id, id);
+                await bookingCollection.FindOneAndReplaceAsync(filterDefinition, data);
+
+                return data._id;
+            }
+            catch (Exception ex)
+            {
+                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
+                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
+            }
+            return null;
+
         }
     }
 }

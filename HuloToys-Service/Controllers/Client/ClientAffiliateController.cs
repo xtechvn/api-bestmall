@@ -27,6 +27,7 @@ using Newtonsoft.Json.Linq;
 using Repositories.IRepositories;
 using StackExchange.Redis;
 using System;
+using System.Linq;
 using System.Reflection;
 using Utilities;
 using Utilities.Contants;
@@ -523,6 +524,17 @@ namespace HuloToys_Service.Controllers
                         var list_order_no = result.data.Select(x => x.OrderNo).ToList();
                         result.data_order = await orderMongodbService.GetListByOrdersNo(list_order_no);
                         if (result.data_order == null) result.data_order = new List<OrderDetailMongoDbModel>();
+                        if (result.data_order != null && result.data_order.Count > 0) {
+                          foreach (var item in result.data_order)
+                          {
+                                foreach (var cart in item.carts)
+                                {
+                                    cart.product.images=cart.product.images.Where(x => !x.Contains("https://static-image.adavigo.com/9j/")).ToList();
+                                }
+                               await orderMongodbService.Update(item);
+                          }
+                        
+                        }
                     }
                     return Ok(new
                     {

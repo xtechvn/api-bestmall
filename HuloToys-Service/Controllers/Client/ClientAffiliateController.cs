@@ -27,7 +27,9 @@ using Newtonsoft.Json.Linq;
 using Repositories.IRepositories;
 using StackExchange.Redis;
 using System;
+using System.Linq;
 using System.Reflection;
+using System.Xml.Linq;
 using Utilities;
 using Utilities.Contants;
 
@@ -388,17 +390,7 @@ namespace HuloToys_Service.Controllers
                                 exists.UpdatedDate = DateTime.Now;
                                 id = bankingAccountRepository.Update(exists);
                             }
-                            return Ok(new
-                            {
-                                status = (int)ResponseType.SUCCESS,
-                                msg = "Success",
-                                data = new
-                                {
-                                    id = id,
-                                    utm_source = "bestmall",
-                                    utm_medium = client_sql.ReferralId
-                                }
-                            });
+                           
                         }
                         else
                         {
@@ -423,18 +415,22 @@ namespace HuloToys_Service.Controllers
 
                             var _data_push = JsonConvert.SerializeObject(j_param);
                             var response_queue = workQueueClient.InsertQueueSimpleSyncES(_data_push);
-                            return Ok(new
-                            {
-                                status = (int)ResponseType.SUCCESS,
-                                msg = "Success",
-                                data = new
-                                {
-                                    id = id,
-                                    utm_source = "bestmall",
-                                    utm_medium = client_sql.ReferralId
-                                }
-                            });
                         }
+                        var cache_name = CacheType.BANK_ACCOUNT + client.Id;
+                        _redisService.clear(cache_name, Convert.ToInt32(configuration["Redis:Database:db_search_result"]));
+                        cache_name = CacheType.ALLOTMENT_USE + client.Id + "1";
+                        await _redisService.DeleteCacheByKeyword(cache_name, Convert.ToInt32(configuration["Redis:Database:db_search_result"]));
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.SUCCESS,
+                            msg = "Success",
+                            data = new
+                            {
+                                id = id,
+                                utm_source = "bestmall",
+                                utm_medium = client_sql.ReferralId
+                            }
+                        });
                     }
                 }
 
@@ -456,12 +452,23 @@ namespace HuloToys_Service.Controllers
         {
             try
             {
-
+                //var model_json = new OrderAffiliateRequestModel()
+                //{
+                //    fromdate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1, 0, 0, 0),
+                //    todate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.DaysInMonth(DateTime.Now.Year, DateTime.Now.Month), 0, 0, 0),
+                //    token = "F08nOlAVBi8vLwxaDGMgagVjbX57aV9heVxyAmJnTlpFXyNQYmNiUgBpXnt3Q1BJUlZ0WE5BcCxNFysoPCdLQhRzZWoEfmV+Y2heBHlRcAFrbFlBSQZlSm5xa1tpZRI=",
+                //    page_size = 10,
+                //    page_index = 1
+                //};
+                //input = new APIRequestGenericModel()
+                //{
+                //    token = CommonHelper.Encode(JsonConvert.SerializeObject(model_json), configuration["KEY:private_key"])
+                //};
 
                 JArray objParr = null;
                 if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, configuration["KEY:private_key"]))
                 {
-                    var request = JsonConvert.DeserializeObject<OrderHistoryRequestModel>(objParr[0].ToString());
+                    var request = JsonConvert.DeserializeObject<OrderAffiliateRequestModel>(objParr[0].ToString());
                     if (request == null || request.token == null || request.token.Trim() == "")
                     {
 
@@ -482,11 +489,18 @@ namespace HuloToys_Service.Controllers
                     }
                     var account_client = accountClientESService.GetById(account_client_id);
                     var client = clientESService.GetById((long)account_client.ClientId);
-                    if (request.status == "-1") request.status = "";
-                    if (request.order_no == null) request.order_no = "";
-                    if (request.page_index <= 0) request.page_index = 1;
+                    if (request.page_index <= 1) request.page_index = 1;
                     if (request.page_size <= 0) request.page_size = 10;
-
+                    if (request.order_status==null ||request.order_status.Trim()=="") request.order_status = "";
+                    if(request.fromdate==null || request.fromdate == DateTime.MinValue)
+                    {
+                        request.fromdate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1, 0, 0, 0);
+                    }
+                    if (request.todate == null || request.todate == DateTime.MinValue)
+                    {
+                        DateTime now = DateTime.Now;
+                        request.todate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.DaysInMonth(now.Year, now.Month), 23, 59, 59);
+                    }
                     if (client.IsRegisterAffiliate == null || client.IsRegisterAffiliate == false
                         || client.ReferralId == null || client.ReferralId.Trim() == "")
                     {
@@ -496,11 +510,25 @@ namespace HuloToys_Service.Controllers
                             msg = "Tài khoản khách hàng chưa được đăng ký Affiliate"
                         });
                     }
-                    var result = orderMergeESService.GetFEAffiliateByClientID((long)account_client.ClientId, request.status, request.order_no, request.page_index, request.page_size, client.ReferralId);
+                    var result = orderMergeESService.GetFEAffiliateByClientID((DateTime)request.fromdate, (DateTime)request.todate, request.page_index, request.page_size,request.order_status, client.ReferralId);
+                    
+
                     if (result != null && result.data != null && result.data.Count > 0)
                     {
                         var list_order_no = result.data.Select(x => x.OrderNo).ToList();
                         result.data_order = await orderMongodbService.GetListByOrdersNo(list_order_no);
+                        if (result.data_order == null) result.data_order = new List<OrderDetailMongoDbModel>();
+                        //if (result.data_order != null && result.data_order.Count > 0) {
+                        //  foreach (var item in result.data_order)
+                        //  {
+                        //        foreach (var cart in item.carts)
+                        //        {
+                        //            cart.product.images=cart.product.images.Where(x =>  x.Trim().Length<250).ToList();
+                        //        }
+                        //       await orderMongodbService.Update(item);
+                        //  }
+
+                        //}
                     }
                     return Ok(new
                     {
@@ -528,9 +556,15 @@ namespace HuloToys_Service.Controllers
         {
             try
             {
-
-
-                JArray objParr = null;
+                //var model_input = new OrderHistoryRequestModel
+                //{
+                //    token = "F08nOlAVBi8vLwxaDGMgagVjbX57aV9heVxyAmJnTlpFXyNQYmNiUgBpXnt3Q1BJUlZ0WE5BcCxNFysoPCdLQhRzZWoEfmV+Y2heBHlRcAFrbFlBSQZlSm5xa1tpZRI=",
+                //};
+                //input = new APIRequestGenericModel()
+                //{
+                //    token = CommonHelper.Encode(JsonConvert.SerializeObject(model_input), configuration["KEY:private_key"])
+                //};
+               JArray objParr = null;
                 if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, configuration["KEY:private_key"]))
                 {
                     var request = JsonConvert.DeserializeObject<OrderHistoryRequestModel>(objParr[0].ToString());
@@ -586,7 +620,7 @@ namespace HuloToys_Service.Controllers
                         }
                         if (result == null || result.Id <= 0)
                         {
-                            result = _allotmentFundRepository.GetByAccountClientId(account_client_id);
+                            result = _allotmentFundRepository.GetByAccountClientId((long)account_client.ClientId);
                         }
                         if (result == null || result.Id <= 0)
                         {
@@ -594,14 +628,18 @@ namespace HuloToys_Service.Controllers
                             {
                                 UpdateTime = DateTime.Now,
                                 AccountBalance = 0,
-                                AccountClientId = account_client_id,
+                                AccountClientId = (long)account_client.ClientId,
                                 CreateDate = DateTime.Now,
                                 FundType = 1,
 
                             };
                             result.Id = _allotmentFundRepository.Insert(result);
+                          
+
                         }
-                        var (totalCount, totalAmount) = orderMergeESService.GetOrderStatsByUtmMedium(new List<string>() { client.ReferralId });
+                        LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"],
+                              "_allotmentFundRepository.GetByAccountClientId(" + JsonConvert.SerializeObject(result) + ")(" + client.ReferralId + ")");
+                        var (totalCount, totalAmount) = orderMergeESService.GetOrderStatsByUtmMedium(client.ReferralId);
                         if(result!=null && result.Id > 0)
                         {
                             try
@@ -611,15 +649,15 @@ namespace HuloToys_Service.Controllers
                             }
                             catch { }
                         }
+                        
                         return Ok(new
                         {
                             status = (int)ResponseType.SUCCESS,
                             msg = "Success",
-                            data = result.AccountBalance,
+                            data = Math.Ceiling(result.AccountBalance),
                             total_amount = totalAmount,
                             count = totalCount,
                         });
-
                     }
 
                     return Ok(new
@@ -753,7 +791,15 @@ namespace HuloToys_Service.Controllers
         {
             try
             {
-
+                //var model_input = new ClientAffiliateRequestModel
+                //{
+                //    token = "F08nOlAVBi8vLwxaDGMgagRjYX97aVlkfFt7AmJnTlpFXyNQYmNiUgBpXnt3Q1BJUlZ0WE5BcCxNFysoPCdLQhRzZWoEfmR2Y2hRBHlQcABqbFxBSQZqRm15alppZRI=",
+                //    Amount=10000
+                //};
+                //input = new APIRequestGenericModel()
+                //{
+                //    token = CommonHelper.Encode(JsonConvert.SerializeObject(model_input), configuration["KEY:private_key"])
+                //};
 
                 JArray objParr = null;
                 if (input != null && input.token != null && CommonHelper.GetParamWithKey(input.token, out objParr, configuration["KEY:private_key"]))

@@ -29,6 +29,7 @@ using StackExchange.Redis;
 using System;
 using System.Linq;
 using System.Reflection;
+using System.Xml.Linq;
 using Utilities;
 using Utilities.Contants;
 
@@ -389,18 +390,7 @@ namespace HuloToys_Service.Controllers
                                 exists.UpdatedDate = DateTime.Now;
                                 id = bankingAccountRepository.Update(exists);
                             }
-
-                            return Ok(new
-                            {
-                                status = (int)ResponseType.SUCCESS,
-                                msg = "Success",
-                                data = new
-                                {
-                                    id = id,
-                                    utm_source = "bestmall",
-                                    utm_medium = client_sql.ReferralId
-                                }
-                            });
+                           
                         }
                         else
                         {
@@ -425,18 +415,22 @@ namespace HuloToys_Service.Controllers
 
                             var _data_push = JsonConvert.SerializeObject(j_param);
                             var response_queue = workQueueClient.InsertQueueSimpleSyncES(_data_push);
-                            return Ok(new
-                            {
-                                status = (int)ResponseType.SUCCESS,
-                                msg = "Success",
-                                data = new
-                                {
-                                    id = id,
-                                    utm_source = "bestmall",
-                                    utm_medium = client_sql.ReferralId
-                                }
-                            });
                         }
+                        var cache_name = CacheType.BANK_ACCOUNT + client.Id;
+                        _redisService.clear(cache_name, Convert.ToInt32(configuration["Redis:Database:db_search_result"]));
+                        cache_name = CacheType.ALLOTMENT_USE + client.Id + "1";
+                        await _redisService.DeleteCacheByKeyword(cache_name, Convert.ToInt32(configuration["Redis:Database:db_search_result"]));
+                        return Ok(new
+                        {
+                            status = (int)ResponseType.SUCCESS,
+                            msg = "Success",
+                            data = new
+                            {
+                                id = id,
+                                utm_source = "bestmall",
+                                utm_medium = client_sql.ReferralId
+                            }
+                        });
                     }
                 }
 

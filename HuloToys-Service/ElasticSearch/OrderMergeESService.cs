@@ -377,8 +377,10 @@ namespace Caching.Elasticsearch
 
                 // Combine all 'must' queries
                 Func<QueryContainerDescriptor<OrderMergeESModel>, QueryContainer> finalQueryContainer = q => q
-                    .Bool(b => b.Must(mustQueries.ToArray()));
-
+            .Bool(b => b
+                .Must(mustQueries.ToArray())
+                .MustNot(mn => mn.Terms(t => t.Field(f => f.OrderStatus).Terms(new[] { 4, 7 })))
+            );
                 var searchRequest = new SearchDescriptor<OrderMergeESModel>()
                     .Query(finalQueryContainer)
                     .From((page_index - 1) * page_size)
@@ -435,7 +437,10 @@ namespace Caching.Elasticsearch
                 }
 
                 Func<QueryContainerDescriptor<OrderMergeESModel>, QueryContainer> finalQuery = q => q
-                    .Bool(b => b.Must(mustQueries.ToArray()));
+                    .Bool(b => b
+                        .Must(mustQueries.ToArray())
+                        .MustNot(mn => mn.Terms(t => t.Field(f => f.OrderStatus).Terms(new[] { 4, 7 })))
+                    );
 
                 var countRequest = new CountDescriptor<OrderMergeESModel>().Query(finalQuery);
                 var query_count = elasticClient.Count(countRequest);
@@ -464,7 +469,10 @@ namespace Caching.Elasticsearch
                 }
 
                 Func<QueryContainerDescriptor<OrderMergeESModel>, QueryContainer> finalQuery = q => q
-                    .Bool(b => b.Must(mustQueries.ToArray()));
+                    .Bool(b => b
+                        .Must(mustQueries.ToArray())
+                        .MustNot(mn => mn.Terms(t => t.Field(f => f.OrderStatus).Terms(new[] { 4, 7 })))
+                    );
 
                 var searchRequest = new SearchDescriptor<OrderMergeESModel>()
                     .Size(0) // không cần lấy documents
@@ -493,13 +501,16 @@ namespace Caching.Elasticsearch
             {
                 var mustQueries = new List<Func<QueryContainerDescriptor<OrderMergeESModel>, QueryContainer>>();
 
-                if (utm_medium != null && utm_medium.Trim()!="")
+                if (utm_medium != null && utm_medium.Trim() != "")
                 {
                     mustQueries.Add(q => q.Match(t => t.Field(x => x.UtmMedium).Query(utm_medium)));
                 }
 
                 Func<QueryContainerDescriptor<OrderMergeESModel>, QueryContainer> finalQuery = q => q
-                    .Bool(b => b.Must(mustQueries.ToArray()));
+                    .Bool(b => b
+                        .Must(mustQueries.ToArray())
+                        .MustNot(mn => mn.Terms(t => t.Field(f => f.OrderStatus).Terms(new[] { 4, 7 })))
+                    );
 
                 var searchRequest = new SearchDescriptor<OrderMergeESModel>()
                     .Size(0)
@@ -512,7 +523,6 @@ namespace Caching.Elasticsearch
 
                 var searchResponse = elasticClient.Search<OrderMergeESModel>(searchRequest);
                 var countResponse = elasticClient.Count(countRequest);
-                LogHelper.InsertLogTelegram("GetOrderStatsByUtmMedium countResponse: " + countResponse);
 
                 if (!searchResponse.IsValid || !countResponse.IsValid)
                     return (0, 0);
@@ -528,6 +538,7 @@ namespace Caching.Elasticsearch
                 return (0, 0);
             }
         }
+
 
     }
 }

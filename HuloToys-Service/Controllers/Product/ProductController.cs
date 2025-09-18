@@ -427,6 +427,14 @@ namespace WEB.CMS.Controllers
         [HttpPost("group-product")]
         public async Task<IActionResult> GroupProduct([FromBody] APIRequestGenericModel input)
         {
+            //var model_json = new
+            //{
+            //    group_id = 188
+            //};
+            //input = new APIRequestGenericModel()
+            //{
+            //    token = CommonHelper.Encode(JsonConvert.SerializeObject(model_json), _configuration["KEY:private_key"])
+            //};
             try
             {
                 JArray objParr = null;

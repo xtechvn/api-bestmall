@@ -5,6 +5,7 @@ using HuloToys_Service.Controllers.Client.Business;
 using HuloToys_Service.Controllers.Order.Business;
 using HuloToys_Service.IRepositories;
 using HuloToys_Service.Models.APIRequest;
+using HuloToys_Service.Models.Article;
 using HuloToys_Service.Models.Client;
 using HuloToys_Service.Models.Models;
 using HuloToys_Service.Models.Orders;
@@ -24,8 +25,10 @@ using Newtonsoft.Json.Linq;
 using Repositories.IRepositories;
 using System;
 using System.Reflection;
+using System.Xml.Linq;
 using Utilities;
 using Utilities.Contants;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace HuloToys_Service.Controllers
 {
@@ -783,16 +786,72 @@ namespace HuloToys_Service.Controllers
                             msg = ResponseMessages.DataInvalid
                         });
                     }
-                    var detailclient = await clientServices.GetDetailClientIdFromToken(account_client_id);
-                    if (detailclient != null)
+                    string cache_name = "CLIENT_" + account_client_id;
+                    try
                     {
+                        var  j_data = await _redisService.GetAsync(cache_name, Convert.ToInt32(configuration["Redis:Database:db_common"]));
+                        if (j_data != null)
+                        {
+                            var data = JsonConvert.DeserializeObject<ClientDetailESModel>(j_data);
+                            if (data != null && data.Id>0)
+                            {
+                                return Ok(new
+                                {
+                                    status = (int)ResponseType.SUCCESS,
+                                    msg = ResponseMessages.Success,
+                                    data = data
+                                });
+                            }
+                        }
+                    }
+                    catch (Exception)
+                    {
+                       
+
+                    }
+                    try
+                    {
+                        var account_client = accountClientESService.GetById(account_client_id);
+                        var client = clientESService.GetById((long)account_client.ClientId);
+                        var Detail_Client = new ClientDetailESModel()
+                        {
+                            Birthday = client.Birthday,
+                            CitizenId = client.CitizenId,
+                            ClientName = client.ClientName,
+                            Email = client.Email,
+                            Gender = client.Gender,
+                            Id = client.Id,
+                            IsRegisterAffiliate = client.IsRegisterAffiliate,
+                            Phone = client.Phone,
+                            ReferralId = client.ReferralId,
+                            token = ""
+                        };
+                        try
+                        {
+                            _redisService.Set(cache_name,JsonConvert.SerializeObject(Detail_Client), Convert.ToInt32(configuration["Redis:Database:db_common"]));
+                        }
+                        catch { }
                         return Ok(new
                         {
                             status = (int)ResponseType.SUCCESS,
                             msg = ResponseMessages.Success,
-                            data = detailclient
+                            data = Detail_Client
                         });
                     }
+                    catch
+                    {
+
+                    }
+                    //var detailclient = await clientServices.GetDetailClientIdFromToken(account_client_id);
+                    //if (detailclient != null)
+                    //{
+                    //    return Ok(new
+                    //    {
+                    //        status = (int)ResponseType.SUCCESS,
+                    //        msg = ResponseMessages.Success,
+                    //        data = detailclient
+                    //    });
+                    //}
                 }
             }
             catch (Exception ex)
@@ -868,6 +927,9 @@ namespace HuloToys_Service.Controllers
                     // Execute Push Queue
 
                     response_queue = workQueueClient.InsertQueueSimple(_data_push, QueueName.queue_app_push);
+                    string cache_name = "CLIENT_" + account_client_id;
+                    _redisService.clear(cache_name, Convert.ToInt32(configuration["Redis:Database:db_common"]));
+
                     if (response_queue)
                     {
                         return Ok(new

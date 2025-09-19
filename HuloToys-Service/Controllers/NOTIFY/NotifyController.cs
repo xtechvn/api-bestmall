@@ -171,33 +171,15 @@ namespace API_CORE.Controllers.NOTIFY
 
                 var user_id = Convert.ToInt32(objParr[0]["user_id"]);
                 int dbIndex = 14;
-                string cacheUnseenKey = $"NOTIFY_UNSEEN_{user_id}";
+                string cacheName = $"NOTIFY_{user_id}";
 
-                // 1️⃣ Lấy trực tiếp từ Redis
-                var unseenIds = _redisService.SMembers(cacheUnseenKey, dbIndex);
-                int total = unseenIds?.Count ?? 0;
-
-                // 2️⃣ Nếu Redis trống thì fallback Mongo
-                if (total == 0)
-                {
-                    var (mongoTotal, ids) = await _notifyMongoDAL.GetUnseenNotifyInfo(user_id);
-                    total = mongoTotal;
-
-                    if (ids != null && ids.Any())
-                    {
-                        foreach (var id in ids)
-                        {
-                            _redisService.SAdd(cacheUnseenKey, id, dbIndex);
-                        }
-                    }
-
-                    unseenIds = ids?.ToList() ?? new List<string>();
-                }
+                // Gọi DAL lấy unseen info
+                var (total, ids) = await _notifyMongoDAL.GetUnseenNotifyInfo(user_id);
 
                 var obj = new
                 {
                     total_not_seen = total,
-                    lst_id_not_seen = string.Join(",", unseenIds)
+                    lst_id_not_seen = string.Join(",", ids)
                 };
 
                 return Ok(new
@@ -214,7 +196,6 @@ namespace API_CORE.Controllers.NOTIFY
                 return Ok(new { status = (int)ResponseType.FAILED, msg = "Transaction Error !!!" });
             }
         }
-
 
 
         [HttpPost("notify/message/send.json")]

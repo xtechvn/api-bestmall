@@ -937,7 +937,7 @@ namespace HuloToys_Service.Controllers
                         data_push = JsonConvert.SerializeObject(model)
                     };
                     var pushed_queue = work_queue.InsertQueueSimple(JsonConvert.SerializeObject(queue_model), QueueName.queue_app_push);
-
+                    productDetailService.UpdateProductRaitingDelay(product);
                     return Ok(new
                     {
                         status = (int)ResponseType.SUCCESS,

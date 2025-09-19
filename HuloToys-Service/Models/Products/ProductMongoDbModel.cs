@@ -77,40 +77,42 @@ namespace Entities.ViewModels.Products
         public int? profit_supplier_type { get; set; }
         public float? profit_affliate { get; set; }
 
+        //--flashsale:
+        public double? flash_sale_amount_min { get; set; }
+        public double? flash_sale_amount_max { get; set; }
+        public double? flash_sale_discount { get; set; }
+        public int? exists_flashsale_id { get; set; }
+        public string exists_flashsale_name { get; set; }
+        public double? amount_after_flashsale { get; set; }
+        public DateTime? flash_sale_fromdate { get; set; }
+        public DateTime? flash_sale_todate { get; set; }
+        public decimal? flash_sale_price_sales { get; set; }
+        public int? flash_sale_unit { get; set; }
+        //--supplier:
+        public string supplier_name { get; set; } = null;
+
     }
     public class ProductMongoDbSpecification
     {
         public string key { get; set; }
         public string value { get; set; }
     }
-    public class ProductMongoDbModelFEResponse : ProductMongoDbModel
-    {
-        public int? exists_flashsale_id { get; set; }
-        public string exists_flashsale_name { get; set; }
-        public double? amount_after_flashsale { get; set; }
-        public DateTime? flash_sale_fromdate { get; set; }
-        public DateTime? flash_sale_todate { get; set; }
-        public string supplier_name { get; set; } = null;
-        public decimal? flash_sale_price_sales { get; set; }
+    //public class ProductMongoDbModelCollection : ProductMongoDbModel
+    //{
+    //    public string _id { get; set; }
+    //    public string code { get; set; }
+    //    public string name { get; set; }
+    //    public string avatar { get; set; }
+    //    public double price { get; set; }
+    //    public double amount { get; set; }
+    //    public double? amount_max { get; set; }
+    //    public double? amount_min { get; set; }
+    //    public float? rating { get; set; }
+    //    public float star { get; set; }
+    //    public long? total_sold { get; set; }
+    //    public double? review_count { get; set; }
+    //    public double? old_price { get; set; }
+    //    public double discount { get; set; }
 
-        public int? flash_sale_unit { get; set; }
-    }
-    public class ProductMongoDbModelFEResponseCollection : ProductMongoDbModelFEResponse
-    {
-        public string _id { get; set; }
-        public string code { get; set; }
-        public string name { get; set; }
-        public string avatar { get; set; }
-        public double price { get; set; }
-        public double amount { get; set; }
-        public double? amount_max { get; set; }
-        public double? amount_min { get; set; }
-        public float? rating { get; set; }
-        public float star { get; set; }
-        public long? total_sold { get; set; }
-        public double? review_count { get; set; }
-        public double? old_price { get; set; }
-        public double discount { get; set; }
-
-    }
+    //}
 }

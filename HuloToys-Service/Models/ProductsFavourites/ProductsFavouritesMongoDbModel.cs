@@ -16,6 +16,6 @@ namespace HuloToys_Service.Models.ProductsFavourites
         public long account_client_id { get; set; }
         public string product_id { get; set; }
         public DateTime updated_last { get; set; }
-        public ProductMongoDbModelFEResponse detail { get; set; }
+        public ProductMongoDbModel detail { get; set; }
     }
 }

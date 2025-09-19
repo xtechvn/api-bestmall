@@ -292,7 +292,7 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                     var list_product_mongo = await _productDetailMongoAccess.ListByProducts(list_item.Select(x => x.productid).ToList());
                     if (list_product_mongo != null && list_product_mongo.Count > 0) result = list_product_mongo.Select(selected => new FlashSaleProductResposeModel()
                     {
-                        amount = selected.amount,
+                        amount = selected.amount_min !=null && selected.amount_min>0? (double)selected.amount_min: selected.amount,
                         amount_after_flashsale = selected.amount_after_flashsale,
                         discountvalue = selected.flash_sale_discount,
                         position = list_item.First(x => x.productid.Trim() == selected._id.Trim()).position,

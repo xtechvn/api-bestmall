@@ -121,32 +121,32 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
             //return result;
             return await _productDetailMongoAccess.GetByID(id);
         }
-        //public async Task<ProductDetailResponseModel> GetFullProductById(string id)
-        //{
-        //    ProductDetailResponseModel result = new ProductDetailResponseModel();
-        //    try
-        //    {
-        //        var data = await _productDetailMongoAccess.GetFullProductById(id);
-        //        if (data != null && data.product_main != null && data.product_main._id.Trim() != "")
-        //        {
-        //            //result = JsonConvert.DeserializeObject<ProductDetailResponseModel>(JsonConvert.SerializeObject(data));
-        //            //result.product_main=await UpdateProductDetail(result.product_main);
-        //            //if(data.product_sub!=null && data.product_sub.Count > 0)
-        //            //{
-        //            //    result.product_sub = await UpdateProductDetail(data.product_sub);
-        //            //}
-        //            result.product_main.flash_sale_amount_min = result.product_sub.Min(x => (x.amount_after_flashsale != null && x.amount_after_flashsale > 0 ? x.amount_after_flashsale : x.amount));
-        //            result.product_main.flash_sale_amount_max = result.product_sub.Max(x => (x.amount_after_flashsale != null && x.amount_after_flashsale > 0 ? x.amount_after_flashsale : x.amount));
+        public async Task<ProductDetailResponseModel> GetFullProductById(string id)
+        {
+            ProductDetailResponseModel result = new ProductDetailResponseModel();
+            try
+            {
+                var data = await _productDetailMongoAccess.GetFullProductById(id);
+                if (data != null && data.product_main != null && data.product_main._id.Trim() != "")
+                {
+                    //result = JsonConvert.DeserializeObject<ProductDetailResponseModel>(JsonConvert.SerializeObject(data));
+                    //result.product_main=await UpdateProductDetail(result.product_main);
+                    //if(data.product_sub!=null && data.product_sub.Count > 0)
+                    //{
+                    //    result.product_sub = await UpdateProductDetail(data.product_sub);
+                    //}
+                    result.product_main.flash_sale_amount_min = result.product_sub.Min(x => (x.amount_after_flashsale != null && x.amount_after_flashsale > 0 ? x.amount_after_flashsale : x.amount));
+                    result.product_main.flash_sale_amount_max = result.product_sub.Max(x => (x.amount_after_flashsale != null && x.amount_after_flashsale > 0 ? x.amount_after_flashsale : x.amount));
 
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
-        //        LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
-        //    }
-        //    return result;
-        //}
+                }
+            }
+            catch (Exception ex)
+            {
+                string error_msg = Assembly.GetExecutingAssembly().GetName().Name + "->" + MethodBase.GetCurrentMethod().Name + "=>" + ex.ToString();
+                LogHelper.InsertLogTelegramByUrl(_configuration["BotSetting:bot_token"], _configuration["BotSetting:bot_group_id"], error_msg);
+            }
+            return result;
+        }
         //public async Task<ProductDetailResponseModel> UpdateFullProductById(ProductDetailResponseModel result)
         //{
         //    try

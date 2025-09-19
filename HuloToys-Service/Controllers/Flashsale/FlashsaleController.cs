@@ -109,7 +109,7 @@ namespace HuloToys_Service.Controllers
                         });
                     }
                     var list = await flashSaleProductESRepository.GetByFlashsaleId(request.id);
-                    if(list == null|| list.Count <= 0)
+                    if (list == null || list.Count <= 0)
                     {
                         return Ok(new
                         {

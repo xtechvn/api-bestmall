@@ -290,60 +290,76 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                 if (list_item != null && list_item.Count > 0)
                 {
                     var list_product_mongo = await _productDetailMongoAccess.ListByProducts(list_item.Select(x => x.productid).ToList());
-                    if(list_product_mongo != null && list_product_mongo.Count > 0)
+                    if (list_product_mongo != null && list_product_mongo.Count > 0) result = list_product_mongo.Select(selected => new FlashSaleProductResposeModel()
                     {
-                        foreach (var selected in list_product_mongo)
-                        {
-                            ProductMongoDbModel extend_product = new ProductMongoDbModel()
-                            {
-                                _id = selected._id,
-                            };
-                            var item = list_item.First(x => x.productid.Trim() == selected._id.Trim());
-                            var amount_product = selected.amount;
-                            if (selected.amount <= 0 && selected.amount_min != null && selected.amount_min > 0)
-                            {
-                                amount_product = (double)selected.amount_min;
+                        amount = selected.amount,
+                        amount_after_flashsale = selected.amount_after_flashsale,
+                        discountvalue = selected.flash_sale_discount,
+                        position = list_item.First(x => x.productid.Trim() == selected._id.Trim()).position,
+                        total_discount = selected.flash_sale_discount,
+                        _id = selected._id,
+                        avatar = selected.avatar,
+                        name = selected.name,
+                        code = selected.code,
+                        rating = selected.rating,
+                        review_count = selected.review_count,
+                        total_sold = selected.total_sold,
+                        super_sale = list_item.First(x => x.productid.Trim() == selected._id.Trim()).supersale,
+                        badge_type = selected.flashsale_badge_type
+                    }).ToList();
+                    //{
+                    //    foreach (var selected in list_product_mongo)
+                    //    {
+                    //        ProductMongoDbModel extend_product = new ProductMongoDbModel()
+                    //        {
+                    //            _id = selected._id,
+                    //        };
+                    //        var item = list_item.First(x => x.productid.Trim() == selected._id.Trim());
+                    //        var amount_product = selected.amount;
+                    //        if (selected.amount <= 0 && selected.amount_min != null && selected.amount_min > 0)
+                    //        {
+                    //            amount_product = (double)selected.amount_min;
 
-                            }
-                            double old_price = selected.old_price == null || selected.old_price <= 0 ? amount_product : (double)selected.old_price;
-                            if (old_price <= 0)
-                            {
-                                old_price = amount_product;
-                            }
-                            double total_discount = 0;
-                            double percent = Convert.ToDouble(item.discountvalue);
-                            switch (item.valuetype)
-                            {
-                                case 1:
-                                    total_discount += (amount_product * Convert.ToDouble(percent / 100));
-                                    break;
-                                case 0:
-                                    total_discount += percent;
-                                    break;
+                    //        }
+                    //        double old_price = selected.old_price == null || selected.old_price <= 0 ? amount_product : (double)selected.old_price;
+                    //        if (old_price <= 0)
+                    //        {
+                    //            old_price = amount_product;
+                    //        }
+                    //        double total_discount = 0;
+                    //        double percent = Convert.ToDouble(item.discountvalue);
+                    //        switch (item.valuetype)
+                    //        {
+                    //            case 1:
+                    //                total_discount += (amount_product * Convert.ToDouble(percent / 100));
+                    //                break;
+                    //            case 0:
+                    //                total_discount += percent;
+                    //                break;
 
-                                default: break;
-                            }
-                            var discount_percent = Math.Round(total_discount / old_price * 100, 0);
-                            discount_percent = discount_percent <= 0 ? 0 : discount_percent;
-                            result.Add(new FlashSaleProductResposeModel()
-                            {
-                                amount = old_price,
-                                amount_after_flashsale = Math.Ceiling(amount_product - total_discount),
-                                discountvalue = discount_percent,
-                                position = item.position ?? 0,
-                                total_discount = total_discount,
-                                _id = selected._id,
-                                avatar = selected.avatar,
-                                name = selected.name,
-                                code = selected.code,
-                                rating = extend_product.rating,
-                                review_count = extend_product.review_count,
-                                total_sold = selected.total_sold,
-                                super_sale = item.supersale,
-                                badge_type = selected.flashsale_badge_type
-                            });
-                        }
-                    }
+                    //            default: break;
+                    //        }
+                    //        var discount_percent = Math.Round(total_discount / old_price * 100, 0);
+                    //        discount_percent = discount_percent <= 0 ? 0 : discount_percent;
+                    //        result.Add(new FlashSaleProductResposeModel()
+                    //        {
+                    //            amount = old_price,
+                    //            amount_after_flashsale = Math.Ceiling(amount_product - total_discount),
+                    //            discountvalue = discount_percent,
+                    //            position = item.position ?? 0,
+                    //            total_discount = total_discount,
+                    //            _id = selected._id,
+                    //            avatar = selected.avatar,
+                    //            name = selected.name,
+                    //            code = selected.code,
+                    //            rating = extend_product.rating,
+                    //            review_count = extend_product.review_count,
+                    //            total_sold = selected.total_sold,
+                    //            super_sale = item.supersale,
+                    //            badge_type = selected.flashsale_badge_type
+                    //        });
+                    //    }
+                    //}
                 }
             }
             catch (Exception ex)

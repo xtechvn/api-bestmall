@@ -135,6 +135,8 @@ namespace HuloToys_Service.Controllers.Product.Bussiness
                     //{
                     //    result.product_sub = await UpdateProductDetail(data.product_sub);
                     //}
+                    result.product_main= data.product_main;
+                    result.product_sub= data.product_sub;
                     result.product_main.flash_sale_amount_min = result.product_sub.Min(x => (x.amount_after_flashsale != null && x.amount_after_flashsale > 0 ? x.amount_after_flashsale : x.amount));
                     result.product_main.flash_sale_amount_max = result.product_sub.Max(x => (x.amount_after_flashsale != null && x.amount_after_flashsale > 0 ? x.amount_after_flashsale : x.amount));
 

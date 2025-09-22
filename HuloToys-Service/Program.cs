@@ -95,7 +95,33 @@ internal class Program
         builder.Services.AddSingleton<RedisConn>();
         builder.Services.AddSingleton<ViettelPostService>();
         builder.Services.AddSingleton<VNPayService>();
-
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("AllowSpecificOrigins", policy =>
+            {
+                policy
+                    .WithOrigins(
+                        "http://localhost",
+                        "https://localhost",
+                        "http://best-mall.vn",
+                        "https://best-mall.vn",
+                        "http://bestmall.com.vn",
+                        "https://bestmall.com.vn"
+                    )
+                    .SetIsOriginAllowed(origin =>
+                        origin.StartsWith("http://localhost") ||
+                        origin.StartsWith("https://localhost") ||
+                        origin.EndsWith(".best-mall.vn") ||
+                        origin.EndsWith(".bestmall.com.vn") ||
+                        origin == "http://best-mall.vn" ||
+                        origin == "https://best-mall.vn" ||
+                        origin == "http://bestmall.com.vn" ||
+                        origin == "https://bestmall.com.vn"
+                    )
+                    .AllowAnyHeader()
+                    .WithMethods("GET", "POST", "OPTIONS");
+            });
+        });
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
@@ -104,6 +130,7 @@ internal class Program
             app.UseSwagger();
             app.UseSwaggerUI();
         }
+        app.UseCors("AllowSpecificOrigins");
 
         app.UseHttpsRedirection();
 

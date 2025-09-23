@@ -755,7 +755,7 @@ namespace HuloToys_Service.Controllers
                         }
                         if (result == null || result.ListData == null || result.ListData.Count <= 0)
                         {
-                            result = _allotmentUseRepository.GetByAccountClientId(account_client_id);
+                            result = _allotmentUseRepository.GetByAccountClientId(client.Id);
                             //LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"], "_allotmentUseRepository ["+(_allotmentUseRepository==null?"NULL": "_allotmentUseRepository") +"].GetByAccountClientId(["+(account_client_id) +"])");
 
                             if (result != null && result.ListData!=null&& result.ListData.Count > 0)

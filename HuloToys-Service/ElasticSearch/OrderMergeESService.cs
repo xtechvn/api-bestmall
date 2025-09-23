@@ -509,7 +509,7 @@ namespace Caching.Elasticsearch
                 Func<QueryContainerDescriptor<OrderMergeESModel>, QueryContainer> finalQuery = q => q
                     .Bool(b => b
                         .Must(mustQueries.ToArray())
-                        .MustNot(mn => mn.Terms(t => t.Field(f => f.OrderStatus).Terms(new[] { 4, 7 })))
+                        .MustNot(mn => mn.Terms(t => t.Field(f => f.OrderStatus).Terms(new[] {0, 4, 7 })))
                     );
 
                 var searchRequest = new SearchDescriptor<OrderMergeESModel>()

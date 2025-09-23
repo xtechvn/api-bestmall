@@ -5,6 +5,7 @@ using HuloToys_Service.Models.Article;
 using HuloToys_Service.Models.Models;
 using HuloToys_Service.Utilities.Lib;
 using Microsoft.Data.SqlClient;
+using Nest;
 using System.Data;
 using System.Drawing.Printing;
 using Utilities;
@@ -100,7 +101,7 @@ namespace DAL
                     new SqlParameter("@service_type", 1),
 
                 };
-
+                LogHelper.InsertLogTelegram("AffiliatePaymentListing GetByAccountClientId [" + accountClientId + "][" + pageIndex + "][" + pageSize + "][" + 1 + "]");
                 var dt= _DbWorker.GetDataTable("SP_GetAllotmentUseByAccountClientId", objParam);
                 if (dt != null && dt.Rows.Count > 0)
                 {

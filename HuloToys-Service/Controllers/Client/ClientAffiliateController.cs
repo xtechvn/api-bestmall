@@ -684,6 +684,14 @@ namespace HuloToys_Service.Controllers
         [HttpPost("payment/listing")]
         public async Task<ActionResult> AffiliatePaymentListing([FromBody] APIRequestGenericModel input)
         {
+            //var model_input = new OrderHistoryRequestModel
+            //{
+            //    token = "F08nOlAVBi8vLwxaDGMgagVjbX55aFFjcFp+AmJnTlpFXyNQYmNiUgBpXnt3Q1BJUlZ0WE5BcCxNFysoPCdLQhRzZWoEfmV+Y2pbBHlecABibFxFSQBgQGtyZ1dpZRI=",
+            //};
+            //input = new APIRequestGenericModel()
+            //{
+            //    token = CommonHelper.Encode(JsonConvert.SerializeObject(model_input), configuration["KEY:private_key"])
+            //};
             try
             {
 

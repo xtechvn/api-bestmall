@@ -1098,7 +1098,7 @@ namespace HuloToys_Service.Controllers.News.Business
                         url_path = parent.Path,
                         order_no = (int)(parent.OrderNo ?? 0),
                         product_count=parent.ProductCount??0,
-                        group_product_child = parent.group_product_child?.Where(x => x.ProductCount > 0).OrderBy(c => c.OrderNo).Select(child => new ArticleGroupViewModel
+                        group_product_child = parent.group_product_child?.Where(x => x.ProductCount > 0 && x.Status==0).OrderBy(c => c.OrderNo).Select(child => new ArticleGroupViewModel
                         {
                             id = child.Id,
                             name = child.Name,

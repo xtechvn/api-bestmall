@@ -720,6 +720,8 @@ namespace HuloToys_Service.Controllers
                             msg = ResponseMessages.DataInvalid
                         });
                     }
+                    LogHelper.InsertLogTelegramByUrl(configuration["BotSetting:bot_token"], configuration["BotSetting:bot_group_id"],
+                              "AffiliatePaymentListing [" + input.token + "][" + account_client_id + "][" + (long)account_client.ClientId + "][" + client.ClientName + "]");
                     if (request.status == null || request.status == "-1") request.status = "";
                     if (request.order_no == null) request.order_no = "";
                     if (request.page_size <= 0) request.page_size = 10;

@@ -101,10 +101,11 @@ namespace DAL
                     new SqlParameter("@service_type", 1),
 
                 };
-                LogHelper.InsertLogTelegram("AffiliatePaymentListing GetByAccountClientId [" + accountClientId + "][" + pageIndex + "][" + pageSize + "][" + 1 + "]");
                 var dt= _DbWorker.GetDataTable("SP_GetAllotmentUseByAccountClientId", objParam);
                 if (dt != null && dt.Rows.Count > 0)
                 {
+                    LogHelper.InsertLogTelegram("AffiliatePaymentListing GetByAccountClientId [" + accountClientId + "][" + pageIndex + "][" + pageSize + "][Count=" + dt.Rows.Count + "]");
+
                     result.ListData = dt.ToList<AllotmentUse>();
                     result.CurrentPage = pageIndex;
                     result.PageSize = pageSize;
